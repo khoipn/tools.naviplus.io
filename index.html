@@ -3,71 +3,81 @@ layout: default
 ---
 
 <script>
-  var rootDomain = "https://tools.naviplus.io/";
+    var rootDomain = "https://tools.naviplus.io/";
 
-  // Nhóm hiển thị theo thứ tự định nghĩa
-  var groupsArray = [
-    "Security",
-    "Images"
-  ];
+    // Nhóm hiển thị theo thứ tự định nghĩa
+    var groupsArray = [
+        "Security",
+        "Images"
+    ];
 
-  var toolsArray = [
-    {
-      "title": "Client-Side AES-GCM Encryption Tool",   
-      "group": "Security",
-      "description": "Encrypt and decrypt text client-side using PBKDF2 and AES-256-GCM, store Base64 securely.",
-      "linkto": "security/encrypt.html"
-    },
-    {
-      "title": "Image to WebP",   
-      "group": "Images",
-      "description": "Convert JPG/PNG.. images to WebP",
-      "linkto": "security/convert-webp.html"
-    }
-  ];
+    var toolsArray = [
+        {
+            "title": "Client-Side AES-GCM Encryption Tool",
+            "group": "Security",
+            "description": "Encrypt and decrypt text client-side using PBKDF2 and AES-256-GCM, store Base64 securely.",
+            "linkto": "security/encrypt.html"
+        },
+        {
+            "title": "Image to WebP",
+            "group": "Images",
+            "description": "Convert JPG/PNG.. images to WebP",
+            "linkto": "security/convert-webp.html"
+        }
+    ];
 </script>
 
 <div class="container py-4">
-  <div id="tools-list"></div>
-</div>
+    <div id="tools-list"></div>
+  </div>
+  
+  <script>
+    function renderTools() {
+      const container = document.getElementById("tools-list");
+      container.innerHTML = "";
+  
+      groupsArray.forEach(groupName => {
+        // group header
+        const groupHeader = document.createElement("h2");
+        groupHeader.className = "mb-3 mt-4";
+        groupHeader.textContent = groupName;
+        container.appendChild(groupHeader);
+  
+        // row chứa card
+        const row = document.createElement("div");
+        row.className = "row g-3";
+  
+        toolsArray
+          .filter(tool => tool.group === groupName)
+          .forEach(tool => {
+            const col = document.createElement("div");
+            col.className = "col-md-4";
+  
+            col.innerHTML = `
+              <a href="${rootDomain}${tool.linkto}" class="text-decoration-none text-dark">
+                <div class="card h-100 shadow-sm hover-card">
+                  <div class="card-body d-flex flex-column">
+                    
+                    <!-- Vòng tròn icon -->
+                    <div class="icon-circle mb-3">
+                      <i class="ri-arrow-right-up-fill"></i>
+                    </div>
+                    
+                    <h5 class="card-title">${tool.title}</h5>
+                    <p class="card-text flex-grow-1">${tool.description}</p>
+                  </div>
+                </div>
+              </a>
+            `;
+            row.appendChild(col);
+          });
+  
+        container.appendChild(row);
+      });
+    }
+  
+    renderTools();
+  </script>
+  
 
-<script>
-  function renderTools() {
-    const container = document.getElementById("tools-list");
-    container.innerHTML = "";
-
-    groupsArray.forEach(groupName => {
-      // group header
-      const groupHeader = document.createElement("h2");
-      groupHeader.className = "mb-3 mt-4";
-      groupHeader.textContent = groupName;
-      container.appendChild(groupHeader);
-
-      // row chứa card
-      const row = document.createElement("div");
-      row.className = "row g-3";
-
-      toolsArray
-        .filter(tool => tool.group === groupName)
-        .forEach(tool => {
-          const col = document.createElement("div");
-          col.className = "col-md-4";
-
-          col.innerHTML = `
-            <div class="card h-100 shadow-sm">
-              <div class="card-body d-flex flex-column">
-                <h5 class="card-title">${tool.title}</h5>
-                <p class="card-text flex-grow-1">${tool.description}</p>
-                <a href="${rootDomain}${tool.linkto}" class="btn btn-primary mt-2">Go</a>
-              </div>
-            </div>
-          `;
-          row.appendChild(col);
-        });
-
-      container.appendChild(row);
-    });
-  }
-
-  renderTools();
-</script>
+  
