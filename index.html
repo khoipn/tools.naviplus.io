@@ -2,9 +2,238 @@
 layout: default
 ---
 
-{% include head.html %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-10">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h1 class="h3 mb-1">Pham Khoi's encrypt system</h1>
+            <p class="text-muted mb-4">AES‑256‑GCM với PBKDF2 (SHA‑256). Định dạng lưu: <code>salt||iv||ciphertext</code> (Base64).</p>
 
-<h1>Trang Encrypt</h1>
-<p>Nội dung chính...</p>
+            <!-- Master passphrase -->
+            <div class="mb-3">
+              <label for="passphrase" class="form-label">Master passphrase</label>
+              <input id="passphrase" type="password" class="form-control" placeholder="Nhập master passphrase (không lưu nơi khác)" autocomplete="new-password" />
+            </div>
 
-{% include footer.html %}
+            <div class="row g-3 align-items-end">
+              <div class="col-auto">
+                <label for="iterSelect" class="form-label mb-0">PBKDF2 iterations</label>
+              </div>
+              <div class="col-auto">
+                <select id="iterSelect" class="form-select">
+                  <option value="100000">100,000 (fast)</option>
+                  <option value="200000" selected>200,000 (recommended)</option>
+                  <option value="400000">400,000 (slower)</option>
+                </select>
+              </div>
+              <div class="col-auto">
+                <button class="btn btn-outline-secondary" id="generatePass" type="button">Tạo passphrase ngẫu nhiên</button>
+              </div>
+            </div>
+
+            <hr class="my-4" />
+
+            <div class="row g-4">
+              <!-- Encrypt column -->
+              <div class="col-12 col-lg-6">
+                <h2 class="h5 mb-3">Encrypt (mã hoá)</h2>
+
+                <div class="mb-3">
+                  <label for="plaintext" class="form-label">Plaintext (ví dụ: mật khẩu)</label>
+                  <textarea id="plaintext" class="form-control" rows="6" placeholder="Nhập văn bản muốn mã hoá"></textarea>
+                </div>
+
+                <div class="d-flex gap-2 mb-3">
+                  <button class="btn btn-primary" id="encryptBtn" type="button">Encrypt →</button>
+                  <button class="btn btn-outline-secondary" id="clearPlain" type="button">Clear</button>
+                </div>
+
+                <div class="mb-2">
+                  <label class="form-label">Encrypted output (Base64)</label>
+                  <pre id="encryptedOut" class="form-control" style="min-height: 140px; overflow:auto; white-space:pre-wrap;"></pre>
+                </div>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-primary" id="copyEnc" type="button">Copy</button>
+                  <button class="btn btn-outline-secondary" id="downloadEnc" type="button">Download .txt</button>
+                </div>
+              </div>
+
+              <!-- Decrypt column -->
+              <div class="col-12 col-lg-6">
+                <h2 class="h5 mb-3">Decrypt (giải mã)</h2>
+
+                <div class="mb-3">
+                  <label for="ciphertextIn" class="form-label">Paste Base64 encrypted</label>
+                  <textarea id="ciphertextIn" class="form-control" rows="6" placeholder="Dán chuỗi Base64 (salt||iv||ciphertext)"></textarea>
+                </div>
+
+                <div class="d-flex gap-2 mb-3">
+                  <button class="btn btn-primary" id="decryptBtn" type="button">Decrypt →</button>
+                  <button class="btn btn-outline-secondary" id="clearCipher" type="button">Clear</button>
+                </div>
+
+                <div class="mb-2">
+                  <label class="form-label">Plaintext output</label>
+                  <pre id="decryptedOut" class="form-control" style="min-height: 140px; overflow:auto; white-space:pre-wrap;"></pre>
+                </div>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-primary" id="copyDec" type="button">Copy</button>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4" />
+
+            <div class="mb-2">
+              <h2 class="h6">Cảnh báo an ninh</h2>
+              <ul class="text-muted mb-0">
+                <li>Master passphrase là chìa khoá: <strong class="text-danger">không</strong> lưu passphrase cùng nơi với dữ liệu mã hoá.</li>
+                <li>Đừng dùng obfuscation (Base64/XOR) — đây là mã hoá thực sự.</li>
+                <li>Nếu quên passphrase thì không thể khôi phục dữ liệu.</li>
+                <li>Tránh paste passphrase trên máy không tin cậy (keylogger, clipboard logger).</li>
+              </ul>
+            </div>
+
+            <div class="text-muted small">Mở file offline. Yêu cầu trình duyệt hiện đại hỗ trợ Web Crypto Subtle API.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+
+  <script>
+    // --- Utilities ---
+    function buf2b64(buf){
+      const bytes = new Uint8Array(buf);
+      let binary = '';
+      for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+      return btoa(binary);
+    }
+    function b642buf(b64){
+      const binary = atob(b64);
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes.buffer;
+    }
+
+    const SALT_LEN = 16; // bytes
+    const IV_LEN = 12;   // bytes for AES-GCM
+
+    async function deriveKey(passphrase, saltBuffer, iterations){
+      const enc = new TextEncoder();
+      const passKey = await crypto.subtle.importKey('raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']);
+      return crypto.subtle.deriveKey(
+        { name:'PBKDF2', salt: saltBuffer, iterations: iterations, hash: 'SHA-256' },
+        passKey,
+        { name:'AES-GCM', length: 256 },
+        false,
+        ['encrypt','decrypt']
+      );
+    }
+
+    async function encryptText(passphrase, plaintext, iterations){
+      const enc = new TextEncoder();
+      const salt = crypto.getRandomValues(new Uint8Array(SALT_LEN));
+      const iv = crypto.getRandomValues(new Uint8Array(IV_LEN));
+      const key = await deriveKey(passphrase, salt.buffer, iterations);
+      const ciphertext = await crypto.subtle.encrypt({ name:'AES-GCM', iv: iv }, key, enc.encode(plaintext));
+
+      // Concat salt||iv||ciphertext (tag appended inside ciphertext by Web Crypto)
+      const out = new Uint8Array(salt.byteLength + iv.byteLength + ciphertext.byteLength);
+      out.set(salt, 0);
+      out.set(iv, salt.byteLength);
+      out.set(new Uint8Array(ciphertext), salt.byteLength + iv.byteLength);
+      return buf2b64(out.buffer);
+    }
+
+    async function decryptText(passphrase, b64Combined, iterations){
+      const dec = new TextDecoder();
+      const combinedBuf = b642buf(b64Combined);
+      const combined = new Uint8Array(combinedBuf);
+      if (combined.byteLength < SALT_LEN + IV_LEN + 1) throw new Error('Dữ liệu mã hoá không hợp lệ');
+      const salt = combined.slice(0, SALT_LEN);
+      const iv = combined.slice(SALT_LEN, SALT_LEN + IV_LEN);
+      const ciphertext = combined.slice(SALT_LEN + IV_LEN);
+      const key = await deriveKey(passphrase, salt.buffer, iterations);
+      const plainBuf = await crypto.subtle.decrypt({ name:'AES-GCM', iv: iv }, key, ciphertext.buffer);
+      return dec.decode(plainBuf);
+    }
+
+    // --- DOM ---
+    const passEl = document.getElementById('passphrase');
+    const plaintextEl = document.getElementById('plaintext');
+    const encryptedOut = document.getElementById('encryptedOut');
+    const ciphertextIn = document.getElementById('ciphertextIn');
+    const decryptedOut = document.getElementById('decryptedOut');
+    const iterSelect = document.getElementById('iterSelect');
+
+    document.getElementById('encryptBtn').addEventListener('click', async () => {
+      try {
+        const pass = passEl.value;
+        if (!pass) return alert('Nhập passphrase trước');
+        const text = plaintextEl.value;
+        if (!text) return alert('Nhập plaintext cần mã hoá');
+        const iter = Number(iterSelect.value);
+        encryptedOut.textContent = 'Processing...';
+        const b64 = await encryptText(pass, text, iter);
+        encryptedOut.textContent = b64;
+      } catch (e) {
+        encryptedOut.textContent = 'Error: ' + (e.message || String(e));
+      }
+    });
+
+    document.getElementById('decryptBtn').addEventListener('click', async () => {
+      try {
+        const pass = passEl.value;
+        if (!pass) return alert('Nhập passphrase trước');
+        const b64 = ciphertextIn.value.trim();
+        if (!b64) return alert('Dán chuỗi Base64 cần giải mã');
+        const iter = Number(iterSelect.value);
+        decryptedOut.textContent = 'Processing...';
+        const plain = await decryptText(pass, b64, iter);
+        decryptedOut.textContent = plain;
+      } catch (e) {
+        decryptedOut.textContent = 'Error: ' + (e.message || String(e));
+      }
+    });
+
+    document.getElementById('copyEnc').addEventListener('click', () => {
+      const t = encryptedOut.textContent.trim();
+      if (!t) return; navigator.clipboard.writeText(t).then(() => alert('Copied'));
+    });
+    document.getElementById('copyDec').addEventListener('click', () => {
+      const t = decryptedOut.textContent.trim();
+      if (!t) return; navigator.clipboard.writeText(t).then(() => alert('Copied'));
+    });
+
+    document.getElementById('clearPlain').addEventListener('click', () => { plaintextEl.value = ''; });
+    document.getElementById('clearCipher').addEventListener('click', () => { ciphertextIn.value = ''; decryptedOut.textContent = ''; });
+
+    document.getElementById('generatePass').addEventListener('click', () => {
+      const arr = new Uint8Array(32);
+      crypto.getRandomValues(arr);
+      const s = btoa(String.fromCharCode(...arr)).replace(/\/+|=+/g,'').slice(0,32);
+      passEl.value = s;
+      alert('Generated random passphrase (copy to safe place)');
+    });
+
+    document.getElementById('downloadEnc').addEventListener('click', () => {
+      const t = encryptedOut.textContent.trim();
+      if (!t) return alert('No encrypted text to download');
+      const blob = new Blob([t], { type:'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'encrypted.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    // Feature detection
+    (function check(){
+      if (!window.crypto || !crypto.subtle) {
+        alert('Trình duyệt của bạn không hỗ trợ Web Crypto Subtle API. Hãy dùng Chrome/Edge/Firefox/Safari mới nhất.');
+      }
+    })();
+  </script>
