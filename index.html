@@ -15,52 +15,65 @@ layout: default
         {
             "title": "Client-Side AES-GCM Encryption Tool",
             "group": "Security",
+            "icon": "ri-lock-line",
             "description": "Encrypt and decrypt text client-side using PBKDF2 and AES-256-GCM, store Base64 securely.",
-            "linkto": "security/encrypt.html"
+            "linkto": "toolset/security/encrypt.html"
         },
         {
-            "title": "Image to WebP",
+            "title": "Secure Password Generator",
+            "group": "Security",
+            "icon": "ri-key-2-line",
+            "description": "Generate strong, random passwords instantly with customizable length and character sets for maximum security.",
+            "linkto": "toolset/security/generate-password.html"
+        },
+
+
+
+
+        {
+            "title": "JPG/PNG to WebP Converter",
             "group": "Images",
-            "description": "Convert JPG/PNG.. images to WebP",
-            "linkto": "security/convert-webp.html"
+            "icon": "ri-folder-image-line",
+            "description": "Quickly convert your JPG or PNG images into the modern, lightweight WebP format for faster loading and smaller file sizes",
+            "linkto": "toolset/images/convert-to-webp.html"
         }
     ];
 </script>
 
 <div class="container py-4">
     <div id="tools-list"></div>
-  </div>
-  
-  <script>
+</div>
+
+<script>
     function renderTools() {
-      const container = document.getElementById("tools-list");
-      container.innerHTML = "";
-  
-      groupsArray.forEach(groupName => {
-        // group header
-        const groupHeader = document.createElement("h2");
-        groupHeader.className = "mb-3 mt-4";
-        groupHeader.textContent = groupName;
-        container.appendChild(groupHeader);
-  
-        // row chứa card
-        const row = document.createElement("div");
-        row.className = "row g-3";
-  
-        toolsArray
-          .filter(tool => tool.group === groupName)
-          .forEach(tool => {
-            const col = document.createElement("div");
-            col.className = "col-md-4";
-  
-            col.innerHTML = `
+        const container = document.getElementById("tools-list");
+        container.innerHTML = "";
+
+        groupsArray.forEach(groupName => {
+            // group header
+            const groupHeader = document.createElement("h3");
+            groupHeader.className = "mb-3 mt-4";
+            groupHeader.textContent = groupName;
+            container.appendChild(groupHeader);
+
+            // row chứa card
+            const row = document.createElement("div");
+            row.className = "row g-3";
+
+            toolsArray
+                .filter(tool => tool.group === groupName)
+                .forEach(tool => {
+                    const col = document.createElement("div");
+                    col.className = "col-md-4";
+
+                    col.innerHTML = `
               <a href="${rootDomain}${tool.linkto}" class="text-decoration-none text-dark">
-                <div class="card h-100 shadow-sm hover-card">
+                <div class="card card-toolset h-100 shadow-sm hover-card">
                   <div class="card-body d-flex flex-column">
                     
                     <!-- Vòng tròn icon -->
                     <div class="icon-circle mb-3">
-                      <i class="ri-arrow-right-up-fill"></i>
+                      <i class="${tool.icon}"></i>
                     </div>
                     
                     <h5 class="card-title">${tool.title}</h5>
@@ -69,15 +82,12 @@ layout: default
                 </div>
               </a>
             `;
-            row.appendChild(col);
-          });
-  
-        container.appendChild(row);
-      });
-    }
-  
-    renderTools();
-  </script>
-  
+                    row.appendChild(col);
+                });
 
-  
+            container.appendChild(row);
+        });
+    }
+
+    renderTools();
+</script>
