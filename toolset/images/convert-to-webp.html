@@ -1,0 +1,281 @@
+---
+layout: default
+title: "Batch WebP Converter"
+description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processing in your browser."
+---
+
+<div class="container py-4">
+  <!-- Header -->
+  <div class="row mb-3">
+    <div class="col-12">
+      <h1 class="h3 mb-1">Batch WebP Converter</h1>
+      <p class="text-muted mb-0">Drag & drop JPG/PNG → export .webp. All processing runs locally in your browser.</p>
+    </div>
+  </div>
+
+  <!-- Card: Dropzone & Controls -->
+  <div class="card mb-3">
+    <div class="card-header"><strong>Upload & Settings</strong></div>
+    <div class="card-body">
+      <!-- Dropzone -->
+      <div id="dropzone" class="border border-2 border-primary-subtle rounded-3 p-4 text-center bg-light mb-3">
+        <p class="mb-2"><strong>Drop images here</strong> or</p>
+        <label for="fileInput" class="btn btn-primary">Choose files</label>
+        <input id="fileInput" type="file" accept="image/jpeg,image/png" multiple class="d-none" />
+        <p class="small text-muted mb-0">Supports JPEG/JPG & PNG. Files are processed locally on your device.</p>
+      </div>
+
+      <!-- Controls -->
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-md-4">
+          <label for="quality" class="form-label">WebP Quality (0.1–1.0)</label>
+          <input type="range" id="quality" min="0.1" max="1" step="0.01" value="0.8" class="form-range" />
+          <div class="form-text">Current value: <span id="qualityVal">0.80</span></div>
+        </div>
+        <div class="col-6 col-md-4">
+          <label for="maxDim" class="form-label">Max dimension (px)</label>
+          <input type="number" id="maxDim" min="0" step="1" value="0" class="form-control" />
+          <div class="form-text">0 = keep original size</div>
+        </div>
+        <div class="col-6 col-md-4">
+          <label for="concurrency" class="form-label">Concurrent tasks</label>
+          <input type="number" id="concurrency" min="1" max="8" step="1" value="3" class="form-control" />
+          <div class="form-text">Increase if your machine is powerful</div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="d-flex gap-2 flex-wrap mt-3">
+        <button id="startBtn" class="btn btn-success" disabled>Start Conversion</button>
+        <button id="clearBtn" class="btn btn-outline-secondary">Clear List</button>
+        <button id="zipBtn" class="btn btn-outline-primary" disabled>Download ZIP (.webp)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card: File list -->
+  <div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>File List</strong>
+      <span id="summary" class="text-muted small">0 files</span>
+    </div>
+    <div class="card-body">
+      <div id="list" class="vstack gap-2"></div>
+    </div>
+  </div>
+
+  <!-- Note -->
+  <div class="alert alert-secondary small">
+    <strong>Tip:</strong> Use quality ~0.7–0.85 for a good balance. Set max dimension if you need lighter images for the web.
+  </div>
+</div>
+
+<!-- JSZip for ZIP downloads -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+<script>
+(() => {
+  const $ = (s, r=document) => r.querySelector(s);
+  const dropzone = $('#dropzone');
+  const fileInput = $('#fileInput');
+  const startBtn = $('#startBtn');
+  const clearBtn = $('#clearBtn');
+  const zipBtn = $('#zipBtn');
+  const list = $('#list');
+  const quality = $('#quality');
+  const qualityVal = $('#qualityVal');
+  const maxDim = $('#maxDim');
+  const concurrencyInput = $('#concurrency');
+  const summary = $('#summary');
+
+  let queue = [];
+  let processing = false;
+
+  function bytes(n){
+    if(n < 1024) return n + ' B';
+    if(n < 1048576) return (n/1024).toFixed(1) + ' KB';
+    return (n/1048576).toFixed(2) + ' MB';
+  }
+
+  function makeRow(item){
+    const url = URL.createObjectURL(item.file);
+    const row = document.createElement('div');
+    row.className = 'd-grid align-items-center p-2 border rounded-3';
+    row.style.gridTemplateColumns = '64px 1fr auto';
+    row.innerHTML = `
+      <div class="bg-light rounded-3 overflow-hidden" style="width:64px;height:64px;display:grid;place-items:center;">
+        <img alt="preview" src="${url}" style="width:100%;height:100%;object-fit:cover;" />
+      </div>
+      <div class="px-2 text-truncate">
+        <div class="fw-semibold text-truncate" title="${item.file.name}">${item.file.name}</div>
+        <div class="text-muted small">${bytes(item.file.size)} · ${item.file.type || 'image'}</div>
+        <div class="text-muted small status">Pending</div>
+      </div>
+      <div class="d-flex flex-column align-items-end gap-2">
+        <progress max="100" value="0" style="width:160px;height:10px;"></progress>
+        <a class="btn btn-sm btn-outline-success d-none" target="_blank">Download .webp</a>
+      </div>`;
+    item.el = row;
+    return row;
+  }
+
+  function updateSummary(){
+    const total = queue.length;
+    const done = queue.filter(x => x.status === 'done').length;
+    summary.textContent = `${total} files · ${done} done`;
+    zipBtn.disabled = done === 0;
+    startBtn.disabled = total === 0 || processing;
+  }
+
+  function addFiles(files){
+    const arr = Array.from(files).filter(f => /image\/(jpeg|png)/.test(f.type) || /\.(jpg|jpeg|png)$/i.test(f.name));
+    if(!arr.length) return;
+    arr.forEach(file => {
+      const item = { file, status: 'pending', blob: null, url: null, el: null };
+      queue.push(item);
+      list.appendChild(makeRow(item));
+    });
+    updateSummary();
+  }
+
+  // Drag & drop
+  ['dragenter','dragover','dragleave','drop'].forEach(evt => {
+    document.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); }, false);
+  });
+  dropzone.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+
+  // Fix: open file dialog only on label/button click
+  fileInput.addEventListener('change', e => { addFiles(e.target.files); fileInput.value = ''; });
+
+  quality.addEventListener('input', () => (qualityVal.textContent = (+quality.value).toFixed(2)));
+
+  clearBtn.addEventListener('click', () => {
+    queue.forEach(i => { if(i.url) URL.revokeObjectURL(i.url); });
+    queue = []; list.innerHTML = ''; updateSummary();
+  });
+
+  async function decodeToBitmap(file){
+    try {
+      const bmp = await createImageBitmap(file);
+      return { bmp, w: bmp.width, h: bmp.height };
+    } catch (e) {
+      const url = URL.createObjectURL(file);
+      const img = await new Promise((res, rej) => {
+        const im = new Image();
+        im.onload = () => res(im);
+        im.onerror = rej; im.src = url;
+      });
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0);
+      const blob = await new Promise(r => canvas.toBlob(r));
+      const bmp2 = await createImageBitmap(blob);
+      return { bmp: bmp2, w: bmp2.width, h: bmp2.height };
+    }
+  }
+
+  function getTargetSize(w, h, max){
+    if(!max || max <= 0) return { W: w, H: h };
+    const longer = Math.max(w, h);
+    if(longer <= max) return { W: w, H: h };
+    const s = max / longer; return { W: Math.round(w * s), H: Math.round(h * s) };
+  }
+
+  async function rasterizeToWebP(bitmap, W, H, q){
+    const useOffscreen = 'OffscreenCanvas' in window;
+    const canvas = useOffscreen ? new OffscreenCanvas(W, H) : Object.assign(document.createElement('canvas'), { width: W, height: H });
+    if(useOffscreen){ canvas.width = W; canvas.height = H; }
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bitmap, 0, 0, W, H);
+    const blob = await new Promise((res, rej) => {
+      if(canvas.convertToBlob){
+        canvas.convertToBlob({ type: 'image/webp', quality: q }).then(res).catch(rej);
+      } else if(canvas.toBlob){
+        canvas.toBlob(b => b ? res(b) : rej(new Error('toBlob null')), 'image/webp', q);
+      } else {
+        try {
+          const dataURL = canvas.toDataURL('image/webp', q);
+          const bstr = atob(dataURL.split(',')[1]);
+          const u8 = new Uint8Array(bstr.length);
+          for(let i=0;i<bstr.length;i++) u8[i] = bstr.charCodeAt(i);
+          res(new Blob([u8], { type: 'image/webp' }));
+        } catch(err){ rej(err); }
+      }
+    });
+    bitmap.close && bitmap.close();
+    return blob;
+  }
+
+  async function processItem(item){
+    const row = item.el;
+    const progress = row.querySelector('progress');
+    const statusEl = row.querySelector('.status');
+    const link = row.querySelector('a');
+    statusEl.textContent = 'Processing...'; progress.value = 10;
+    try {
+      const { bmp, w, h } = await decodeToBitmap(item.file); progress.value = 40;
+      const { W, H } = getTargetSize(w, h, +maxDim.value || 0);
+      const blob = await rasterizeToWebP(bmp, W, H, +quality.value); progress.value = 90;
+      const webpName = item.file.name.replace(/\.(jpe?g|png)$/i, '') + '.webp';
+      const url = URL.createObjectURL(blob);
+      link.classList.remove('d-none'); link.download = webpName; link.href = url; link.textContent = 'Download ' + webpName;
+      item.status = 'done'; item.blob = blob; item.url = url;
+      statusEl.textContent = `${bytes(item.file.size)} → ${bytes(blob.size)} (${((blob.size/item.file.size)*100).toFixed(0)}%)`;
+      progress.value = 100;
+    } catch(err){
+      console.error(err); statusEl.textContent = 'Error: ' + err.message; row.classList.add('opacity-50'); item.status = 'error';
+    }
+    updateSummary();
+  }
+
+  async function runQueue(){
+    processing = true; updateSummary();
+    const concurrency = Math.max(1, Math.min(8, +concurrencyInput.value || 3));
+    const pendings = queue.filter(x => x.status === 'pending');
+    const workers = Array.from({ length: concurrency }, async () => {
+      while(true){
+        const next = pendings.find(x => x.status === 'pending');
+        if(!next) break; next.status = 'working'; await processItem(next);
+      }
+    });
+    await Promise.all(workers);
+    processing = false; updateSummary();
+  }
+
+  startBtn.addEventListener('click', runQueue);
+
+  // Build ZIP
+  zipBtn.addEventListener('click', async () => {
+    const doneItems = queue.filter(x => x.status === 'done');
+    if(doneItems.length === 0) return;
+    zipBtn.disabled = true; zipBtn.textContent = 'Zipping...';
+    const zip = new JSZip();
+    doneItems.forEach(it => {
+      const name = (it.el.querySelector('a').download) || (it.file.name.replace(/\.(jpe?g|png)$/i, '') + '.webp');
+      zip.file(name, it.blob);
+    });
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'webp_batch.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    zipBtn.disabled = false; zipBtn.textContent = 'Download ZIP (.webp)';
+  });
+
+  const obs = new MutationObserver(updateSummary);
+  obs.observe(list, { childList: true, subtree: false });
+
+  // WebP support check
+  (async () => {
+    let supported = true;
+    try { const c = document.createElement('canvas'); supported = c.toDataURL('image/webp').startsWith('data:image/webp'); } catch { supported = false; }
+    if(!supported){
+      const warn = document.createElement('div');
+      warn.className = 'alert alert-warning';
+      warn.innerHTML = '<strong>Your browser may not support WebP.</strong> Please use Chrome, Edge, Firefox, or Safari.';
+      document.querySelector('.container').prepend(warn);
+    }
+  })();
+})();
+</script>
