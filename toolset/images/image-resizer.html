@@ -1,0 +1,149 @@
+---
+layout: default
+title: "Batch Image Resizer"
+description: "Resize images into common formats with crop-fit center, preview thumbnails, and download individually or as ZIP."
+---
+
+<div class="container py-4">
+  <!-- Header -->
+  <div class="row mb-3">
+    <div class="col-12">
+      <h1 class="h3 mb-1">Batch Image Resizer</h1>
+      <p class="text-muted mb-0">Resize images to popular resolutions with center crop. Preview thumbnails and download results individually or as a ZIP.</p>
+    </div>
+  </div>
+
+  <!-- Card: Upload -->
+  <div class="card mb-3">
+    <div class="card-header"><strong>Upload Images</strong></div>
+    <div class="card-body">
+      <div id="dropzone" class="border border-2 border-primary-subtle rounded-3 p-4 text-center bg-light mb-3">
+        <p class="mb-2"><strong>Drop images here</strong> or</p>
+        <button id="selectBtn" class="btn btn-primary" type="button">Select files</button>
+        <input id="fileInput" type="file" accept="image/*" multiple class="d-none" />
+        <p class="small text-muted mb-0">Supports JPG, PNG, WebP, GIF. Files are processed locally on your device.</p>
+      </div>
+
+      <!-- Preset Sizes -->
+      <div class="mb-3">
+        <label class="form-label">Select target sizes</label>
+        <div class="d-flex flex-wrap gap-2">
+          <div class="form-check"><input class="form-check-input" type="checkbox" value="1024x768" checked> <label class="form-check-label">1024×768</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" value="1280x720"> <label class="form-check-label">1280×720</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" value="1440x960"> <label class="form-check-label">1440×960</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" value="1200x1200"> <label class="form-check-label">1200×1200</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" value="720x720"> <label class="form-check-label">720×720</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" value="768x1024"> <label class="form-check-label">768×1024</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" value="720x1280"> <label class="form-check-label">720×1280</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" value="960x1440"> <label class="form-check-label">960×1440</label></div>
+        </div>
+      </div>
+
+      <button id="processBtn" class="btn btn-success" disabled>Resize Images</button>
+      <button id="zipBtn" class="btn btn-outline-primary" disabled>Download ZIP</button>
+    </div>
+  </div>
+
+  <!-- Card: Results -->
+  <div class="card mb-3">
+    <div class="card-header"><strong>Resized Previews</strong></div>
+    <div class="card-body">
+      <div id="gallery" class="row g-3"></div>
+    </div>
+  </div>
+
+  <div class="alert alert-secondary small">
+    <strong>Tip:</strong> Images are resized with center crop to fit exactly into the chosen dimensions.
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+<script>
+(() => {
+  const $ = (s,r=document) => r.querySelector(s);
+  const dropzone = $('#dropzone');
+  const selectBtn = $('#selectBtn');
+  const fileInput = $('#fileInput');
+  const processBtn = $('#processBtn');
+  const zipBtn = $('#zipBtn');
+  const gallery = $('#gallery');
+
+  let files = [];
+  let results = [];
+
+  function addFiles(newFiles){
+    files = files.concat(Array.from(newFiles));
+    if(files.length) processBtn.disabled = false;
+  }
+
+  // Drag & drop
+  ['dragenter','dragover','dragleave','drop'].forEach(evt => {
+    document.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); }, false);
+  });
+  dropzone.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+  selectBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', e => { addFiles(e.target.files); fileInput.value=''; });
+
+  function getCheckedSizes(){
+    return Array.from(document.querySelectorAll('.form-check-input:checked')).map(el => el.value.split('x').map(Number));
+  }
+
+  function cropFit(img, W, H){
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    const r = Math.max(W/img.width, H/img.height);
+    const nw = img.width*r, nh = img.height*r;
+    const ox = (W-nw)/2, oy = (H-nh)/2;
+    ctx.drawImage(img, ox, oy, nw, nh);
+    return canvas;
+  }
+
+  async function process(){
+    gallery.innerHTML=''; results=[];
+    const sizes = getCheckedSizes();
+    for(const file of files){
+      const img = await loadImage(file);
+      for(const [W,H] of sizes){
+        const canvas = cropFit(img,W,H);
+        const blob = await new Promise(r=>canvas.toBlob(r,'image/jpeg',0.9));
+        const url = URL.createObjectURL(blob);
+        results.push({name: file.name.replace(/\.[^.]+$/, '')+`_${W}x${H}.jpg`, blob});
+        const col = document.createElement('div');
+        col.className='col-6 col-md-3';
+        col.innerHTML = `<div class="border rounded-3 p-1 text-center">
+          <img src="${url}" class="img-fluid mb-1" alt="thumb">
+          <a class="btn btn-sm btn-outline-success" href="${url}" download>Download</a>
+        </div>`;
+        gallery.appendChild(col);
+      }
+    }
+    zipBtn.disabled = results.length===0;
+  }
+
+  function loadImage(file){
+    return new Promise((res,rej)=>{
+      const img = new Image();
+      img.onload=()=>res(img);
+      img.onerror=rej;
+      img.src=URL.createObjectURL(file);
+    });
+  }
+
+  processBtn.addEventListener('click', process);
+
+  zipBtn.addEventListener('click', async ()=>{
+    if(!results.length) return;
+    zipBtn.disabled = true; zipBtn.textContent='Zipping...';
+    const zip = new JSZip();
+    results.forEach(r=>zip.file(r.name,r.blob));
+    const blob = await zip.generateAsync({type:'blob'});
+    const url = URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='resized_images.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    zipBtn.disabled = false; zipBtn.textContent='Download ZIP';
+  });
+})();
+</script>
