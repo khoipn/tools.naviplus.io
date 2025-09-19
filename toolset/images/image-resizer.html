@@ -1,6 +1,6 @@
 ---
 layout: default
-title: "Batch Image Resizer"
+title: "Image Resizer"
 description: "Resize images into common formats with crop-fit center, preview thumbnails, and download individually or as ZIP."
 ---
 
@@ -24,18 +24,42 @@ description: "Resize images into common formats with crop-fit center, preview th
         <p class="small text-muted mb-0">Supports JPG, PNG, WebP, GIF. Files are processed locally on your device.</p>
       </div>
 
-      <!-- Preset Sizes -->
+      <!-- Preset Sizes (single choice with thumbnails) -->
       <div class="mb-3">
-        <label class="form-label">Select target sizes</label>
-        <div class="d-flex flex-wrap gap-2">
-          <div class="form-check"><input class="form-check-input" type="checkbox" value="1024x768" checked> <label class="form-check-label">1024×768</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" value="1280x720"> <label class="form-check-label">1280×720</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" value="1440x960"> <label class="form-check-label">1440×960</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" value="1200x1200"> <label class="form-check-label">1200×1200</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" value="720x720"> <label class="form-check-label">720×720</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" value="768x1024"> <label class="form-check-label">768×1024</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" value="720x1280"> <label class="form-check-label">720×1280</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" value="960x1440"> <label class="form-check-label">960×1440</label></div>
+        <label class="form-label">Select target size</label>
+        <div class="d-flex flex-wrap gap-2" id="sizeOptions">
+          <label class="border rounded-3 p-2 text-center" style="width:100px;cursor:pointer;">
+            <input type="radio" name="size" value="1024x768" checked hidden>
+            <div class="bg-light d-flex align-items-center justify-content-center" style="width:80px;height:60px;">1024×768</div>
+          </label>
+          <label class="border rounded-3 p-2 text-center" style="width:100px;cursor:pointer;">
+            <input type="radio" name="size" value="1280x720" hidden>
+            <div class="bg-light d-flex align-items-center justify-content-center" style="width:80px;height:45px;">1280×720</div>
+          </label>
+          <label class="border rounded-3 p-2 text-center" style="width:100px;cursor:pointer;">
+            <input type="radio" name="size" value="1440x960" hidden>
+            <div class="bg-light d-flex align-items-center justify-content-center" style="width:80px;height:53px;">1440×960</div>
+          </label>
+          <label class="border rounded-3 p-2 text-center" style="width:100px;cursor:pointer;">
+            <input type="radio" name="size" value="1200x1200" hidden>
+            <div class="bg-light d-flex align-items-center justify-content-center" style="width:60px;height:60px;">1200×1200</div>
+          </label>
+          <label class="border rounded-3 p-2 text-center" style="width:100px;cursor:pointer;">
+            <input type="radio" name="size" value="720x720" hidden>
+            <div class="bg-light d-flex align-items-center justify-content-center" style="width:45px;height:45px;">720×720</div>
+          </label>
+          <label class="border rounded-3 p-2 text-center" style="width:100px;cursor:pointer;">
+            <input type="radio" name="size" value="768x1024" hidden>
+            <div class="bg-light d-flex align-items-center justify-content-center" style="width:45px;height:60px;">768×1024</div>
+          </label>
+          <label class="border rounded-3 p-2 text-center" style="width:100px;cursor:pointer;">
+            <input type="radio" name="size" value="720x1280" hidden>
+            <div class="bg-light d-flex align-items-center justify-content-center" style="width:45px;height:80px;">720×1280</div>
+          </label>
+          <label class="border rounded-3 p-2 text-center" style="width:100px;cursor:pointer;">
+            <input type="radio" name="size" value="960x1440" hidden>
+            <div class="bg-light d-flex align-items-center justify-content-center" style="width:53px;height:80px;">960×1440</div>
+          </label>
         </div>
       </div>
 
@@ -53,7 +77,7 @@ description: "Resize images into common formats with crop-fit center, preview th
   </div>
 
   <div class="alert alert-secondary small">
-    <strong>Tip:</strong> Images are resized with center crop to fit exactly into the chosen dimensions.
+    <strong>Tip:</strong> Images are resized with center crop to fit exactly into the chosen dimension. Output is JPEG at higher compression to reduce file size.
   </div>
 </div>
 
@@ -85,8 +109,9 @@ description: "Resize images into common formats with crop-fit center, preview th
   selectBtn.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', e => { addFiles(e.target.files); fileInput.value=''; });
 
-  function getCheckedSizes(){
-    return Array.from(document.querySelectorAll('.form-check-input:checked')).map(el => el.value.split('x').map(Number));
+  function getSelectedSize(){
+    const checked = document.querySelector('input[name="size"]:checked');
+    return checked ? checked.value.split('x').map(Number) : null;
   }
 
   function cropFit(img, W, H){
@@ -102,22 +127,23 @@ description: "Resize images into common formats with crop-fit center, preview th
 
   async function process(){
     gallery.innerHTML=''; results=[];
-    const sizes = getCheckedSizes();
+    const size = getSelectedSize();
+    if(!size) return;
+    const [W,H] = size;
     for(const file of files){
       const img = await loadImage(file);
-      for(const [W,H] of sizes){
-        const canvas = cropFit(img,W,H);
-        const blob = await new Promise(r=>canvas.toBlob(r,'image/jpeg',0.9));
-        const url = URL.createObjectURL(blob);
-        results.push({name: file.name.replace(/\.[^.]+$/, '')+`_${W}x${H}.jpg`, blob});
-        const col = document.createElement('div');
-        col.className='col-6 col-md-3';
-        col.innerHTML = `<div class="border rounded-3 p-1 text-center">
-          <img src="${url}" class="img-fluid mb-1" alt="thumb">
-          <a class="btn btn-sm btn-outline-success" href="${url}" download>Download</a>
-        </div>`;
-        gallery.appendChild(col);
-      }
+      const canvas = cropFit(img,W,H);
+      // Higher compression quality ~0.75
+      const blob = await new Promise(r=>canvas.toBlob(r,'image/jpeg',0.75));
+      const url = URL.createObjectURL(blob);
+      results.push({name: file.name.replace(/\.[^.]+$/, '')+`_${W}x${H}.jpg`, blob});
+      const col = document.createElement('div');
+      col.className='col-6 col-md-3';
+      col.innerHTML = `<div class="border rounded-3 p-1 text-center">
+        <img src="${url}" class="img-fluid mb-1" alt="thumb">
+        <a class="btn btn-sm btn-outline-success" href="${url}" download>Download</a>
+      </div>`;
+      gallery.appendChild(col);
     }
     zipBtn.disabled = results.length===0;
   }
