@@ -1,7 +1,7 @@
 ---
 layout: default
 title: "Batch Image Resizer"
-description: "Resize images into common formats with crop-fit center, preview thumbnails, and download individually or as ZIP."
+description: "Resize images with center crop, preview thumbnails, and download individually or as ZIP."
 ---
 
 <div class="container py-4">
@@ -9,7 +9,7 @@ description: "Resize images into common formats with crop-fit center, preview th
   <div class="row mb-3">
     <div class="col-12">
       <h1 class="h3 mb-1">Batch Image Resizer</h1>
-      <p class="text-muted mb-0">Resize images to popular resolutions with center crop. Preview thumbnails and download results individually or as a ZIP.</p>
+      <p class="text-muted mb-0">Resize images with center crop. Preview thumbnails and download results individually or as a ZIP.</p>
     </div>
   </div>
 
@@ -27,46 +27,26 @@ description: "Resize images into common formats with crop-fit center, preview th
       <!-- Selected Files -->
       <div class="mb-3">
         <label class="form-label">Selected files</label>
-        <ul id="fileList" class="list-group small"></ul>
+        <div id="fileList" class="row g-2 small"></div>
       </div>
 
-      <!-- Preset Sizes (single choice with ratio preview) -->
+      <!-- Resize Options -->
       <div class="mb-3">
-        <label class="form-label">Select target size</label>
-        <div class="d-flex flex-wrap gap-2" id="sizeOptions">
-          <label class="border rounded-3 p-2 text-center" style="cursor:pointer;">
-            <input type="radio" name="size" value="1024x768" checked hidden>
-            <div>1024×768 (4:3)</div>
-          </label>
-          <label class="border rounded-3 p-2 text-center" style="cursor:pointer;">
-            <input type="radio" name="size" value="1280x720" hidden>
-            <div>1280×720 (16:9)</div>
-          </label>
-          <label class="border rounded-3 p-2 text-center" style="cursor:pointer;">
-            <input type="radio" name="size" value="1440x960" hidden>
-            <div>1440×960 (3:2)</div>
-          </label>
-          <label class="border rounded-3 p-2 text-center" style="cursor:pointer;">
-            <input type="radio" name="size" value="1200x1200" hidden>
-            <div>1200×1200 (1:1)</div>
-          </label>
-          <label class="border rounded-3 p-2 text-center" style="cursor:pointer;">
-            <input type="radio" name="size" value="720x720" hidden>
-            <div>720×720 (1:1)</div>
-          </label>
-          <label class="border rounded-3 p-2 text-center" style="cursor:pointer;">
-            <input type="radio" name="size" value="768x1024" hidden>
-            <div>768×1024 (3:4)</div>
-          </label>
-          <label class="border rounded-3 p-2 text-center" style="cursor:pointer;">
-            <input type="radio" name="size" value="720x1280" hidden>
-            <div>720×1280 (9:16)</div>
-          </label>
-          <label class="border rounded-3 p-2 text-center" style="cursor:pointer;">
-            <input type="radio" name="size" value="960x1440" hidden>
-            <div>960×1440 (2:3)</div>
-          </label>
-        </div>
+        <label class="form-label">Target ratio</label>
+        <select id="ratioSelect" class="form-select">
+          <option value="4:3">4:3</option>
+          <option value="16:9">16:9</option>
+          <option value="3:2">3:2</option>
+          <option value="1:1">1:1</option>
+          <option value="3:4">3:4</option>
+          <option value="9:16">9:16</option>
+          <option value="2:3">2:3</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="resizeLevel" class="form-label">Resize level (max dimension px)</label>
+        <input type="range" id="resizeLevel" min="200" max="2000" step="50" value="800" class="form-range" />
+        <div class="form-text">Current: <span id="resizeVal">800</span>px</div>
       </div>
 
       <div class="d-flex gap-2 flex-wrap">
@@ -86,7 +66,7 @@ description: "Resize images into common formats with crop-fit center, preview th
   </div>
 
   <div class="alert alert-secondary small">
-    <strong>Tip:</strong> Images are resized with center crop to fit exactly into the chosen dimension. Output is JPEG at quality 0.75 to reduce file size.
+    <strong>Tip:</strong> Images are resized with center crop into the chosen ratio and max dimension. Output is JPEG at quality 0.75.
   </div>
 </div>
 
@@ -103,6 +83,9 @@ description: "Resize images into common formats with crop-fit center, preview th
   const zipBtn = $('#zipBtn');
   const gallery = $('#gallery');
   const fileList = $('#fileList');
+  const resizeLevel = $('#resizeLevel');
+  const resizeVal = $('#resizeVal');
+  const ratioSelect = $('#ratioSelect');
 
   let files = [];
   let results = [];
@@ -110,14 +93,14 @@ description: "Resize images into common formats with crop-fit center, preview th
   function renderFileList(){
     fileList.innerHTML='';
     files.forEach(f => {
-      const li = document.createElement('li');
-      li.className='list-group-item d-flex justify-content-between align-items-center';
-      li.textContent=f.name;
-      const size = document.createElement('span');
-      size.className='badge bg-secondary';
-      size.textContent = (f.size/1024).toFixed(1)+ ' KB';
-      li.appendChild(size);
-      fileList.appendChild(li);
+      const col = document.createElement('div');
+      col.className='col-6 col-md-3';
+      const url = URL.createObjectURL(f);
+      col.innerHTML = `<div class="border rounded-3 p-1 text-center">
+        <img src="${url}" class="img-fluid mb-1" alt="thumb">
+        <div class="text-truncate">${f.name}</div>
+      </div>`;
+      fileList.appendChild(col);
     });
   }
 
@@ -140,33 +123,32 @@ description: "Resize images into common formats with crop-fit center, preview th
   selectBtn.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', e => { addFiles(e.target.files); fileInput.value=''; });
 
-  function getSelectedSize(){
-    const checked = document.querySelector('input[name="size"]:checked');
-    return checked ? checked.value.split('x').map(Number) : null;
-  }
+  resizeLevel.addEventListener('input', ()=>{ resizeVal.textContent=resizeLevel.value; });
 
-  function cropFit(img, W, H){
+  function cropFit(img, maxDim, ratio){
+    let [rw,rh] = ratio.split(':').map(Number);
+    const targetW = maxDim;
+    const targetH = Math.round(maxDim * rh/rw);
     const canvas = document.createElement('canvas');
-    canvas.width = W; canvas.height = H;
+    canvas.width = targetW; canvas.height = targetH;
     const ctx = canvas.getContext('2d');
-    const r = Math.max(W/img.width, H/img.height);
+    const r = Math.max(targetW/img.width, targetH/img.height);
     const nw = img.width*r, nh = img.height*r;
-    const ox = (W-nw)/2, oy = (H-nh)/2;
+    const ox = (targetW-nw)/2, oy = (targetH-nh)/2;
     ctx.drawImage(img, ox, oy, nw, nh);
     return canvas;
   }
 
   async function process(){
     gallery.innerHTML=''; results=[];
-    const size = getSelectedSize();
-    if(!size) return;
-    const [W,H] = size;
+    const ratio = ratioSelect.value;
+    const maxDim = +resizeLevel.value;
     for(const file of files){
       const img = await loadImage(file);
-      const canvas = cropFit(img,W,H);
+      const canvas = cropFit(img,maxDim,ratio);
       const blob = await new Promise(r=>canvas.toBlob(r,'image/jpeg',0.75));
       const url = URL.createObjectURL(blob);
-      results.push({name: file.name.replace(/\.[^.]+$/, '')+`_${W}x${H}.jpg`, blob});
+      results.push({name: file.name.replace(/\.[^.]+$/, '')+`_${maxDim}_${ratio.replace(':','-')}.jpg`, blob});
       const col = document.createElement('div');
       col.className='col-6 col-md-3';
       col.innerHTML = `<div class="border rounded-3 p-1 text-center">
