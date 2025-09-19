@@ -1,12 +1,12 @@
 ---
 layout: default
 title: "Client-Side AES-GCM Encryption Tool"
-description: "Encrypt and decrypt text client-side using PBKDF2 and AES-256-GCM, store Base64 securely."
+description: "Encrypt and decrypt text client-side using PBKDF2 and AES-256-GCM. Store Base64 securely; only your master passphrase unlocks data, offline."
 ---
 
 <div class="container py-4">
 
-  <!-- Header / Intro -->
+  <!-- Header -->
   <div class="row mb-3">
     <div class="col-12">
       <h1 class="h3 mb-1">Client-Side AES-GCM Encryption Tool</h1>
@@ -43,67 +43,68 @@ description: "Encrypt and decrypt text client-side using PBKDF2 and AES-256-GCM,
     </div>
   </div>
 
-  <!-- Card 2: Encrypt -->
-  <div class="card mb-3">
-    <div class="card-header"><strong>Step 2 · Encrypt</strong></div>
-    <div class="card-body">
-      <div class="mb-3">
-        <label for="plaintext" class="form-label">Plaintext</label>
-        <textarea id="plaintext" class="form-control" rows="6" placeholder="Enter the text you want to encrypt"></textarea>
-      </div>
+  <!-- Step 2 & 3 side-by-side -->
+  <div class="row g-3 mb-3">
+    <!-- Card 2: Encrypt -->
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-header"><strong>Step 2 · Encrypt</strong></div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label for="plaintext" class="form-label">Plaintext</label>
+            <textarea id="plaintext" class="form-control" rows="3" placeholder="Enter the text you want to encrypt"></textarea>
+          </div>
 
-      <div class="d-flex gap-2 mb-3">
-        <button class="btn btn-primary" id="encryptBtn" type="button">Encrypt →</button>
-        <button class="btn btn-outline-secondary" id="clearPlain" type="button">Clear</button>
-      </div>
+          <div class="d-flex gap-2 mb-3">
+            <button class="btn btn-primary" id="encryptBtn" type="button">Encrypt →</button>
+            <button class="btn btn-outline-secondary" id="clearPlain" type="button">Clear</button>
+          </div>
 
-      <div class="mb-2">
-        <label class="form-label">Encrypted output (Base64)</label>
-        <pre id="encryptedOut" class="form-control" style="min-height:140px;overflow:auto;white-space:pre-wrap;"></pre>
+          <div class="mb-2">
+            <label class="form-label">Encrypted output (Base64)</label>
+            <pre id="encryptedOut" class="form-control" style="min-height:80px;max-height:220px;overflow:auto;white-space:pre-wrap;"></pre>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary" id="copyEnc" type="button">Copy</button>
+            <button class="btn btn-outline-secondary" id="downloadEnc" type="button">Download .txt</button>
+          </div>
+        </div>
       </div>
-      <div class="d-flex gap-2">
-        <button class="btn btn-primary" id="copyEnc" type="button">Copy</button>
-        <button class="btn btn-outline-secondary" id="downloadEnc" type="button">Download .txt</button>
+    </div>
+
+    <!-- Card 3: Decrypt -->
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-header"><strong>Step 3 · Decrypt</strong></div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label for="ciphertextIn" class="form-label">Paste Base64 encrypted</label>
+            <textarea id="ciphertextIn" class="form-control" rows="3" placeholder="Paste Base64 (salt||iv||ciphertext)"></textarea>
+          </div>
+
+          <div class="d-flex gap-2 mb-3">
+            <button class="btn btn-primary" id="decryptBtn" type="button">Decrypt →</button>
+            <button class="btn btn-outline-secondary" id="clearCipher" type="button">Clear</button>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label">Plaintext output</label>
+            <pre id="decryptedOut" class="form-control" style="min-height:80px;max-height:220px;overflow:auto;white-space:pre-wrap;"></pre>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-success" id="copyDec" type="button">Copy</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Card 3: Decrypt -->
-  <div class="card mb-3">
-    <div class="card-header"><strong>Step 3 · Decrypt</strong></div>
-    <div class="card-body">
-      <div class="mb-3">
-        <label for="ciphertextIn" class="form-label">Paste Base64 encrypted</label>
-        <textarea id="ciphertextIn" class="form-control" rows="6" placeholder="Paste Base64 (salt||iv||ciphertext)"></textarea>
-      </div>
-
-      <div class="d-flex gap-2 mb-3">
-        <button class="btn btn-primary" id="decryptBtn" type="button">Decrypt →</button>
-        <button class="btn btn-outline-secondary" id="clearCipher" type="button">Clear</button>
-      </div>
-
-      <div class="mb-2">
-        <label class="form-label">Plaintext output</label>
-        <pre id="decryptedOut" class="form-control" style="min-height:140px;overflow:auto;white-space:pre-wrap;"></pre>
-      </div>
-      <div class="d-flex gap-2">
-        <button class="btn btn-success" id="copyDec" type="button">Copy</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Card 4: Security Notes -->
-  <div class="card mb-3">
-    <div class="card-header"><strong>Step 4 · Security Notes</strong></div>
-    <div class="card-body">
-      <ul class="text-muted mb-0">
-        <li>Your master passphrase is the single point of trust — never store it with the encrypted data.</li>
-        <li>This is real encryption (PBKDF2 → AES-256-GCM), not obfuscation.</li>
-        <li>Forgotten passphrases cannot be recovered.</li>
-        <li>Avoid using untrusted machines (keyloggers/clipboard loggers).</li>
-        <li>Format: <code>salt(16B)||iv(12B)||ciphertext+tag</code> (Base64), Web Crypto GCM appends tag to ciphertext.</li>
-      </ul>
-    </div>
+  <!-- Note (not a card) -->
+  <div class="alert alert-secondary small">
+    <strong>Security note:</strong>
+    Your master passphrase is never stored. This uses PBKDF2 → AES-256-GCM with random salt and IV.
+    Forgotten passphrases cannot be recovered. Format:
+    <code>salt(16B)||iv(12B)||ciphertext+tag</code> (Base64).
   </div>
 
 </div>
@@ -147,12 +148,9 @@ description: "Encrypt and decrypt text client-side using PBKDF2 and AES-256-GCM,
     const iv = crypto.getRandomValues(new Uint8Array(IV_LEN));
     const key = await deriveKey(passphrase, salt.buffer, iterations);
     const ciphertext = await crypto.subtle.encrypt({ name:'AES-GCM', iv: iv }, key, enc.encode(plaintext));
-
-    // Concat salt||iv||ciphertext (GCM tag is appended within ciphertext by Web Crypto)
     const out = new Uint8Array(salt.byteLength + iv.byteLength + ciphertext.byteLength);
-    out.set(salt, 0);
-    out.set(iv, salt.byteLength);
-    out.set(new Uint8Array(ciphertext), salt.byteLength + iv.byteLength);
+    out.set(salt, 0); out.set(iv, SALT_LEN);
+    out.set(new Uint8Array(ciphertext), SALT_LEN + IV_LEN);
     return buf2b64(out.buffer);
   }
 
