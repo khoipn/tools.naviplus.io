@@ -31,9 +31,8 @@ description: "Resize images with center crop, preview thumbnails, and download i
       </div>
 
       <!-- Resize Options -->
-      <div class="mb-3">
-        <label class="form-label">Select target size</label>
-        <div class="mb-2"><strong>Common</strong></div>
+      <fieldset class="mb-3 border rounded-3 p-3">
+        <legend class="float-none w-auto px-2">Common Sizes</legend>
         <div class="d-flex flex-wrap gap-2 mb-2" id="sizeOptionsCommon">
           <label class="form-check">
             <input class="form-check-input" type="radio" name="size" value="1024x768" checked>
@@ -56,7 +55,9 @@ description: "Resize images with center crop, preview thumbnails, and download i
             <span class="form-check-label">720×720</span>
           </label>
         </div>
-        <div class="mb-2"><strong>Social</strong></div>
+      </fieldset>
+      <fieldset class="mb-3 border rounded-3 p-3">
+        <legend class="float-none w-auto px-2">Social Sizes</legend>
         <div class="d-flex flex-wrap gap-2" id="sizeOptionsSocial">
           <label class="form-check">
             <input class="form-check-input" type="radio" name="size" value="1200x628">
@@ -83,13 +84,19 @@ description: "Resize images with center crop, preview thumbnails, and download i
             <span class="form-check-label">YouTube Cover (2560×1440)</span>
           </label>
         </div>
-      </div>
+      </fieldset>
 
       <!-- Compression level -->
       <div class="mb-3">
         <label for="quality" class="form-label">Compression Quality</label>
         <input type="range" id="quality" min="0.3" max="1" step="0.05" value="0.75" class="form-range" />
         <div class="form-text">Approx quality: <span id="qualityVal">0.75</span></div>
+      </div>
+
+      <!-- Output format -->
+      <div class="mb-3 form-check">
+        <input class="form-check-input" type="checkbox" id="toWebp">
+        <label class="form-check-label" for="toWebp">Convert to WebP instead of JPEG</label>
       </div>
 
       <div class="d-flex gap-2 flex-wrap">
@@ -109,7 +116,7 @@ description: "Resize images with center crop, preview thumbnails, and download i
   </div>
 
   <div class="alert alert-secondary small">
-    <strong>Tip:</strong> Images are resized with center crop into the chosen size. You can adjust compression quality; filenames will keep original name + random suffix.
+    <strong>Tip:</strong> Images are resized with center crop into the chosen size. You can adjust compression quality; filenames will keep original name + random suffix. Use WebP for smaller size if supported.
   </div>
 </div>
 
@@ -129,6 +136,7 @@ description: "Resize images with center crop, preview thumbnails, and download i
   const resultsCard = $('#resultsCard');
   const quality = $('#quality');
   const qualityVal = $('#qualityVal');
+  const toWebp = $('#toWebp');
 
   let files = [];
   let results = [];
@@ -190,14 +198,16 @@ description: "Resize images with center crop, preview thumbnails, and download i
     if(!size) return;
     const [W,H] = size;
     const q = parseFloat(quality.value);
+    const useWebp = toWebp.checked;
     for(const file of files){
       const img = await loadImage(file);
       const canvas = cropFit(img,W,H);
-      const blob = await new Promise(r=>canvas.toBlob(r,'image/jpeg',q));
+      const blob = await new Promise(r=>canvas.toBlob(r,useWebp?'image/webp':'image/jpeg',q));
       const url = URL.createObjectURL(blob);
       const rand = Math.floor(Math.random()*10000);
       const base = file.name.replace(/\.[^.]+$/, '');
-      const filename = `${base}_${rand}.jpg`;
+      const ext = useWebp? 'webp' : 'jpg';
+      const filename = `${base}_${rand}.${ext}`;
       results.push({name: filename, blob});
       const col = document.createElement('div');
       col.className='col-6 col-md-3';
