@@ -85,6 +85,13 @@ description: "Resize images with center crop, preview thumbnails, and download i
         </div>
       </div>
 
+      <!-- Compression level -->
+      <div class="mb-3">
+        <label for="quality" class="form-label">Compression Quality</label>
+        <input type="range" id="quality" min="0.3" max="1" step="0.05" value="0.75" class="form-range" />
+        <div class="form-text">Approx quality: <span id="qualityVal">0.75</span></div>
+      </div>
+
       <div class="d-flex gap-2 flex-wrap">
         <button id="processBtn" class="btn btn-success" disabled>Resize Images</button>
         <button id="clearBtn" class="btn btn-outline-secondary">Clear</button>
@@ -102,7 +109,7 @@ description: "Resize images with center crop, preview thumbnails, and download i
   </div>
 
   <div class="alert alert-secondary small">
-    <strong>Tip:</strong> Images are resized with center crop into the chosen size. Output is JPEG at quality 0.75.
+    <strong>Tip:</strong> Images are resized with center crop into the chosen size. You can adjust compression quality; filenames will keep original name + random suffix.
   </div>
 </div>
 
@@ -120,6 +127,8 @@ description: "Resize images with center crop, preview thumbnails, and download i
   const gallery = $('#gallery');
   const fileList = $('#fileList');
   const resultsCard = $('#resultsCard');
+  const quality = $('#quality');
+  const qualityVal = $('#qualityVal');
 
   let files = [];
   let results = [];
@@ -157,6 +166,8 @@ description: "Resize images with center crop, preview thumbnails, and download i
   selectBtn.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', e => { addFiles(e.target.files); fileInput.value=''; });
 
+  quality.addEventListener('input', ()=>{ qualityVal.textContent=quality.value; });
+
   function getSelectedSize(){
     const checked = document.querySelector('input[name="size"]:checked');
     return checked ? checked.value.split('x').map(Number) : null;
@@ -178,17 +189,21 @@ description: "Resize images with center crop, preview thumbnails, and download i
     const size = getSelectedSize();
     if(!size) return;
     const [W,H] = size;
+    const q = parseFloat(quality.value);
     for(const file of files){
       const img = await loadImage(file);
       const canvas = cropFit(img,W,H);
-      const blob = await new Promise(r=>canvas.toBlob(r,'image/jpeg',0.75));
+      const blob = await new Promise(r=>canvas.toBlob(r,'image/jpeg',q));
       const url = URL.createObjectURL(blob);
-      results.push({name: file.name.replace(/\.[^.]+$/, '')+`_${W}x${H}.jpg`, blob});
+      const rand = Math.floor(Math.random()*10000);
+      const base = file.name.replace(/\.[^.]+$/, '');
+      const filename = `${base}_${rand}.jpg`;
+      results.push({name: filename, blob});
       const col = document.createElement('div');
       col.className='col-6 col-md-3';
       col.innerHTML = `<div class="border rounded-3 p-1 text-center">
         <img src="${url}" class="img-fluid mb-1" alt="thumb">
-        <a class="btn btn-sm btn-outline-success" href="${url}" download>Download</a>
+        <a class="btn btn-sm btn-outline-success" href="${url}" download="${filename}">Download</a>
       </div>`;
       gallery.appendChild(col);
     }
