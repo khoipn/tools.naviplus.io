@@ -27,26 +27,62 @@ description: "Resize images with center crop, preview thumbnails, and download i
       <!-- Selected Files -->
       <div class="mb-3">
         <label class="form-label">Selected files</label>
-        <div id="fileList" class="row g-2 small"></div>
+        <div id="fileList" class="row row-cols-2 row-cols-md-6 g-2 small"></div>
       </div>
 
       <!-- Resize Options -->
       <div class="mb-3">
-        <label class="form-label">Target ratio</label>
-        <select id="ratioSelect" class="form-select">
-          <option value="4:3">4:3</option>
-          <option value="16:9">16:9</option>
-          <option value="3:2">3:2</option>
-          <option value="1:1">1:1</option>
-          <option value="3:4">3:4</option>
-          <option value="9:16">9:16</option>
-          <option value="2:3">2:3</option>
-        </select>
-      </div>
-      <div class="mb-3">
-        <label for="resizeLevel" class="form-label">Resize level (max dimension px)</label>
-        <input type="range" id="resizeLevel" min="200" max="2000" step="50" value="800" class="form-range" />
-        <div class="form-text">Current: <span id="resizeVal">800</span>px</div>
+        <label class="form-label">Select target size</label>
+        <div class="mb-2"><strong>Common</strong></div>
+        <div class="d-flex flex-wrap gap-2 mb-2" id="sizeOptionsCommon">
+          <label class="form-check">
+            <input class="form-check-input" type="radio" name="size" value="1024x768" checked>
+            <span class="form-check-label">1024×768</span>
+          </label>
+          <label class="form-check">
+            <input class="form-check-input" type="radio" name="size" value="1280x720">
+            <span class="form-check-label">1280×720</span>
+          </label>
+          <label class="form-check">
+            <input class="form-check-input" type="radio" name="size" value="1440x960">
+            <span class="form-check-label">1440×960</span>
+          </label>
+          <label class="form-check">
+            <input class="form-check-input" type="radio" name="size" value="1200x1200">
+            <span class="form-check-label">1200×1200</span>
+          </label>
+          <label class="form-check">
+            <input class="form-check-input" type="radio" name="size" value="720x720">
+            <span class="form-check-label">720×720</span>
+          </label>
+        </div>
+        <div class="mb-2"><strong>Social</strong></div>
+        <div class="d-flex flex-wrap gap-2" id="sizeOptionsSocial">
+          <label class="form-check">
+            <input class="form-check-input" type="radio" name="size" value="1200x628">
+            <span class="form-check-label">Facebook Link (1200×628)</span>
+          </label>
+          <label class="form-check">
+            <input class="form-check-input" type="radio" name="size" value="1080x1080">
+            <span class="form-check-label">Instagram Post (1080×1080)</span>
+          </label>
+          <label class="form-check">
+            <input class="form-check-input" type="radio" name="size" value="1080x1920">
+            <span class="form-check-label">Instagram Story (1080×1920)</span>
+          </label>
+          <label class="form-check">
+            <input class="form-check-input" type="radio" name="size" value="1500x500">
+            <span class="form-check-label">X/Twitter Header (1500×500)</span>
+          </label>
+          <label class="form-check">
+            <input class="form-check-input" type="radio" name="size" value="1584x396">
+            <span class="form-check-label">LinkedIn Cover (1584×396)</span>
+          </label>
+          <label class="form-check">
+            <input class="form-check-input" type="radio" name="size" value="2560x1440">
+            <span class="form-check-label">YouTube Cover (2560×1440)</span>
+          </label>
+        </div>
       </div>
 
       <div class="d-flex gap-2 flex-wrap">
@@ -58,7 +94,7 @@ description: "Resize images with center crop, preview thumbnails, and download i
   </div>
 
   <!-- Card: Results -->
-  <div class="card mb-3">
+  <div id="resultsCard" class="card mb-3 d-none">
     <div class="card-header"><strong>Resized Previews</strong></div>
     <div class="card-body">
       <div id="gallery" class="row g-3"></div>
@@ -66,7 +102,7 @@ description: "Resize images with center crop, preview thumbnails, and download i
   </div>
 
   <div class="alert alert-secondary small">
-    <strong>Tip:</strong> Images are resized with center crop into the chosen ratio and max dimension. Output is JPEG at quality 0.75.
+    <strong>Tip:</strong> Images are resized with center crop into the chosen size. Output is JPEG at quality 0.75.
   </div>
 </div>
 
@@ -83,9 +119,7 @@ description: "Resize images with center crop, preview thumbnails, and download i
   const zipBtn = $('#zipBtn');
   const gallery = $('#gallery');
   const fileList = $('#fileList');
-  const resizeLevel = $('#resizeLevel');
-  const resizeVal = $('#resizeVal');
-  const ratioSelect = $('#ratioSelect');
+  const resultsCard = $('#resultsCard');
 
   let files = [];
   let results = [];
@@ -94,7 +128,7 @@ description: "Resize images with center crop, preview thumbnails, and download i
     fileList.innerHTML='';
     files.forEach(f => {
       const col = document.createElement('div');
-      col.className='col-6 col-md-3';
+      col.className='col';
       const url = URL.createObjectURL(f);
       col.innerHTML = `<div class="border rounded-3 p-1 text-center">
         <img src="${url}" class="img-fluid mb-1" alt="thumb">
@@ -112,7 +146,7 @@ description: "Resize images with center crop, preview thumbnails, and download i
 
   clearBtn.addEventListener('click', ()=>{
     files=[]; results=[]; gallery.innerHTML=''; fileList.innerHTML='';
-    processBtn.disabled = true; zipBtn.disabled = true;
+    processBtn.disabled = true; zipBtn.disabled = true; resultsCard.classList.add('d-none');
   });
 
   // Drag & drop
@@ -123,32 +157,33 @@ description: "Resize images with center crop, preview thumbnails, and download i
   selectBtn.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', e => { addFiles(e.target.files); fileInput.value=''; });
 
-  resizeLevel.addEventListener('input', ()=>{ resizeVal.textContent=resizeLevel.value; });
+  function getSelectedSize(){
+    const checked = document.querySelector('input[name="size"]:checked');
+    return checked ? checked.value.split('x').map(Number) : null;
+  }
 
-  function cropFit(img, maxDim, ratio){
-    let [rw,rh] = ratio.split(':').map(Number);
-    const targetW = maxDim;
-    const targetH = Math.round(maxDim * rh/rw);
+  function cropFit(img, W, H){
     const canvas = document.createElement('canvas');
-    canvas.width = targetW; canvas.height = targetH;
+    canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
-    const r = Math.max(targetW/img.width, targetH/img.height);
+    const r = Math.max(W/img.width, H/img.height);
     const nw = img.width*r, nh = img.height*r;
-    const ox = (targetW-nw)/2, oy = (targetH-nh)/2;
+    const ox = (W-nw)/2, oy = (H-nh)/2;
     ctx.drawImage(img, ox, oy, nw, nh);
     return canvas;
   }
 
   async function process(){
     gallery.innerHTML=''; results=[];
-    const ratio = ratioSelect.value;
-    const maxDim = +resizeLevel.value;
+    const size = getSelectedSize();
+    if(!size) return;
+    const [W,H] = size;
     for(const file of files){
       const img = await loadImage(file);
-      const canvas = cropFit(img,maxDim,ratio);
+      const canvas = cropFit(img,W,H);
       const blob = await new Promise(r=>canvas.toBlob(r,'image/jpeg',0.75));
       const url = URL.createObjectURL(blob);
-      results.push({name: file.name.replace(/\.[^.]+$/, '')+`_${maxDim}_${ratio.replace(':','-')}.jpg`, blob});
+      results.push({name: file.name.replace(/\.[^.]+$/, '')+`_${W}x${H}.jpg`, blob});
       const col = document.createElement('div');
       col.className='col-6 col-md-3';
       col.innerHTML = `<div class="border rounded-3 p-1 text-center">
@@ -158,6 +193,7 @@ description: "Resize images with center crop, preview thumbnails, and download i
       gallery.appendChild(col);
     }
     zipBtn.disabled = results.length===0;
+    if(results.length) resultsCard.classList.remove('d-none');
   }
 
   function loadImage(file){
