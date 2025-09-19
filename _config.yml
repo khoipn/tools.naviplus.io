@@ -1,0 +1,6 @@
+# bỏ theme mặc định để không bị bọc bởi minima
+# theme: minima    # ← bỏ dòng này nếu đang có
+title: "Navi+ Tool Set"
+description: "Navi+ tools for everybody, optimize web, UX and more"
+plugins:
+  - jekyll-seo-tag   # GitHub Pages hỗ trợ plugin này

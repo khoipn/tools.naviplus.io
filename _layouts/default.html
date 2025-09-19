@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}</title>
+
+    {%- seo -%} <!-- Jekyll SEO Tag: tự sinh og/twitter/canonical -->
+
+    <!-- CSS/JS chung của bạn -->
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <script defer src="/assets/js/common.js"></script>
+
+    <!-- Chèn thêm tuỳ từng trang nếu cần -->
+    {%- if page.extra_css %}<link rel="stylesheet" href="{{ page.extra_css }}">{% endif %}
+    {%- if page.extra_js %}<script defer src="{{ page.extra_js }}"></script>{% endif %}
+
+    <!-- Include phần head do bạn quản lý -->
+    {% include head.html %}
+  </head>
+  <body>
+      {{ content }}
+    {% include footer.html %}
+  </body>
+</html>
