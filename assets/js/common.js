@@ -44,32 +44,32 @@ const navbarLinks = [
       { divider: true },
       {
         title: "Getting Started",
-        url: "/docs/getting-started/"
+        url: "https://help.naviplus.io//docs/getting-started/"
       },
       { divider: true },
       {
         title: "Explore common menus",
-        url: "/docs/usage/explore-common-menus/"
+        url: "https://help.naviplus.io//docs/usage/explore-common-menus/"
       },
       {
         title: "Tabbar",
-        url: "/docs/usage/tabbar-bottom-navigation/how-to-use/"
+        url: "https://help.naviplus.io//docs/usage/tabbar-bottom-navigation/how-to-use/"
       },
       {
         title: "Mega Menu",
-        url: "/docs/usage/mega-menu-desktop/how-to-use/"
+        url: "https://help.naviplus.io//docs/usage/mega-menu-desktop/how-to-use/"
       },
       {
         title: "Slide (Hamburger) Menu",
-        url: "/docs/usage/slide-menu-hamburger-menu/how-to-use/"
+        url: "https://help.naviplus.io//docs/usage/slide-menu-hamburger-menu/how-to-use/"
       },
       {
         title: "FAB - Floating Menu",
-        url: "/docs/usage/fab-floating-menu-quick-access/how-to-use/"
+        url: "https://help.naviplus.io//docs/usage/fab-floating-menu-quick-access/how-to-use/"
       },
       {
         title: "Grid Menu",
-        url: "/docs/usage/grid-menu/how-to-use/"
+        url: "https://help.naviplus.io//docs/usage/grid-menu/how-to-use/"
       }
     ]
   },
@@ -138,7 +138,28 @@ const navbarCTA = {
   class: "btn btn-primary btn-sm"
 };
 
-function buildNavLink(link) {
+function normalizeUrl(u) {
+  if (!u) return '';
+  try {
+    // If relative, construct with current origin
+    const urlObj = new URL(u, window.location.origin);
+    // Remove trailing slash except root
+    let href = urlObj.href;
+    if (href.length > 1 && href.endsWith('/')) href = href.slice(0, -1);
+    return href;
+  } catch {
+    return u;
+  }
+}
+
+function isActiveUrl(targetUrl, currentUrl) {
+  if (!targetUrl) return false;
+  const t = normalizeUrl(targetUrl);
+  const c = normalizeUrl(currentUrl);
+  return c === t || c.startsWith(t + '/') || c.startsWith(t + '?') || c.startsWith(t + '#');
+}
+
+function buildNavLink(link, currentUrl) {
   if (link.dropdown && Array.isArray(link.children)) {
     const li = document.createElement('li');
     li.className = 'nav-item dropdown';
@@ -155,6 +176,7 @@ function buildNavLink(link) {
     const menu = document.createElement('ul');
     menu.className = 'dropdown-menu';
 
+    let anyChildActive = false;
     link.children.forEach(child => {
       if (child.divider) {
         const dividerLi = document.createElement('li');
@@ -169,13 +191,22 @@ function buildNavLink(link) {
         childA.href = child.url || '#';
         childA.textContent = child.title;
         if (child.target) childA.target = child.target;
-        if (child.active) childA.setAttribute('aria-current', 'page');
+        const activeChild = isActiveUrl(child.url, currentUrl) || child.active === true;
+        if (activeChild) {
+          childA.classList.add('active');
+          childA.setAttribute('aria-current', 'page');
+          anyChildActive = true;
+        }
         childLi.appendChild(childA);
         menu.appendChild(childLi);
       }
     });
 
     li.appendChild(menu);
+    if (anyChildActive) {
+      a.classList.add('active');
+      a.setAttribute('aria-current', 'page');
+    }
     return li;
   } else {
     const li = document.createElement('li');
@@ -183,6 +214,10 @@ function buildNavLink(link) {
     a.className = 'nav-link px-2 link-body-emphasis';
     a.href = link.url || '#';
     a.textContent = link.title;
+    if (isActiveUrl(link.url, currentUrl)) {
+      a.classList.add('active');
+      a.setAttribute('aria-current', 'page');
+    }
     li.appendChild(a);
     return li;
   }
@@ -192,8 +227,9 @@ function renderNavbar() {
   const listContainer = document.getElementById('navbar-links');
   if (listContainer) {
     listContainer.innerHTML = '';
+    const currentUrl = window.location.href;
     navbarLinks.forEach(link => {
-      listContainer.appendChild(buildNavLink(link));
+      listContainer.appendChild(buildNavLink(link, currentUrl));
     });
   }
 
