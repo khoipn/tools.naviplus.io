@@ -7,12 +7,14 @@
       { key: 'tool_collage_title',    en: 'Photo Collage',    path: '/toolset/images/photo-collage.html',  icon: 'ri-layout-grid-line'  },
       { key: 'tool_watermark_title',  en: 'Image Watermark',  path: '/toolset/images/watermark.html',      icon: 'ri-copyright-line'    },
       { key: 'tool_rmbg_title',       en: 'BG Remover',       path: '/toolset/images/remove-background.html', icon: 'ri-scissors-cut-line' },
-      { key: 'tool_cp_title',         en: 'Color Picker',     path: '/toolset/images/color-picker.html',      icon: 'ri-contrast-drop-2-line'   }
+      { key: 'tool_cp_title',         en: 'Color Picker',     path: '/toolset/images/color-picker.html',      icon: 'ri-contrast-drop-2-line'   },
+      { key: 'tool_imgup_title',      en: 'Temp Upload',      path: '/toolset/images/upload-image.html',      icon: 'ri-links-line'              }
     ],
     security: [
       { key: 'tool_encrypt_title',  en: 'AES-GCM Encrypt',   path: '/toolset/security/encrypt.html',           icon: 'ri-lock-line'       },
       { key: 'tool_password_title', en: 'Password Generator', path: '/toolset/security/generate-password.html', icon: 'ri-key-2-line'      },
-      { key: 'tool_jwt_title',      en: 'JWT Decoder',        path: '/toolset/security/jwt-decoder.html',       icon: 'ri-shield-keyhole-line' }
+      { key: 'tool_jwt_title',      en: 'JWT Decoder',        path: '/toolset/security/jwt-decoder.html',       icon: 'ri-shield-keyhole-line'  },
+      { key: 'tool_hash_title',     en: 'Hash Generator',     path: '/toolset/security/hash-generator.html',    icon: 'ri-fingerprint-line'     }
     ]
   };
 

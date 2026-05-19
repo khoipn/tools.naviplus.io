@@ -32,7 +32,7 @@ description: "A collection of utilities that help users make the most of Navi+ |
             titleKey: "tool_encrypt_title",
             titleEn: "AES-GCM Encryption",
             descKey: "tool_encrypt_desc",
-            descEn: "Encrypt and decrypt any text in your browser using PBKDF2 + AES-256-GCM, save as Base64",
+            descEn: "Encrypt and decrypt text with PBKDF2 + AES-256-GCM, save as Base64",
             groupKey: "group_security",
             icon: "ri-lock-line",
             linkto: "toolset/security/encrypt.html",
@@ -52,7 +52,7 @@ description: "A collection of utilities that help users make the most of Navi+ |
             titleKey: "tool_hash_title",
             titleEn: "Hash Generator & Verifier",
             descKey: "tool_hash_desc",
-            descEn: "Generate SHA-256, SHA-512, SHA-1, MD5 hashes. Verify file checksums and HMAC. All in-browser.",
+            descEn: "Generate SHA-256, SHA-512, SHA-1, MD5 hashes. Verify file checksums and HMAC.",
             groupKey: "group_security",
             icon: "ri-fingerprint-line",
             linkto: "toolset/security/hash-generator.html",
@@ -72,7 +72,7 @@ description: "A collection of utilities that help users make the most of Navi+ |
             titleKey: "tool_collage_title",
             titleEn: "Photo Collage Maker",
             descKey: "tool_collage_desc",
-            descEn: "Upload photos, pick a layout, drag & drop to arrange, then export as JPEG or PNG — all in your browser",
+            descEn: "Upload photos, pick a layout, drag & drop to arrange, then export as JPEG or PNG",
             groupKey: "group_images",
             icon: "ri-layout-grid-line",
             linkto: "toolset/images/photo-collage.html",
@@ -80,7 +80,7 @@ description: "A collection of utilities that help users make the most of Navi+ |
         },
         {
             titleKey: "tool_cp_title",
-            titleEn: "Image Color Picker",
+            titleEn: "Color Picker",
             descKey: "tool_cp_desc",
             descEn: "Pick exact pixel colors from any image — HEX, RGB, HSL, CMYK. Magnifier zoom + dominant palette extraction",
             groupKey: "group_images",
@@ -92,7 +92,7 @@ description: "A collection of utilities that help users make the most of Navi+ |
             titleKey: "tool_rmbg_title",
             titleEn: "AI Background Remover",
             descKey: "tool_rmbg_desc",
-            descEn: "Remove backgrounds from photos instantly — AI runs 100% in your browser, no upload, no API key",
+            descEn: "Remove backgrounds from photos with AI — free, no account, no data stored",
             groupKey: "group_images",
             icon: "ri-scissors-cut-line",
             linkto: "toolset/images/remove-background.html",
@@ -100,13 +100,23 @@ description: "A collection of utilities that help users make the most of Navi+ |
         },
         {
             titleKey: "tool_watermark_title",
-            titleEn: "Image Watermark",
+            titleEn: "Watermark",
             descKey: "tool_watermark_desc",
-            descEn: "Add text or logo watermarks to images — position, opacity, rotation. 100% client-side.",
+            descEn: "Add text or logo watermarks to images — position, opacity, rotation.",
             groupKey: "group_images",
             icon: "ri-copyright-line",
             linkto: "toolset/images/watermark.html",
             usageBase: 72000, usageFactor: 3
+        },
+        {
+            titleKey: "tool_imgup_title",
+            titleEn: "Temp Image Upload",
+            descKey: "tool_imgup_desc",
+            descEn: "Drag & drop an image to upload and get a shareable URL instantly",
+            groupKey: "group_images",
+            icon: "ri-links-line",
+            linkto: "toolset/images/upload-image.html",
+            usageBase: 41000, usageFactor: 4
         },
         {
             titleKey: "tool_jwt_title",
@@ -132,6 +142,17 @@ description: "A collection of utilities that help users make the most of Navi+ |
         return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }
 
+    var PINNED_KEY = 'np_pinned';
+    function getPinned() {
+        try { return JSON.parse(localStorage.getItem(PINNED_KEY) || '[]'); } catch(e) { return []; }
+    }
+    function isPinned(key) { return getPinned().indexOf(key) !== -1; }
+    function togglePin(key) {
+        var pins = getPinned(), idx = pins.indexOf(key);
+        if (idx === -1) pins.push(key); else pins.splice(idx, 1);
+        localStorage.setItem(PINNED_KEY, JSON.stringify(pins));
+    }
+
     window.renderTools = function () {
         var tr = window.t || function(k, def) { return def || k; };
         var container = document.getElementById("tools-list");
@@ -143,7 +164,43 @@ description: "A collection of utilities that help users make the most of Navi+ |
         var heroTitle = document.getElementById("hero-title");
         var heroDesc = document.getElementById("hero-desc");
         if (heroTitle) heroTitle.innerHTML = tr('hero_title', 'Free tools for <br>smarter workflows');
-        if (heroDesc) heroDesc.textContent = tr('hero_desc', 'Privacy-first utilities that run entirely in your browser. No uploads, no accounts, no tracking.');
+        if (heroDesc) heroDesc.textContent = tr('hero_desc', 'Free tools — no account, no data stored.');
+
+        function renderPinnedSection() {
+            var pinnedKeys = getPinned();
+            var existing = document.getElementById('pinned-section');
+            var pinnedTools = pinnedKeys.map(function(k) {
+                return toolsArray.find(function(t) { return t.linkto === k; });
+            }).filter(Boolean);
+            if (pinnedTools.length === 0) { if (existing) existing.remove(); return; }
+            var section = existing || document.createElement('div');
+            section.id = 'pinned-section';
+            section.className = 'tools-pinned-section';
+            var html = '<div class="tools-pinned-label"><i class="ri-pushpin-2-fill"></i><span>' + tr('pinned_label', 'Pinned') + '</span></div><div class="pinned-chips">';
+            pinnedTools.forEach(function(tool) {
+                html += '<div class="pin-chip">' +
+                    '<a href="' + base + tool.linkto + '" class="pin-chip-link">' +
+                    '<span class="pin-chip-icon"><i class="' + tool.icon + '"></i></span>' +
+                    '<span class="pin-chip-name">' + tr(tool.titleKey, tool.titleEn) + '</span>' +
+                    '</a>' +
+                    '<button class="pin-chip-remove" data-linkto="' + tool.linkto + '" aria-label="Unpin"><i class="ri-unpin-line"></i></button></div>';
+            });
+            html += '</div>';
+            section.innerHTML = html;
+            section.querySelectorAll('.pin-chip-remove').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var key = btn.dataset.linkto;
+                    togglePin(key);
+                    renderPinnedSection();
+                    document.querySelectorAll('.card-pin-btn[data-linkto="' + key + '"]').forEach(function(b) {
+                        b.classList.remove('pinned');
+                        b.querySelector('i').className = 'ri-pushpin-line';
+                    });
+                });
+            });
+            if (!existing) container.insertBefore(section, container.firstChild);
+        }
 
         groupsArray.forEach(function (groupKey) {
             var groupLabel = tr('group_' + groupKey, groupKey.charAt(0).toUpperCase() + groupKey.slice(1));
@@ -164,9 +221,10 @@ description: "A collection of utilities that help users make the most of Navi+ |
                 .filter(function (tool) { return tool.groupKey === 'group_' + groupKey; })
                 .forEach(function (tool) {
                     var col = document.createElement("div");
-                    col.className = "col-sm-6 col-lg-3 card-enter";
+                    col.className = "col-sm-6 col-lg-3 card-enter pin-col";
                     col.style.animationDelay = (cardIndex * 60) + 'ms';
                     cardIndex++;
+                    var pinned = isPinned(tool.linkto);
                     var usageLine = tool.usageBase
                         ? '<div class="card-tool-usage"><i class="ri-user-3-line"></i>' + fmtNum(calcUsage(tool.usageBase, tool.usageFactor)) + ' ' + tr('usage_label', 'uses') + '</div>'
                         : '';
@@ -177,12 +235,23 @@ description: "A collection of utilities that help users make the most of Navi+ |
                         '<p class="card-tool-desc">' + tr(tool.descKey, tool.descEn) + '</p>' +
                         usageLine +
                         '<div class="card-tool-arrow">' + tr('open_tool', 'Open tool') + ' <i class="ri-arrow-right-line"></i></div>' +
-                        '</a>';
+                        '</a>' +
+                        '<button class="card-pin-btn' + (pinned ? ' pinned' : '') + '" data-linkto="' + tool.linkto + '" aria-label="Pin"><i class="' + (pinned ? 'ri-pushpin-2-fill' : 'ri-pushpin-line') + '"></i></button>';
                     var card = col.querySelector('.card-tool');
                     card.addEventListener('mousemove', function (e) {
                         var r = card.getBoundingClientRect();
                         card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
                         card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+                    });
+                    col.querySelector('.card-pin-btn').addEventListener('click', function(e) {
+                        e.preventDefault(); e.stopPropagation();
+                        togglePin(tool.linkto);
+                        var nowPinned = isPinned(tool.linkto);
+                        document.querySelectorAll('.card-pin-btn[data-linkto="' + tool.linkto + '"]').forEach(function(b) {
+                            b.classList.toggle('pinned', nowPinned);
+                            b.querySelector('i').className = nowPinned ? 'ri-pushpin-2-fill' : 'ri-pushpin-line';
+                        });
+                        renderPinnedSection();
                     });
                     row.appendChild(col);
                 });
@@ -190,6 +259,8 @@ description: "A collection of utilities that help users make the most of Navi+ |
             section.appendChild(row);
             container.appendChild(section);
         });
+
+        renderPinnedSection();
     };
 
     if (!window._i18nReady) renderTools();

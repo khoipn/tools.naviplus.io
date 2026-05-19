@@ -458,3 +458,124 @@ progress { accent-color: var(--c-text); }
   padding: 14px 0; text-align: center;
   font-size: 12px; color: var(--c-muted);
 }
+
+/* ── Pin / Favourite ─────────────────────────────────────────── */
+.pin-col { position: relative; }
+
+.card-pin-btn {
+  position: absolute;
+  top: 10px; right: 10px;
+  z-index: 3;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  color: var(--c-muted);
+  cursor: pointer;
+  display: grid; place-items: center;
+  font-size: 12px;
+  padding: 0;
+  opacity: 0;
+  transition: opacity .18s, background .18s, color .18s, border-color .18s, transform .18s;
+  box-shadow: 0 2px 6px rgba(0,0,0,.10);
+  line-height: 1;
+}
+.pin-col:hover .card-pin-btn { opacity: 1; }
+.card-pin-btn.pinned {
+  opacity: 1;
+  background: var(--c-accent);
+  border-color: var(--c-accent);
+  color: #fff;
+}
+.card-pin-btn:hover {
+  transform: scale(1.18);
+  background: var(--c-accent) !important;
+  border-color: var(--c-accent) !important;
+  color: #fff !important;
+}
+
+.tools-pinned-section { margin-bottom: 28px; }
+
+.tools-pinned-label {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .7px;
+  color: var(--c-muted);
+  display: flex; align-items: center; gap: 5px;
+  margin-bottom: 10px;
+}
+.tools-pinned-label i { color: var(--c-accent); font-size: 12px; }
+
+.pinned-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pin-chip {
+  position: relative;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  width: 96px;
+  transition: box-shadow .2s, border-color .2s, transform .2s;
+  flex-shrink: 0;
+}
+.pin-chip:hover {
+  box-shadow: var(--shadow-md);
+  border-color: rgba(55,126,98,.3);
+  transform: translateY(-2px);
+}
+
+.pin-chip-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px 10px;
+  text-decoration: none;
+  gap: 7px;
+}
+.pin-chip-link:hover { text-decoration: none; }
+
+.pin-chip-icon {
+  width: 36px; height: 36px;
+  background: var(--c-text);
+  border-radius: 9px;
+  display: grid; place-items: center;
+  font-size: 17px; color: #fff;
+  flex-shrink: 0;
+  transition: background .2s, transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+.pin-chip:hover .pin-chip-icon {
+  background: var(--c-accent);
+  transform: scale(1.1);
+}
+
+.pin-chip-name {
+  font-size: 11px; font-weight: 600;
+  color: var(--c-text);
+  text-align: center;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pin-chip:hover .pin-chip-name { color: var(--c-accent); }
+
+.pin-chip-remove {
+  position: absolute;
+  top: 5px; right: 5px;
+  width: 17px; height: 17px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,.08);
+  color: var(--c-muted);
+  cursor: pointer;
+  display: grid; place-items: center;
+  font-size: 10px; line-height: 1;
+  padding: 0;
+  opacity: 0;
+  transition: opacity .15s, background .15s, color .15s;
+}
+.pin-chip:hover .pin-chip-remove { opacity: 1; }
+.pin-chip-remove:hover { background: #ef4444; color: #fff; }

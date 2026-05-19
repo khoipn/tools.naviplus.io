@@ -1,0 +1,339 @@
+---
+layout: default
+title: "Free Temp Image Upload — Get a Shareable URL Instantly"
+description: "Upload an image and get a permanent shareable URL in seconds. Free, no account needed. Drag & drop or click to upload JPEG, PNG, WebP, GIF."
+---
+
+<style>
+.imgup-wrap {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Dropzone */
+.imgup-dropzone {
+  border: 2px dashed var(--c-border);
+  border-radius: var(--radius-md);
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .18s, background .18s;
+  background: var(--c-surface);
+  position: relative;
+}
+.imgup-dropzone:hover,
+.imgup-dropzone.drag-over {
+  border-color: var(--c-accent);
+  background: color-mix(in srgb, var(--c-accent) 6%, transparent);
+}
+.imgup-dropzone i { font-size: 48px; opacity: .3; display: block; margin-bottom: 12px; }
+.imgup-dropzone .drop-label { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.imgup-dropzone .drop-sub { font-size: 13px; color: var(--c-muted); margin-bottom: 16px; }
+#imgupFileInput { display: none; }
+
+/* Preview card */
+.imgup-preview-card {
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--c-surface);
+}
+.imgup-img-wrap {
+  background-color: #d8d8d8;
+  background-image:
+    linear-gradient(45deg, #c0c0c0 25%, transparent 25%),
+    linear-gradient(-45deg, #c0c0c0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #c0c0c0 75%),
+    linear-gradient(-45deg, transparent 75%, #c0c0c0 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 140px; max-height: 340px; overflow: hidden;
+}
+.imgup-img-wrap img {
+  max-width: 100%; max-height: 340px; display: block;
+}
+.imgup-file-info {
+  padding: 10px 14px;
+  border-top: 1px solid var(--c-border);
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: var(--c-muted);
+}
+.imgup-file-info .fname {
+  flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-weight: 500; color: var(--c-text);
+}
+
+/* URL result row */
+.imgup-result {
+  display: flex; gap: 8px; align-items: stretch;
+}
+.imgup-result input {
+  flex: 1; min-width: 0;
+  font-family: monospace; font-size: 13px;
+  border: 1.5px solid var(--c-border); border-radius: var(--radius-sm);
+  padding: 8px 12px; background: var(--c-surface); color: var(--c-text);
+  cursor: text;
+}
+.imgup-result input:focus { outline: none; border-color: var(--c-accent); }
+
+/* Note */
+.imgup-note {
+  font-size: 12px; color: var(--c-muted);
+  display: flex; align-items: center; gap: 5px; margin-top: 6px;
+}
+.imgup-note i { font-size: 13px; }
+</style>
+
+<div class="container py-4">
+  <div class="tool-page-header">
+    <h1 data-i18n="imgup_h1">Temp Image Upload</h1>
+    <p data-i18n="imgup_desc">Drop an image to get a shareable link — free, no account needed.</p>
+  </div>
+
+  <div class="imgup-wrap">
+
+    <!-- ── Dropzone ──────────────────────────────────────────── -->
+    <div id="imgupDropzone" class="imgup-dropzone mb-3">
+      <i class="ri-image-add-line"></i>
+      <p class="drop-label" data-i18n="drop_here">Drop image here</p>
+      <p class="drop-sub" data-i18n="imgup_supports">JPEG, PNG, WebP, GIF · Max 32 MB</p>
+      <button type="button" class="btn btn-primary" id="imgupSelectBtn" data-i18n="choose_files">Choose file</button>
+      <input type="file" id="imgupFileInput" accept="image/*" />
+    </div>
+
+    <!-- ── Preview + actions (hidden until file chosen) ──────── -->
+    <div id="imgupPreviewSection" class="d-none">
+
+      <div class="imgup-preview-card mb-3">
+        <div class="imgup-img-wrap">
+          <img id="imgupPreviewImg" src="" alt="" />
+        </div>
+        <div class="imgup-file-info">
+          <i class="ri-image-2-line"></i>
+          <span id="imgupFileName" class="fname"></span>
+          <span id="imgupFileSize" class="text-muted"></span>
+          <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" id="imgupChangeBtn" data-i18n="wm_change">Change</button>
+        </div>
+      </div>
+
+      <!-- Upload button -->
+      <div id="imgupActionRow" class="mb-3">
+        <button type="button" class="btn btn-primary w-100" id="imgupUploadBtn" data-i18n="get_link">Get Temp Link</button>
+      </div>
+
+      <!-- Loading state -->
+      <div id="imgupLoadingRow" class="d-none mb-3 text-center text-muted" style="font-size:13.5px;">
+        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        <span data-i18n="uploading_img">Uploading…</span>
+      </div>
+
+      <!-- Error -->
+      <div id="imgupError" class="d-none alert alert-danger py-2 px-3 mb-3" style="font-size:13.5px;"></div>
+
+      <!-- Result -->
+      <div id="imgupResultRow" class="d-none mb-2">
+        <div class="imgup-result">
+          <input type="text" id="imgupUrlInput" readonly />
+          <button type="button" class="btn btn-primary" id="imgupCopyBtn" data-i18n="copy_link">Copy</button>
+        </div>
+        <p class="imgup-note mt-2">
+          <i class="ri-information-line"></i>
+          <span data-i18n="link_note">Link lasts forever · Hotlink max 1280px</span>
+        </p>
+      </div>
+
+    </div>
+    <!-- /preview section -->
+
+  </div>
+</div>
+
+<script>
+(function () {
+  var dropzone   = document.getElementById('imgupDropzone');
+  var fileInput  = document.getElementById('imgupFileInput');
+  var selectBtn  = document.getElementById('imgupSelectBtn');
+  var previewSec = document.getElementById('imgupPreviewSection');
+  var previewImg = document.getElementById('imgupPreviewImg');
+  var fileName   = document.getElementById('imgupFileName');
+  var fileSize   = document.getElementById('imgupFileSize');
+  var changeBtn  = document.getElementById('imgupChangeBtn');
+  var actionRow  = document.getElementById('imgupActionRow');
+  var loadingRow = document.getElementById('imgupLoadingRow');
+  var errorEl    = document.getElementById('imgupError');
+  var resultRow  = document.getElementById('imgupResultRow');
+  var urlInput   = document.getElementById('imgupUrlInput');
+  var copyBtn    = document.getElementById('imgupCopyBtn');
+
+  var currentFile = null;
+
+  function tr(key, def) {
+    return (window.t && window.t(key)) || def || key;
+  }
+
+  function fmtSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  function showError(msg) {
+    errorEl.textContent = msg;
+    errorEl.classList.remove('d-none');
+  }
+
+  function hideError() {
+    errorEl.classList.add('d-none');
+  }
+
+  function setState(state) {
+    actionRow.classList.add('d-none');
+    loadingRow.classList.add('d-none');
+    resultRow.classList.add('d-none');
+    hideError();
+
+    if (state === 'ready')    actionRow.classList.remove('d-none');
+    if (state === 'loading')  loadingRow.classList.remove('d-none');
+    if (state === 'done')     resultRow.classList.remove('d-none');
+    if (state === 'error') {
+      actionRow.classList.remove('d-none');
+    }
+  }
+
+  function loadFile(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    if (file.size > 32 * 1024 * 1024) {
+      alert(tr('rmbg_file_too_large', 'File too large. Maximum size is 32 MB.'));
+      return;
+    }
+
+    currentFile = file;
+
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      previewImg.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+
+    fileName.textContent = file.name;
+    fileSize.textContent = fmtSize(file.size);
+
+    dropzone.classList.add('d-none');
+    previewSec.classList.remove('d-none');
+    setState('ready');
+  }
+
+  function reset() {
+    currentFile = null;
+    previewImg.src = '';
+    fileInput.value = '';
+    dropzone.classList.remove('d-none');
+    previewSec.classList.add('d-none');
+    urlInput.value = '';
+    hideError();
+  }
+
+  selectBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    fileInput.click();
+  });
+
+  dropzone.addEventListener('click', function () {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', function () {
+    if (fileInput.files[0]) loadFile(fileInput.files[0]);
+  });
+
+  changeBtn.addEventListener('click', reset);
+
+  // Drag & drop
+  dropzone.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    dropzone.classList.add('drag-over');
+  });
+  dropzone.addEventListener('dragleave', function () {
+    dropzone.classList.remove('drag-over');
+  });
+  dropzone.addEventListener('drop', function (e) {
+    e.preventDefault();
+    dropzone.classList.remove('drag-over');
+    var f = e.dataTransfer.files[0];
+    if (f) loadFile(f);
+  });
+
+  // Upload
+  document.getElementById('imgupUploadBtn').addEventListener('click', async function () {
+    if (!currentFile) return;
+    if (!navigator.onLine) {
+      showError(tr('no_network', 'No internet connection'));
+      return;
+    }
+
+    hideError();
+    setState('loading');
+
+    try {
+      var url = await window.uploadToFreeImageHost(currentFile);
+      urlInput.value = url;
+      setState('done');
+
+      // Auto-copy to clipboard on success
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(function () {
+          markCopied();
+        }).catch(function () {
+          autoFallbackCopy(url);
+        });
+      } else {
+        autoFallbackCopy(url);
+      }
+    } catch (err) {
+      var msg = (err && err.code === 'timeout')
+        ? tr('upload_timeout', 'Upload timed out, try again')
+        : tr('upload_failed', 'Upload failed, try again');
+      showError(msg);
+      setState('error');
+    }
+  });
+
+  function autoFallbackCopy(text) {
+    urlInput.select();
+    document.execCommand('copy');
+    markCopied();
+  }
+
+  function markCopied() {
+    if (window.showSnackbar) window.showSnackbar(tr('copied_snack', 'Image URL copied.'));
+    copyBtn.textContent = tr('link_copied', 'Copied!');
+    copyBtn.classList.add('btn-success');
+    copyBtn.classList.remove('btn-primary');
+    setTimeout(function () {
+      copyBtn.textContent = tr('copy_link', 'Copy');
+      copyBtn.classList.remove('btn-success');
+      copyBtn.classList.add('btn-primary');
+    }, 2000);
+  }
+
+  // Manual copy button (fallback if auto-copy failed or user wants to copy again)
+  copyBtn.addEventListener('click', function () {
+    var url = urlInput.value;
+    if (!url) return;
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(markCopied).catch(function () {
+        urlInput.select();
+        document.execCommand('copy');
+        markCopied();
+      });
+    } else {
+      urlInput.select();
+      document.execCommand('copy');
+      markCopied();
+    }
+  });
+
+})();
+</script>

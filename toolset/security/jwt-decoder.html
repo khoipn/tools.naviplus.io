@@ -1,0 +1,620 @@
+---
+layout: default
+title: "JWT Decoder & Inspector"
+description: "Free JWT decoder by Navi+. Decode, inspect and verify JWT tokens — supports HS256, RS256, ES256 signature verification. No account, no data stored."
+---
+
+<div class="container py-4">
+
+  <div class="tool-page-header">
+    <h1 data-i18n="jwt_h1">JWT Decoder &amp; Inspector</h1>
+    <p data-i18n="jwt_desc">Decode, inspect and verify JWT tokens — no data stored, safe for tokens from any environment.</p>
+  </div>
+
+  <!-- Privacy notice -->
+  <div class="alert alert-info d-flex align-items-start gap-2 mb-3" style="border-left:4px solid #0d6efd;">
+    <i class="ri-shield-check-line mt-1" style="font-size:1.1rem;flex-shrink:0;"></i>
+    <div>
+      <strong data-i18n="jwt_privacy_title">100% Client-Side</strong>
+      <span data-i18n="jwt_privacy_body"> — Your token is processed entirely in your browser. No data is ever sent to any server.</span>
+    </div>
+  </div>
+
+  <!-- Tab nav -->
+  <ul class="nav nav-tabs mb-3" id="jwtMainTabs" role="tablist">
+    <li class="nav-item"><button class="nav-link active" id="tab-decode-btn" data-bs-toggle="tab" data-bs-target="#tab-decode" type="button" role="tab" data-i18n="jwt_tab_decode">Decode</button></li>
+    <li class="nav-item"><button class="nav-link" id="tab-build-btn" data-bs-toggle="tab" data-bs-target="#tab-build" type="button" role="tab" data-i18n="jwt_tab_build">Builder</button></li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- ─────────── TAB 1: DECODE ─────────── -->
+    <div class="tab-pane fade show active" id="tab-decode" role="tabpanel">
+
+      <!-- Input -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <label for="jwtInput" class="form-label fw-semibold" data-i18n="jwt_input_label">Paste your JWT token</label>
+          <textarea id="jwtInput" class="form-control font-monospace" rows="4"
+            placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+            autocomplete="off" autocorrect="off" spellcheck="false" style="resize:vertical;min-height:90px;"></textarea>
+          <div class="d-flex justify-content-end mt-2">
+            <button class="btn btn-sm btn-outline-secondary" id="jwtClearBtn" data-i18n="clear">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Highlighted token display -->
+      <div id="jwtHighlightWrap" class="card mb-3" style="display:none!important;">
+        <div class="card-body">
+          <label class="form-label fw-semibold mb-2" data-i18n="jwt_token_visual">Token Structure</label>
+          <div id="jwtHighlight" class="font-monospace p-2 rounded" style="word-break:break-all;font-size:0.82rem;line-height:1.7;background:var(--c-bg);border:1px solid var(--c-border);"></div>
+        </div>
+      </div>
+
+      <!-- Status banner -->
+      <div id="jwtStatusBar" class="alert mb-3" style="display:none!important;"></div>
+
+      <!-- Security warnings -->
+      <div id="jwtWarnings" class="mb-3" style="display:none!important;"></div>
+
+      <!-- Decoded parts -->
+      <div id="jwtDecodedWrap" style="display:none!important;">
+        <div class="row g-3 mb-3">
+          <div class="col-12 col-md-6">
+            <div class="card h-100" style="border-top:3px solid #e05252;">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <strong data-i18n="jwt_header">Header</strong>
+                <button class="btn btn-sm btn-outline-secondary" data-copy="header" data-i18n="jwt_copy_header">Copy</button>
+              </div>
+              <div class="card-body p-2">
+                <pre id="jwtHeaderOut" class="mb-0" style="font-size:0.82rem;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow:auto;"></pre>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="card h-100" style="border-top:3px solid #7c5cbf;">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <strong data-i18n="jwt_payload">Payload</strong>
+                <button class="btn btn-sm btn-outline-secondary" data-copy="payload" data-i18n="jwt_copy_payload">Copy</button>
+              </div>
+              <div class="card-body p-2">
+                <pre id="jwtPayloadOut" class="mb-0" style="font-size:0.82rem;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow:auto;"></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-3" style="border-top:3px solid #2a9d8f;">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <strong data-i18n="jwt_signature">Signature</strong>
+            <button class="btn btn-sm btn-outline-secondary" data-copy="signature" data-i18n="jwt_copy_sig">Copy</button>
+          </div>
+          <div class="card-body p-2">
+            <code id="jwtSigOut" style="word-break:break-all;font-size:0.82rem;"></code>
+          </div>
+        </div>
+
+        <!-- Payload claims analysis -->
+        <div class="card mb-3">
+          <div class="card-header"><strong data-i18n="jwt_claims_title">Payload Claims Analysis</strong></div>
+          <div class="card-body p-0">
+            <div id="jwtClaimsTable" class="table-responsive">
+              <table class="table table-sm mb-0">
+                <thead><tr>
+                  <th style="width:100px;" data-i18n="jwt_claim_field">Field</th>
+                  <th style="width:130px;" data-i18n="jwt_claim_name">Full Name</th>
+                  <th data-i18n="jwt_claim_value">Value</th>
+                </tr></thead>
+                <tbody id="jwtClaimsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Copy all -->
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+          <button class="btn btn-outline-primary btn-sm" id="jwtCopyAll" data-i18n="jwt_copy_all">Copy Full Decoded JSON</button>
+        </div>
+      </div>
+
+      <!-- Verify signature -->
+      <div class="card mb-3">
+        <div class="card-header">
+          <strong data-i18n="jwt_verify_title">Verify Signature (optional)</strong>
+          <span class="text-muted ms-2 fw-normal" style="font-size:0.82rem;" data-i18n="jwt_verify_subtitle">Leave empty to skip</span>
+        </div>
+        <div class="card-body">
+          <div id="jwtVerifyHmac">
+            <label class="form-label mb-1" data-i18n="jwt_secret_label">Secret Key (for HS256 / HS512)</label>
+            <div class="input-group mb-2">
+              <input type="password" id="jwtSecret" class="form-control font-monospace" placeholder="your-secret-key" autocomplete="off">
+              <button class="btn btn-outline-secondary" type="button" id="jwtToggleSecret" data-i18n="jwt_show">Show</button>
+              <button class="btn btn-primary" type="button" id="jwtVerifyBtn" data-i18n="jwt_verify_btn">Verify</button>
+            </div>
+          </div>
+          <div id="jwtVerifyRsa" style="display:none;">
+            <label class="form-label mb-1" data-i18n="jwt_pubkey_label">Public Key (PEM — for RS256 / ES256)</label>
+            <div class="mb-2">
+              <textarea id="jwtPubKey" class="form-control font-monospace" rows="4"
+                placeholder="-----BEGIN PUBLIC KEY-----&#10;...&#10;-----END PUBLIC KEY-----" autocomplete="off" spellcheck="false"></textarea>
+            </div>
+            <button class="btn btn-primary" type="button" id="jwtVerifyRsaBtn" data-i18n="jwt_verify_btn">Verify</button>
+          </div>
+          <div id="jwtVerifyResult" class="mt-2" style="display:none;"></div>
+          <div id="jwtVerifyNote" class="text-muted mt-2" style="font-size:0.82rem;" data-i18n="jwt_verify_note">Signature not verified — decode only.</div>
+        </div>
+      </div>
+
+      <div class="alert alert-light border" style="font-size:0.82rem;">
+        <i class="ri-information-line me-1"></i>
+        <strong data-i18n="tip">Tip:</strong>
+        <span data-i18n="jwt_tip"> JWT payload is only base64url-encoded — it is NOT encrypted. Anyone with the token can read it. Never put passwords or secrets in the payload.</span>
+      </div>
+    </div><!-- /tab-decode -->
+
+    <!-- ─────────── TAB 2: BUILDER ─────────── -->
+    <div class="tab-pane fade" id="tab-build" role="tabpanel">
+
+      <div class="alert alert-warning d-flex gap-2 align-items-start mb-3">
+        <i class="ri-test-tube-line mt-1" style="flex-shrink:0;"></i>
+        <div data-i18n="jwt_builder_warn">For learning / testing only. Never use tokens generated here in production systems.</div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <div class="card h-100">
+            <div class="card-header"><strong data-i18n="jwt_builder_payload">Payload Fields</strong></div>
+            <div class="card-body">
+              <div class="mb-2">
+                <label class="form-label mb-1">sub</label>
+                <input type="text" id="bSub" class="form-control" placeholder="user-id-123">
+              </div>
+              <div class="mb-2">
+                <label class="form-label mb-1">iss</label>
+                <input type="text" id="bIss" class="form-control" placeholder="https://example.com">
+              </div>
+              <div class="mb-2">
+                <label class="form-label mb-1">aud</label>
+                <input type="text" id="bAud" class="form-control" placeholder="my-app">
+              </div>
+              <div class="row g-2 mb-2">
+                <div class="col">
+                  <label class="form-label mb-1" data-i18n="jwt_builder_exp">Expires in</label>
+                  <input type="number" id="bExpMin" class="form-control" value="60" min="1">
+                </div>
+                <div class="col-auto d-flex align-items-end pb-1">
+                  <span class="text-muted" data-i18n="jwt_builder_minutes">minutes</span>
+                </div>
+              </div>
+              <div class="mb-2">
+                <label class="form-label mb-1" data-i18n="jwt_builder_extra">Extra claims (JSON)</label>
+                <textarea id="bExtra" class="form-control font-monospace" rows="3" placeholder='{"role":"admin","email":"user@example.com"}'></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+          <div class="card h-100">
+            <div class="card-header"><strong data-i18n="jwt_builder_sign">Sign with HS256</strong></div>
+            <div class="card-body">
+              <div class="mb-3">
+                <label class="form-label mb-1" data-i18n="jwt_secret_label">Secret Key</label>
+                <div class="input-group">
+                  <input type="password" id="bSecret" class="form-control font-monospace" placeholder="my-secret-key" autocomplete="off">
+                  <button class="btn btn-outline-secondary" type="button" id="bToggleSecret" data-i18n="jwt_show">Show</button>
+                </div>
+              </div>
+              <button class="btn btn-primary w-100 mb-3" id="jwtBuildBtn" data-i18n="jwt_build_btn">Generate JWT</button>
+              <div id="jwtBuildResult" style="display:none;">
+                <label class="form-label mb-1" data-i18n="jwt_built_token">Generated Token</label>
+                <textarea id="jwtBuiltToken" class="form-control font-monospace" rows="5" readonly style="font-size:0.78rem;word-break:break-all;resize:none;"></textarea>
+                <div class="d-flex gap-2 mt-2">
+                  <button class="btn btn-sm btn-outline-primary" id="bCopyToken" data-i18n="copy">Copy</button>
+                  <button class="btn btn-sm btn-outline-secondary" id="bDecodeBuilt" data-i18n="jwt_decode_built">Decode in Inspector</button>
+                </div>
+              </div>
+              <div id="jwtBuildError" class="text-danger mt-2" style="display:none;font-size:0.85rem;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /tab-build -->
+
+  </div><!-- /tab-content -->
+</div><!-- /container -->
+
+<script>
+(function () {
+'use strict';
+
+/* ── helpers ─────────────────────────────────────── */
+var tr = function(k, def) { return (window.t && window.t(k)) || def || k; };
+
+function b64urlDecode(s) {
+  s = s.replace(/-/g, '+').replace(/_/g, '/');
+  while (s.length % 4) s += '=';
+  return atob(s);
+}
+
+function tryParseJWT(token) {
+  try {
+    var parts = token.trim().split('.');
+    if (parts.length !== 3) return null;
+    var header  = JSON.parse(b64urlDecode(parts[0]));
+    var payload = JSON.parse(b64urlDecode(parts[1]));
+    return { header: header, payload: payload, signature: parts[2], raw: parts };
+  } catch(e) { return null; }
+}
+
+function humanDuration(ms) {
+  var s = Math.floor(Math.abs(ms) / 1000);
+  if (s < 60) return s + ' ' + tr('jwt_seconds','giây');
+  var m = Math.floor(s / 60);
+  if (m < 60) return m + ' ' + tr('jwt_minutes_unit','phút');
+  var h = Math.floor(m / 60); m = m % 60;
+  if (h < 24) return h + ' ' + tr('jwt_hours','giờ') + (m ? ' ' + m + ' ' + tr('jwt_minutes_unit','phút') : '');
+  var d = Math.floor(h / 24); h = h % 24;
+  return d + ' ' + tr('jwt_days','ngày') + (h ? ' ' + h + ' ' + tr('jwt_hours','giờ') : '');
+}
+
+function formatTs(ts) {
+  var date = new Date(ts * 1000);
+  var diff = ts * 1000 - Date.now();
+  var fmt = date.toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'medium' });
+  if (diff < 0) {
+    return fmt + ' <span class="badge bg-warning text-dark ms-1">⚠ ' + tr('jwt_expired','Đã hết hạn') + ' ' + humanDuration(diff) + ' ' + tr('jwt_ago','trước') + '</span>';
+  } else {
+    return fmt + ' <span class="badge bg-success ms-1">✅ ' + tr('jwt_valid_for','Còn') + ' ' + humanDuration(diff) + '</span>';
+  }
+}
+
+var CLAIM_NAMES = {
+  iss: 'Issuer',       sub: 'Subject',   aud: 'Audience',
+  exp: 'Expiration',   iat: 'Issued At', nbf: 'Not Before',
+  jti: 'JWT ID'
+};
+
+/* ── DOM refs ────────────────────────────────────── */
+var inp         = document.getElementById('jwtInput');
+var highlight   = document.getElementById('jwtHighlight');
+var highlightW  = document.getElementById('jwtHighlightWrap');
+var statusBar   = document.getElementById('jwtStatusBar');
+var warningsEl  = document.getElementById('jwtWarnings');
+var decodedWrap = document.getElementById('jwtDecodedWrap');
+var headerOut   = document.getElementById('jwtHeaderOut');
+var payloadOut  = document.getElementById('jwtPayloadOut');
+var sigOut      = document.getElementById('jwtSigOut');
+var claimsBody  = document.getElementById('jwtClaimsBody');
+var verifyNote  = document.getElementById('jwtVerifyNote');
+var verifyRes   = document.getElementById('jwtVerifyResult');
+var verifyHmac  = document.getElementById('jwtVerifyHmac');
+var verifyRsa   = document.getElementById('jwtVerifyRsa');
+
+/* ── show / hide helpers ─────────────────────────── */
+function show(el) { el.style.removeProperty('display'); el.style.setProperty('display','block','important'); }
+function hide(el) { el.style.setProperty('display','none','important'); }
+
+/* ── main decode ─────────────────────────────────── */
+var _lastDecoded = null;
+
+function decodeAndRender() {
+  var token = inp.value.trim();
+  if (!token) {
+    hide(highlightW); hide(statusBar); hide(warningsEl); hide(decodedWrap);
+    verifyNote.style.display = '';
+    hide(verifyRes);
+    _lastDecoded = null;
+    resetVerify();
+    return;
+  }
+
+  var d = tryParseJWT(token);
+  _lastDecoded = d;
+
+  if (!d) {
+    hide(highlightW); hide(warningsEl); hide(decodedWrap);
+    statusBar.className = 'alert alert-danger mb-3';
+    statusBar.innerHTML = '❌ <strong>' + tr('jwt_invalid','Token không hợp lệ') + '</strong> — ' + tr('jwt_parse_fail','Không parse được');
+    show(statusBar);
+    resetVerify();
+    return;
+  }
+
+  // Highlighted display
+  highlightW.style.removeProperty('display'); highlightW.style.removeProperty('display'); show(highlightW);
+  highlight.innerHTML =
+    '<span style="color:#e05252;font-weight:600;">' + escHtml(d.raw[0]) + '</span>' +
+    '<span style="color:#555;">.</span>' +
+    '<span style="color:#7c5cbf;font-weight:600;">' + escHtml(d.raw[1]) + '</span>' +
+    '<span style="color:#555;">.</span>' +
+    '<span style="color:#2a9d8f;font-weight:600;">' + escHtml(d.raw[2]) + '</span>';
+
+  // Status bar
+  var exp = d.payload.exp;
+  if (exp === undefined) {
+    statusBar.className = 'alert alert-info mb-3';
+    statusBar.innerHTML = 'ℹ️ <strong>' + tr('jwt_status_noexp','Token hợp lệ — Không có thời hạn (exp)') + '</strong>';
+  } else {
+    var diff = exp * 1000 - Date.now();
+    if (diff < 0) {
+      statusBar.className = 'alert alert-warning mb-3';
+      statusBar.innerHTML = '⚠️ <strong>' + tr('jwt_status_expired','Token hợp lệ — Đã hết hạn') + ' ' + humanDuration(diff) + ' ' + tr('jwt_ago','trước') + '</strong>';
+    } else {
+      statusBar.className = 'alert alert-success mb-3';
+      statusBar.innerHTML = '✅ <strong>' + tr('jwt_status_valid','Token hợp lệ — Còn hạn') + ' ' + humanDuration(diff) + '</strong>';
+    }
+  }
+  show(statusBar);
+
+  // Security warnings
+  var warns = [];
+  var alg = (d.header.alg || '').toUpperCase();
+  if (alg === 'NONE') {
+    warns.push({ cls:'danger', msg:'🚨 <strong>alg: none</strong> — ' + tr('jwt_warn_alg_none','Cho phép bypass signature hoàn toàn. Cực kỳ nguy hiểm!') });
+  }
+  if (alg === 'HS256' || alg === 'HS512') {
+    warns.push({ cls:'warning', msg:'⚠️ ' + tr('jwt_warn_hmac','HS256/HS512 dễ bị brute force nếu secret yếu. Nên dùng ít nhất 32 ký tự ngẫu nhiên.') });
+  }
+  if (alg === 'RS256' || alg === 'ES256' || alg === 'RS512' || alg === 'ES512') {
+    warns.push({ cls:'success', msg:'✅ ' + tr('jwt_warn_asymmetric','Thuật toán asymmetric — tốt cho production.') });
+  }
+  var sensitiveKeys = ['password','pwd','secret','pass','token','private','credential'];
+  var payloadStr = JSON.stringify(d.payload).toLowerCase();
+  sensitiveKeys.forEach(function(k) {
+    if (d.payload.hasOwnProperty(k) || payloadStr.indexOf('"' + k + '"') !== -1) {
+      warns.push({ cls:'danger', msg:'🚨 ' + tr('jwt_warn_sensitive','Payload chứa field nhạy cảm: ') + '<code>' + escHtml(k) + '</code>. ' + tr('jwt_warn_sensitive2','Không nên lưu thông tin nhạy cảm trong JWT.') });
+    }
+  });
+  if (exp === undefined) {
+    warns.push({ cls:'warning', msg:'⚠️ ' + tr('jwt_warn_no_exp','Token không có exp — rủi ro nếu bị lộ vì không thể revoke theo thời gian.') });
+  } else if (exp * 1000 - Date.now() > 30 * 24 * 3600 * 1000) {
+    warns.push({ cls:'warning', msg:'⚠️ ' + tr('jwt_warn_long_exp','Thời hạn > 30 ngày — nên dùng refresh token thay vì access token tồn tại lâu.') });
+  }
+  if (warns.length) {
+    warningsEl.innerHTML = warns.map(function(w) {
+      return '<div class="alert alert-' + w.cls + ' py-2 mb-2">' + w.msg + '</div>';
+    }).join('');
+    show(warningsEl);
+  } else {
+    hide(warningsEl);
+  }
+
+  // Header / payload / sig
+  headerOut.textContent  = JSON.stringify(d.header,  null, 2);
+  payloadOut.textContent = JSON.stringify(d.payload, null, 2);
+  sigOut.textContent     = d.signature;
+  show(decodedWrap);
+
+  // Claims table
+  var rows = '';
+  Object.keys(d.payload).forEach(function(k) {
+    var v = d.payload[k];
+    var name = CLAIM_NAMES[k] || '';
+    var val;
+    if ((k === 'exp' || k === 'iat' || k === 'nbf') && typeof v === 'number') {
+      val = formatTs(v);
+    } else if (typeof v === 'object') {
+      val = '<code>' + escHtml(JSON.stringify(v)) + '</code>';
+    } else {
+      val = escHtml(String(v));
+    }
+    rows += '<tr><td><code>' + escHtml(k) + '</code></td><td><small class="text-muted">' + escHtml(name) + '</small></td><td style="font-size:0.85rem;">' + val + '</td></tr>';
+  });
+  claimsBody.innerHTML = rows || '<tr><td colspan="3" class="text-muted text-center py-3">Empty payload</td></tr>';
+
+  // Verify section: show HMAC or RSA input based on alg
+  resetVerify();
+  if (alg === 'HS256' || alg === 'HS512') {
+    verifyHmac.style.display = ''; verifyRsa.style.display = 'none';
+  } else if (alg === 'RS256' || alg === 'RS512' || alg === 'ES256' || alg === 'ES512') {
+    verifyHmac.style.display = 'none'; verifyRsa.style.display = '';
+  } else {
+    verifyHmac.style.display = ''; verifyRsa.style.display = 'none';
+  }
+}
+
+function resetVerify() {
+  hide(verifyRes);
+  verifyNote.style.display = '';
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+inp.addEventListener('input', decodeAndRender);
+
+/* ── clear ───────────────────────────────────────── */
+document.getElementById('jwtClearBtn').addEventListener('click', function() {
+  inp.value = '';
+  decodeAndRender();
+  document.getElementById('jwtSecret').value = '';
+  document.getElementById('jwtPubKey').value = '';
+});
+
+/* ── copy buttons ────────────────────────────────── */
+function copyText(text) {
+  navigator.clipboard.writeText(text).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+  });
+}
+
+document.querySelectorAll('[data-copy]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    if (!_lastDecoded) return;
+    var which = btn.getAttribute('data-copy');
+    var text = which === 'header'    ? JSON.stringify(_lastDecoded.header, null, 2)
+             : which === 'payload'   ? JSON.stringify(_lastDecoded.payload, null, 2)
+             : which === 'signature' ? _lastDecoded.signature : '';
+    copyText(text);
+    var orig = btn.textContent; btn.textContent = tr('a_copied','Copied!');
+    setTimeout(function() { btn.textContent = orig; }, 1500);
+  });
+});
+
+document.getElementById('jwtCopyAll').addEventListener('click', function() {
+  if (!_lastDecoded) return;
+  copyText(JSON.stringify({ header: _lastDecoded.header, payload: _lastDecoded.payload, signature: _lastDecoded.signature }, null, 2));
+  var btn = this; var orig = btn.textContent; btn.textContent = tr('a_copied','Copied!');
+  setTimeout(function() { btn.textContent = orig; }, 1500);
+});
+
+/* ── show/hide secret ────────────────────────────── */
+document.getElementById('jwtToggleSecret').addEventListener('click', function() {
+  var inp2 = document.getElementById('jwtSecret');
+  var show_ = inp2.type === 'password';
+  inp2.type = show_ ? 'text' : 'password';
+  this.textContent = show_ ? tr('jwt_hide','Hide') : tr('jwt_show','Show');
+});
+
+/* ── verify HMAC ─────────────────────────────────── */
+document.getElementById('jwtVerifyBtn').addEventListener('click', function() {
+  verifyHMAC();
+});
+
+async function verifyHMAC() {
+  if (!_lastDecoded) return;
+  var secret = document.getElementById('jwtSecret').value;
+  if (!secret) {
+    verifyNote.style.display = ''; hide(verifyRes); return;
+  }
+  try {
+    var alg = (_lastDecoded.header.alg || '').toUpperCase();
+    var hashAlg = alg === 'HS512' ? 'SHA-512' : 'SHA-256';
+    var enc = new TextEncoder();
+    var key = await crypto.subtle.importKey(
+      'raw', enc.encode(secret),
+      { name: 'HMAC', hash: hashAlg }, false, ['verify']
+    );
+    var sigData = Uint8Array.from(atob(_lastDecoded.raw[2].replace(/-/g,'+').replace(/_/g,'/')), function(c) { return c.charCodeAt(0); });
+    var msg = enc.encode(_lastDecoded.raw[0] + '.' + _lastDecoded.raw[1]);
+    var ok = await crypto.subtle.verify('HMAC', key, sigData, msg);
+    showVerifyResult(ok);
+  } catch(e) {
+    verifyRes.className = 'alert alert-danger mt-2';
+    verifyRes.textContent = '❌ ' + tr('jwt_verify_error','Lỗi khi verify: ') + e.message;
+    show(verifyRes); verifyNote.style.display = 'none';
+  }
+}
+
+/* ── verify RSA/EC ───────────────────────────────── */
+document.getElementById('jwtVerifyRsaBtn').addEventListener('click', function() {
+  verifyAsymmetric();
+});
+
+async function verifyAsymmetric() {
+  if (!_lastDecoded) return;
+  var pem = document.getElementById('jwtPubKey').value.trim();
+  if (!pem) {
+    verifyNote.style.display = ''; hide(verifyRes); return;
+  }
+  try {
+    var alg = (_lastDecoded.header.alg || '').toUpperCase();
+    var pemStripped = pem.replace(/-----[^-]+-----/g,'').replace(/\s/g,'');
+    var keyDer = Uint8Array.from(atob(pemStripped), function(c) { return c.charCodeAt(0); });
+
+    var importAlg, verifyAlg;
+    if (alg === 'RS256') { importAlg = { name:'RSASSA-PKCS1-v1_5', hash:'SHA-256' }; verifyAlg = { name:'RSASSA-PKCS1-v1_5' }; }
+    else if (alg === 'RS512') { importAlg = { name:'RSASSA-PKCS1-v1_5', hash:'SHA-512' }; verifyAlg = { name:'RSASSA-PKCS1-v1_5' }; }
+    else if (alg === 'ES256') { importAlg = { name:'ECDSA', namedCurve:'P-256' }; verifyAlg = { name:'ECDSA', hash:'SHA-256' }; }
+    else if (alg === 'ES512') { importAlg = { name:'ECDSA', namedCurve:'P-521' }; verifyAlg = { name:'ECDSA', hash:'SHA-512' }; }
+    else throw new Error('Unsupported alg: ' + alg);
+
+    var key = await crypto.subtle.importKey('spki', keyDer, importAlg, false, ['verify']);
+    var sigData = Uint8Array.from(atob(_lastDecoded.raw[2].replace(/-/g,'+').replace(/_/g,'/')), function(c) { return c.charCodeAt(0); });
+    var msg = new TextEncoder().encode(_lastDecoded.raw[0] + '.' + _lastDecoded.raw[1]);
+    var ok = await crypto.subtle.verify(verifyAlg, key, sigData, msg);
+    showVerifyResult(ok);
+  } catch(e) {
+    verifyRes.className = 'alert alert-danger mt-2';
+    verifyRes.textContent = '❌ ' + tr('jwt_verify_error','Lỗi khi verify: ') + e.message;
+    show(verifyRes); verifyNote.style.display = 'none';
+  }
+}
+
+function showVerifyResult(ok) {
+  verifyRes.className = 'alert ' + (ok ? 'alert-success' : 'alert-danger') + ' mt-2';
+  verifyRes.textContent = ok ? '✅ ' + tr('jwt_sig_valid','Chữ ký hợp lệ') : '❌ ' + tr('jwt_sig_invalid','Chữ ký không hợp lệ');
+  show(verifyRes); verifyNote.style.display = 'none';
+}
+
+/* ── JWT Builder ─────────────────────────────────── */
+document.getElementById('bToggleSecret').addEventListener('click', function() {
+  var inp2 = document.getElementById('bSecret');
+  var show_ = inp2.type === 'password';
+  inp2.type = show_ ? 'text' : 'password';
+  this.textContent = show_ ? tr('jwt_hide','Hide') : tr('jwt_show','Show');
+});
+
+document.getElementById('jwtBuildBtn').addEventListener('click', function() { buildJWT(); });
+
+async function buildJWT() {
+  var errEl = document.getElementById('jwtBuildError');
+  var resultEl = document.getElementById('jwtBuildResult');
+  errEl.style.display = 'none'; resultEl.style.display = 'none';
+
+  var secret = document.getElementById('bSecret').value;
+  if (!secret) { errEl.textContent = tr('jwt_build_need_secret','Vui lòng nhập secret key'); errEl.style.display = ''; return; }
+
+  var now = Math.floor(Date.now() / 1000);
+  var expMin = parseInt(document.getElementById('bExpMin').value, 10) || 60;
+  var payload = { iat: now, exp: now + expMin * 60 };
+
+  var sub = document.getElementById('bSub').value.trim();
+  var iss = document.getElementById('bIss').value.trim();
+  var aud = document.getElementById('bAud').value.trim();
+  if (sub) payload.sub = sub;
+  if (iss) payload.iss = iss;
+  if (aud) payload.aud = aud;
+
+  var extra = document.getElementById('bExtra').value.trim();
+  if (extra) {
+    try { Object.assign(payload, JSON.parse(extra)); }
+    catch(e) { errEl.textContent = tr('jwt_build_invalid_json','Extra claims không phải JSON hợp lệ: ') + e.message; errEl.style.display = ''; return; }
+  }
+
+  try {
+    var header  = { alg: 'HS256', typ: 'JWT' };
+    var b64Header  = b64url(JSON.stringify(header));
+    var b64Payload = b64url(JSON.stringify(payload));
+    var msg = b64Header + '.' + b64Payload;
+
+    var enc = new TextEncoder();
+    var key = await crypto.subtle.importKey('raw', enc.encode(secret), { name:'HMAC', hash:'SHA-256' }, false, ['sign']);
+    var sig = await crypto.subtle.sign('HMAC', key, enc.encode(msg));
+    var b64Sig = b64url(String.fromCharCode.apply(null, new Uint8Array(sig)));
+    var token = msg + '.' + b64Sig;
+
+    document.getElementById('jwtBuiltToken').value = token;
+    resultEl.style.display = '';
+  } catch(e) {
+    errEl.textContent = tr('jwt_build_error','Lỗi tạo token: ') + e.message; errEl.style.display = '';
+  }
+}
+
+function b64url(s) {
+  var b = typeof s === 'string' ? btoa(s) : btoa(String.fromCharCode.apply(null, s));
+  return b.replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+}
+
+document.getElementById('bCopyToken').addEventListener('click', function() {
+  copyText(document.getElementById('jwtBuiltToken').value);
+  var orig = this.textContent; this.textContent = tr('a_copied','Copied!');
+  setTimeout(function() { this.textContent = orig; }.bind(this), 1500);
+});
+
+document.getElementById('bDecodeBuilt').addEventListener('click', function() {
+  var token = document.getElementById('jwtBuiltToken').value;
+  if (!token) return;
+  document.getElementById('jwtInput').value = token;
+  var tab = document.getElementById('tab-decode-btn');
+  if (tab) { tab.click(); }
+  decodeAndRender();
+});
+
+})();
+</script>

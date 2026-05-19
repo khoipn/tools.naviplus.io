@@ -1,0 +1,571 @@
+---
+layout: default
+title: "Free Hash Generator & Verifier — SHA-256, MD5, HMAC"
+description: "Free hash tool by Navi+. Generate SHA-256, SHA-512, SHA-1, MD5 hashes, verify file checksums, and create HMAC signatures — no account, no data stored."
+---
+
+<div class="container py-4">
+  <div class="tool-page-header">
+    <h1 data-i18n="hash_h1">Hash Generator & Verifier</h1>
+    <p data-i18n="hash_desc">Generate and verify SHA-256, SHA-512, SHA-1, and MD5 hashes. Verify file checksums. All processing runs locally in your browser.</p>
+  </div>
+
+  <ul class="nav nav-tabs mb-3" id="hashTabs">
+    <li class="nav-item"><button class="nav-link active" data-hash-tab="generate" type="button" data-i18n="hash_tab_gen">Generate</button></li>
+    <li class="nav-item"><button class="nav-link" data-hash-tab="verify" type="button" data-i18n="hash_tab_verify">Verify</button></li>
+    <li class="nav-item"><button class="nav-link" data-hash-tab="file" type="button" data-i18n="hash_tab_file">Hash File</button></li>
+    <li class="nav-item"><button class="nav-link" data-hash-tab="hmac" type="button" data-i18n="hash_tab_hmac">HMAC</button></li>
+  </ul>
+
+  <!-- ===== Tab: Generate ===== -->
+  <div id="panel-generate" class="hash-panel">
+    <div class="card mb-3">
+      <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <strong data-i18n="hash_input">Input Text</strong>
+        <div class="d-flex align-items-center gap-2">
+          <label class="mb-0 small text-muted" data-i18n="hash_algo">Algorithm</label>
+          <select id="gen-algo" class="form-select form-select-sm" style="width:auto">
+            <option value="SHA-256">SHA-256</option>
+            <option value="SHA-512">SHA-512</option>
+            <option value="SHA-1">SHA-1</option>
+            <option value="MD5">MD5</option>
+          </select>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="gen-warn" class="alert alert-warning py-2 mb-3 small d-none"></div>
+        <textarea id="gen-input" class="form-control mb-3" rows="5" data-i18n-ph="hash_input_ph" placeholder="Type or paste text here — hash updates in realtime…"></textarea>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <span class="text-muted small" data-i18n="hash_format">Format:</span>
+          <div class="form-check form-check-inline mb-0">
+            <input class="form-check-input" type="radio" name="gen-fmt" id="fmt-hex-l" value="hex-lower" checked>
+            <label class="form-check-label small" for="fmt-hex-l" data-i18n="hash_fmt_hex_lower">HEX lowercase</label>
+          </div>
+          <div class="form-check form-check-inline mb-0">
+            <input class="form-check-input" type="radio" name="gen-fmt" id="fmt-hex-u" value="hex-upper">
+            <label class="form-check-label small" for="fmt-hex-u" data-i18n="hash_fmt_hex_upper">HEX uppercase</label>
+          </div>
+          <div class="form-check form-check-inline mb-0">
+            <input class="form-check-input" type="radio" name="gen-fmt" id="fmt-b64" value="base64">
+            <label class="form-check-label small" for="fmt-b64">Base64</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card mb-3">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <strong data-i18n="hash_output">Hash Result</strong>
+        <span id="gen-algo-info" class="badge bg-secondary">SHA-256 · 256-bit</span>
+      </div>
+      <div class="card-body">
+        <pre id="gen-output" class="form-control hash-output-pre"></pre>
+        <div class="d-flex gap-2 mt-2">
+          <button id="gen-copy" class="btn btn-primary btn-sm" type="button" data-i18n="copy">Copy</button>
+          <button id="gen-clear" class="btn btn-outline-secondary btn-sm" type="button" data-i18n="clear">Clear</button>
+        </div>
+      </div>
+    </div>
+    <div class="alert alert-secondary small">
+      <strong data-i18n="tip">Tip:</strong>
+      <span data-i18n="hash_gen_tip"> Hash updates in realtime as you type. SHA-256 is recommended for most use cases. MD5 and SHA-1 are legacy and should not be used for security purposes.</span>
+    </div>
+  </div>
+
+  <!-- ===== Tab: Verify ===== -->
+  <div id="panel-verify" class="hash-panel d-none">
+    <div class="card mb-3">
+      <div class="card-header"><strong data-i18n="hash_verify_mode">Verify Mode</strong></div>
+      <div class="card-body d-flex gap-4 flex-wrap">
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="verify-mode" id="mode-texts" value="texts" checked>
+          <label class="form-check-label" for="mode-texts" data-i18n="hash_mode_texts">Compare 2 texts</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="verify-mode" id="mode-hash" value="hash">
+          <label class="form-check-label" for="mode-hash" data-i18n="hash_mode_hash">Compare text with known hash</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mode A -->
+    <div id="verify-texts-panel">
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-6">
+          <div class="card h-100">
+            <div class="card-header"><strong data-i18n="hash_text1">Text 1 (original)</strong></div>
+            <div class="card-body"><textarea id="verify-text1" class="form-control" rows="5" data-i18n-ph="hash_text1_ph" placeholder="Enter original text…"></textarea></div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-6">
+          <div class="card h-100">
+            <div class="card-header"><strong data-i18n="hash_text2">Text 2 (to compare)</strong></div>
+            <div class="card-body"><textarea id="verify-text2" class="form-control" rows="5" data-i18n-ph="hash_text2_ph" placeholder="Enter text to compare…"></textarea></div>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+        <label class="mb-0" data-i18n="hash_algo">Algorithm</label>
+        <select id="verify-algo" class="form-select" style="width:auto">
+          <option value="SHA-256">SHA-256</option>
+          <option value="SHA-512">SHA-512</option>
+          <option value="SHA-1">SHA-1</option>
+          <option value="MD5">MD5</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Mode B -->
+    <div id="verify-hash-panel" class="d-none">
+      <div class="card mb-3">
+        <div class="card-header"><strong data-i18n="hash_input_text">Input Text</strong></div>
+        <div class="card-body"><textarea id="verify-input" class="form-control" rows="4" data-i18n-ph="hash_input_ph" placeholder="Enter text to hash…"></textarea></div>
+      </div>
+      <div class="card mb-3">
+        <div class="card-header"><strong data-i18n="hash_known_hash">Known Hash</strong></div>
+        <div class="card-body"><input id="verify-known" class="form-control font-monospace" type="text" data-i18n-ph="hash_known_ph" placeholder="Paste known hash here…" /></div>
+      </div>
+      <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+        <label class="mb-0" data-i18n="hash_algo">Algorithm</label>
+        <select id="verify-hash-algo" class="form-select" style="width:auto">
+          <option value="SHA-256">SHA-256</option>
+          <option value="SHA-512">SHA-512</option>
+          <option value="SHA-1">SHA-1</option>
+          <option value="MD5">MD5</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="verify-result" class="d-none">
+      <div id="verify-result-inner" class="alert text-center fs-5 py-4"></div>
+      <div id="verify-hashes" class="row g-2 mt-1 d-none"></div>
+    </div>
+  </div>
+
+  <!-- ===== Tab: Hash File ===== -->
+  <div id="panel-file" class="hash-panel d-none">
+    <div class="card mb-3">
+      <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <strong data-i18n="hash_file_upload">Upload File</strong>
+        <select id="file-algo" class="form-select form-select-sm" style="width:auto">
+          <option value="SHA-256">SHA-256</option>
+          <option value="SHA-512">SHA-512</option>
+          <option value="SHA-1">SHA-1</option>
+          <option value="MD5">MD5</option>
+        </select>
+      </div>
+      <div class="card-body">
+        <div id="file-dropzone" class="tool-dropzone p-4 text-center mb-3">
+          <p class="mb-2"><strong data-i18n="hash_drop_file">Drop file here</strong> <span data-i18n="wm_or">or</span></p>
+          <label for="file-input" class="btn btn-primary" data-i18n="hash_choose_file">Choose file</label>
+          <input id="file-input" type="file" class="d-none" />
+          <p class="small text-muted mb-0 mt-2" data-i18n="hash_file_hint">Any file type · Max 500 MB · Processed locally on your device</p>
+        </div>
+        <div id="file-progress-wrap" class="d-none mb-2">
+          <div class="d-flex justify-content-between small mb-1">
+            <span data-i18n="hash_reading">Reading file…</span>
+            <span id="file-progress-pct">0%</span>
+          </div>
+          <div class="progress" style="height:6px"><div id="file-progress-bar" class="progress-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="file-result" class="d-none">
+      <div class="card mb-3">
+        <div class="card-header"><strong data-i18n="hash_file_result">File Hash</strong></div>
+        <div class="card-body">
+          <div class="row g-1 mb-2 small">
+            <div class="col-4 col-md-2 text-muted fw-semibold" data-i18n="hash_file_name">Filename</div>
+            <div class="col-8 col-md-10" id="res-filename" style="word-break:break-all"></div>
+            <div class="col-4 col-md-2 text-muted fw-semibold" data-i18n="hash_file_size">Size</div>
+            <div class="col-8 col-md-10" id="res-filesize"></div>
+            <div class="col-4 col-md-2 text-muted fw-semibold" data-i18n="hash_algo">Algorithm</div>
+            <div class="col-8 col-md-10" id="res-algo"></div>
+          </div>
+          <pre id="res-hash" class="form-control hash-output-pre"></pre>
+          <div class="mt-2"><button id="file-copy-hash" class="btn btn-primary btn-sm" data-i18n="copy">Copy</button></div>
+        </div>
+      </div>
+      <div class="card mb-3">
+        <div class="card-header"><strong data-i18n="hash_verify_checksum">Verify Checksum</strong></div>
+        <div class="card-body">
+          <p class="small text-muted mb-2" data-i18n="hash_checksum_hint">Paste the expected checksum from the download page to verify file integrity.</p>
+          <div class="input-group mb-2">
+            <input id="file-checksum-input" class="form-control font-monospace" type="text" data-i18n-ph="hash_paste_checksum" placeholder="Paste expected checksum here…" />
+            <button id="file-checksum-btn" class="btn btn-outline-primary" type="button" data-i18n="hash_verify_btn">Verify</button>
+          </div>
+          <div id="file-verify-result" class="d-none"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-secondary small">
+      <strong data-i18n="tip">Tip:</strong>
+      <span data-i18n="hash_file_tip"> SHA-256 is the standard for file checksums (used by GitHub, Ubuntu, etc.). Paste the checksum from the download page into the verify field to confirm file integrity.</span>
+    </div>
+  </div>
+
+  <!-- ===== Tab: HMAC ===== -->
+  <div id="panel-hmac" class="hash-panel d-none">
+    <div class="card mb-3">
+      <div class="card-header"><strong data-i18n="hash_hmac_title">HMAC Generator</strong></div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label" data-i18n="hash_hmac_msg">Message</label>
+          <textarea id="hmac-message" class="form-control" rows="4" data-i18n-ph="hash_hmac_msg_ph" placeholder="Enter message…"></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" data-i18n="hash_hmac_key">Secret Key</label>
+          <input id="hmac-key" class="form-control" type="text" data-i18n-ph="hash_hmac_key_ph" placeholder="Enter secret key…" />
+        </div>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <label class="mb-0" data-i18n="hash_algo">Algorithm</label>
+          <select id="hmac-algo" class="form-select" style="width:auto">
+            <option value="SHA-256">HMAC-SHA256</option>
+            <option value="SHA-512">HMAC-SHA512</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="card mb-3">
+      <div class="card-header"><strong data-i18n="hash_hmac_result">HMAC Result</strong></div>
+      <div class="card-body">
+        <pre id="hmac-output" class="form-control hash-output-pre"></pre>
+        <div class="mt-2"><button id="hmac-copy" class="btn btn-primary btn-sm" type="button" data-i18n="copy">Copy</button></div>
+      </div>
+    </div>
+    <div class="alert alert-info small">
+      <strong data-i18n="hash_hmac_note_lbl">Note:</strong>
+      <span data-i18n="hash_hmac_note"> HMAC (Hash-based Message Authentication Code) verifies both the integrity and authenticity of a message. Unlike plain hashing, HMAC requires a secret key — only parties with the key can generate or verify the signature.</span>
+    </div>
+    <div class="alert alert-secondary small">
+      <strong data-i18n="tip">Tip:</strong>
+      <span data-i18n="hash_hmac_tip"> HMAC updates in realtime. Keep your secret key confidential — if it leaks, anyone can forge signatures.</span>
+    </div>
+  </div>
+</div>
+
+<style>
+.hash-output-pre {
+  min-height: 52px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: monospace;
+  font-size: 0.85rem;
+  max-height: 200px;
+  overflow: auto;
+}
+</style>
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const tr = k => (window.t && window.t(k)) || k;
+
+  // ─── MD5 pure JS (works on Uint8Array) ───────────────────────────────────
+  function md5Bytes(u8) {
+    function safeAdd(x, y) {
+      var lsw = (x & 0xffff) + (y & 0xffff);
+      return (((x >> 16) + (y >> 16) + (lsw >> 16)) << 16) | (lsw & 0xffff);
+    }
+    function rol(n, s) { return (n << s) | (n >>> (32 - s)); }
+    function cmn(q, a, b, x, s, t) { return safeAdd(rol(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b); }
+    function F(a,b,c,d,x,s,t){return cmn((b&c)|(~b&d),a,b,x,s,t);}
+    function G(a,b,c,d,x,s,t){return cmn((b&d)|(c&~d),a,b,x,s,t);}
+    function H(a,b,c,d,x,s,t){return cmn(b^c^d,a,b,x,s,t);}
+    function I(a,b,c,d,x,s,t){return cmn(c^(b|~d),a,b,x,s,t);}
+
+    var n = u8.length;
+    var nblk = ((n + 72) >> 6);
+    var m = new Int32Array(nblk * 16);
+    for (var i = 0; i < n; i++) m[i >> 2] |= u8[i] << ((i & 3) * 8);
+    m[n >> 2] |= 0x80 << ((n & 3) * 8);
+    m[nblk * 16 - 2] = n * 8;
+
+    var a = 0x67452301, b = 0xefcdab89|0, c = 0x98badcfe|0, d = 0x10325476;
+
+    for (i = 0; i < m.length; i += 16) {
+      var M = m.subarray(i, i + 16);
+      var A=a,B=b,C=c,D=d;
+      a=F(a,b,c,d,M[0],7,-680876936);d=F(d,a,b,c,M[1],12,-389564586);c=F(c,d,a,b,M[2],17,606105819);b=F(b,c,d,a,M[3],22,-1044525330);
+      a=F(a,b,c,d,M[4],7,-176418897);d=F(d,a,b,c,M[5],12,1200080426);c=F(c,d,a,b,M[6],17,-1473231341);b=F(b,c,d,a,M[7],22,-45705983);
+      a=F(a,b,c,d,M[8],7,1770035416);d=F(d,a,b,c,M[9],12,-1958414417);c=F(c,d,a,b,M[10],17,-42063);b=F(b,c,d,a,M[11],22,-1990404162);
+      a=F(a,b,c,d,M[12],7,1804603682);d=F(d,a,b,c,M[13],12,-40341101);c=F(c,d,a,b,M[14],17,-1502002290);b=F(b,c,d,a,M[15],22,1236535329);
+      a=G(a,b,c,d,M[1],5,-165796510);d=G(d,a,b,c,M[6],9,-1069501632);c=G(c,d,a,b,M[11],14,643717713);b=G(b,c,d,a,M[0],20,-373897302);
+      a=G(a,b,c,d,M[5],5,-701558691);d=G(d,a,b,c,M[10],9,38016083);c=G(c,d,a,b,M[15],14,-660478335);b=G(b,c,d,a,M[4],20,-405537848);
+      a=G(a,b,c,d,M[9],5,568446438);d=G(d,a,b,c,M[14],9,-1019803690);c=G(c,d,a,b,M[3],14,-187363961);b=G(b,c,d,a,M[8],20,1163531501);
+      a=G(a,b,c,d,M[13],5,-1444681467);d=G(d,a,b,c,M[2],9,-51403784);c=G(c,d,a,b,M[7],14,1735328473);b=G(b,c,d,a,M[12],20,-1926607734);
+      a=H(a,b,c,d,M[5],4,-378558);d=H(d,a,b,c,M[8],11,-2022574463);c=H(c,d,a,b,M[11],16,1839030562);b=H(b,c,d,a,M[14],23,-35309556);
+      a=H(a,b,c,d,M[1],4,-1530992060);d=H(d,a,b,c,M[4],11,1272893353);c=H(c,d,a,b,M[7],16,-155497632);b=H(b,c,d,a,M[10],23,-1094730640);
+      a=H(a,b,c,d,M[13],4,681279174);d=H(d,a,b,c,M[0],11,-358537222);c=H(c,d,a,b,M[3],16,-722521979);b=H(b,c,d,a,M[6],23,76029189);
+      a=H(a,b,c,d,M[9],4,-640364487);d=H(d,a,b,c,M[12],11,-421815835);c=H(c,d,a,b,M[15],16,530742520);b=H(b,c,d,a,M[2],23,-995338651);
+      a=I(a,b,c,d,M[0],6,-198630844);d=I(d,a,b,c,M[7],10,1126891415);c=I(c,d,a,b,M[14],15,-1416354905);b=I(b,c,d,a,M[5],21,-57434055);
+      a=I(a,b,c,d,M[12],6,1700485571);d=I(d,a,b,c,M[3],10,-1894986606);c=I(c,d,a,b,M[10],15,-1051523);b=I(b,c,d,a,M[1],21,-2054922799);
+      a=I(a,b,c,d,M[8],6,1873313359);d=I(d,a,b,c,M[15],10,-30611744);c=I(c,d,a,b,M[6],15,-1560198380);b=I(b,c,d,a,M[13],21,1309151649);
+      a=I(a,b,c,d,M[4],6,-145523070);d=I(d,a,b,c,M[11],10,-1120210379);c=I(c,d,a,b,M[2],15,718787259);b=I(b,c,d,a,M[9],21,-343485551);
+      a=safeAdd(a,A);b=safeAdd(b,B);c=safeAdd(c,C);d=safeAdd(d,D);
+    }
+    function w2h(w){var h='';for(var j=0;j<4;j++)h+=((w>>(j*8+4))&0xf).toString(16)+((w>>(j*8))&0xf).toString(16);return h;}
+    return w2h(a)+w2h(b)+w2h(c)+w2h(d);
+  }
+
+  // ─── Hash helpers ─────────────────────────────────────────────────────────
+  const enc = new TextEncoder();
+
+  function bufToHex(u8) {
+    return Array.from(u8).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+  function hexToB64(hex) {
+    var bytes = hex.match(/.{2}/g).map(h => parseInt(h,16));
+    return btoa(String.fromCharCode.apply(null, bytes));
+  }
+  function applyFmt(hex, fmt) {
+    if (fmt === 'hex-upper') return hex.toUpperCase();
+    if (fmt === 'base64') return hexToB64(hex);
+    return hex;
+  }
+
+  async function hashBytes(algo, u8) {
+    if (algo === 'MD5') return md5Bytes(u8);
+    const buf = await crypto.subtle.digest(algo, u8);
+    return bufToHex(new Uint8Array(buf));
+  }
+  async function hashText(algo, text) {
+    return hashBytes(algo, enc.encode(text));
+  }
+
+  const ALGO_META = {
+    'SHA-256': { bits: 256, warn: null },
+    'SHA-512': { bits: 512, warn: null },
+    'SHA-1':   { bits: 160, warn: 'hash_warn_sha1' },
+    'MD5':     { bits: 128, warn: 'hash_warn_md5' },
+  };
+
+  // ─── Copy helper ──────────────────────────────────────────────────────────
+  function copyBtn(btn, text) {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      var orig = btn.textContent;
+      btn.textContent = tr('a_copied');
+      setTimeout(() => { btn.textContent = orig; }, 1500);
+    });
+  }
+
+  // ─── Tab switching ────────────────────────────────────────────────────────
+  $$('[data-hash-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('[data-hash-tab]').forEach(b => b.classList.remove('active'));
+      $$('.hash-panel').forEach(p => p.classList.add('d-none'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.dataset.hashTab).classList.remove('d-none');
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Tab: Generate
+  // ═══════════════════════════════════════════════════════════════════════════
+  var genInput  = $('#gen-input');
+  var genOutput = $('#gen-output');
+  var genAlgo   = $('#gen-algo');
+  var genWarn   = $('#gen-warn');
+  var genAlgoInfo = $('#gen-algo-info');
+
+  function getFmt() {
+    var el = $('[name="gen-fmt"]:checked');
+    return el ? el.value : 'hex-lower';
+  }
+
+  async function doGenerate() {
+    var text = genInput.value;
+    var algo = genAlgo.value;
+    var meta = ALGO_META[algo];
+    genAlgoInfo.textContent = algo + ' · ' + meta.bits + '-bit';
+    if (meta.warn) { genWarn.textContent = tr(meta.warn); genWarn.classList.remove('d-none'); }
+    else genWarn.classList.add('d-none');
+    if (!text) { genOutput.textContent = ''; return; }
+    try {
+      var hex = await hashText(algo, text);
+      genOutput.textContent = applyFmt(hex, getFmt());
+    } catch(e) { genOutput.textContent = 'Error: ' + e.message; }
+  }
+
+  genInput.addEventListener('input', doGenerate);
+  genAlgo.addEventListener('change', doGenerate);
+  $$('[name="gen-fmt"]').forEach(r => r.addEventListener('change', doGenerate));
+  $('#gen-copy').addEventListener('click', () => copyBtn($('#gen-copy'), genOutput.textContent.trim()));
+  $('#gen-clear').addEventListener('click', () => { genInput.value = ''; genOutput.textContent = ''; genWarn.classList.add('d-none'); });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Tab: Verify
+  // ═══════════════════════════════════════════════════════════════════════════
+  $$('[name="verify-mode"]').forEach(r => {
+    r.addEventListener('change', () => {
+      var isHash = r.value === 'hash' && r.checked;
+      document.getElementById('verify-texts-panel').classList.toggle('d-none', isHash);
+      document.getElementById('verify-hash-panel').classList.toggle('d-none', !isHash);
+      document.getElementById('verify-result').classList.add('d-none');
+    });
+  });
+
+  function showVerifyResult(match, h1, h2, lbl1, lbl2) {
+    var wrap = $('#verify-result');
+    var inner = $('#verify-result-inner');
+    var hashes = $('#verify-hashes');
+    wrap.classList.remove('d-none');
+    if (match) {
+      inner.className = 'alert alert-success text-center py-4';
+      inner.innerHTML = '✅ <strong>' + tr('hash_match') + '</strong>';
+    } else {
+      inner.className = 'alert alert-danger text-center py-4';
+      inner.innerHTML = '❌ <strong>' + tr('hash_no_match') + '</strong>';
+    }
+    if (h1 && h2) {
+      hashes.classList.remove('d-none');
+      hashes.innerHTML =
+        '<div class="col-12 col-lg-6"><div class="card"><div class="card-header small"><strong>'+lbl1+'</strong></div><div class="card-body"><code style="word-break:break-all;font-size:.8rem">'+h1+'</code></div></div></div>' +
+        '<div class="col-12 col-lg-6"><div class="card"><div class="card-header small"><strong>'+lbl2+'</strong></div><div class="card-body"><code style="word-break:break-all;font-size:.8rem">'+h2+'</code></div></div></div>';
+    } else hashes.classList.add('d-none');
+  }
+
+  async function doVerify() {
+    var mode = ($('[name="verify-mode"]:checked') || {}).value || 'texts';
+    try {
+      if (mode === 'texts') {
+        var t1 = $('#verify-text1').value, t2 = $('#verify-text2').value;
+        var algo = $('#verify-algo').value;
+        if (!t1 || !t2) { $('#verify-result').classList.add('d-none'); return; }
+        var [h1, h2] = await Promise.all([hashText(algo, t1), hashText(algo, t2)]);
+        showVerifyResult(h1 === h2, h1, h2, tr('hash_text1'), tr('hash_text2'));
+      } else {
+        var text = $('#verify-input').value;
+        var known = $('#verify-known').value.trim().toLowerCase();
+        var algo = $('#verify-hash-algo').value;
+        if (!text || !known) { $('#verify-result').classList.add('d-none'); return; }
+        var computed = await hashText(algo, text);
+        showVerifyResult(computed === known, computed, known, tr('hash_computed'), tr('hash_provided'));
+      }
+    } catch(e) { /* ignore mid-type errors */ }
+  }
+
+  ['#verify-text1','#verify-text2','#verify-input','#verify-known'].forEach(sel => {
+    var el = $(sel); if (el) el.addEventListener('input', doVerify);
+  });
+  ['#verify-algo','#verify-hash-algo'].forEach(sel => {
+    var el = $(sel); if (el) el.addEventListener('change', doVerify);
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Tab: Hash File
+  // ═══════════════════════════════════════════════════════════════════════════
+  var currentFile = null;
+  var currentFileHash = '';
+  var fileDropzone = $('#file-dropzone');
+  var fileInput = $('#file-input');
+
+  fileDropzone.addEventListener('dragover', e => { e.preventDefault(); fileDropzone.classList.add('dragover'); });
+  fileDropzone.addEventListener('dragleave', () => fileDropzone.classList.remove('dragover'));
+  fileDropzone.addEventListener('drop', e => {
+    e.preventDefault(); fileDropzone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', () => { if (fileInput.files[0]) processFile(fileInput.files[0]); });
+  $('#file-algo').addEventListener('change', () => { if (currentFile) processFile(currentFile); });
+
+  function fmtSize(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1048576) return (n/1024).toFixed(1) + ' KB';
+    if (n < 1073741824) return (n/1048576).toFixed(1) + ' MB';
+    return (n/1073741824).toFixed(2) + ' GB';
+  }
+
+  async function processFile(file) {
+    currentFile = file;
+    var algo = $('#file-algo').value;
+    var progressWrap = $('#file-progress-wrap');
+    var progressBar = $('#file-progress-bar');
+    var progressPct = $('#file-progress-pct');
+    var resultEl = $('#file-result');
+
+    resultEl.classList.add('d-none');
+    progressWrap.classList.remove('d-none');
+    progressBar.style.width = '0%';
+    progressPct.textContent = '0%';
+
+    try {
+      var buf = await new Promise((resolve, reject) => {
+        var reader = new FileReader();
+        reader.onprogress = e => {
+          if (e.lengthComputable) {
+            var p = Math.round(e.loaded / e.total * 100);
+            progressBar.style.width = p + '%';
+            progressPct.textContent = p + '%';
+          }
+        };
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsArrayBuffer(file);
+      });
+
+      progressBar.style.width = '100%';
+      progressPct.textContent = '100%';
+
+      var u8 = new Uint8Array(buf);
+      var hex = await hashBytes(algo, u8);
+      currentFileHash = hex;
+
+      progressWrap.classList.add('d-none');
+      $('#res-filename').textContent = file.name;
+      $('#res-filesize').textContent = fmtSize(file.size);
+      $('#res-algo').textContent = algo;
+      $('#res-hash').textContent = hex;
+      $('#file-checksum-input').value = '';
+      $('#file-verify-result').classList.add('d-none');
+      resultEl.classList.remove('d-none');
+    } catch(e) {
+      progressWrap.classList.add('d-none');
+      alert('Error: ' + e.message);
+    }
+  }
+
+  $('#file-copy-hash').addEventListener('click', () => copyBtn($('#file-copy-hash'), currentFileHash));
+
+  $('#file-checksum-btn').addEventListener('click', () => {
+    var input = $('#file-checksum-input').value.trim().toLowerCase();
+    if (!input || !currentFileHash) return;
+    var resEl = $('#file-verify-result');
+    resEl.classList.remove('d-none');
+    if (currentFileHash.toLowerCase() === input) {
+      resEl.className = 'alert alert-success';
+      resEl.innerHTML = '✅ <strong>' + tr('hash_match') + '</strong> — ' + tr('hash_checksum_ok');
+    } else {
+      resEl.className = 'alert alert-danger';
+      resEl.innerHTML = '❌ <strong>' + tr('hash_no_match') + '</strong> — ' + tr('hash_checksum_fail');
+    }
+  });
+
+  $('#file-checksum-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('#file-checksum-btn').click(); });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Tab: HMAC
+  // ═══════════════════════════════════════════════════════════════════════════
+  async function doHMAC() {
+    var message = $('#hmac-message').value;
+    var key = $('#hmac-key').value;
+    var algo = $('#hmac-algo').value;
+    var output = $('#hmac-output');
+    if (!message || !key) { output.textContent = ''; return; }
+    try {
+      var keyMat = await crypto.subtle.importKey('raw', enc.encode(key), { name:'HMAC', hash: algo }, false, ['sign']);
+      var sig = await crypto.subtle.sign('HMAC', keyMat, enc.encode(message));
+      output.textContent = bufToHex(new Uint8Array(sig));
+    } catch(e) { output.textContent = 'Error: ' + e.message; }
+  }
+
+  $('#hmac-message').addEventListener('input', doHMAC);
+  $('#hmac-key').addEventListener('input', doHMAC);
+  $('#hmac-algo').addEventListener('change', doHMAC);
+  $('#hmac-copy').addEventListener('click', () => copyBtn($('#hmac-copy'), $('#hmac-output').textContent.trim()));
+
+})();
+</script>
