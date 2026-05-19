@@ -2,103 +2,109 @@
 layout: default
 title: "Navi+ Toolbox"
 description: "A collection of utilities that help users make the most of Navi+ | The Menu Builder optimizes website navigation across the internet."
-
 ---
 
 <script>
-    var rootDomain = "https://tools.naviplus.io/";
-
-    // Nhóm hiển thị theo thứ tự định nghĩa
-    var groupsArray = [
-        "Images",
-        "Security"
-        
-    ];
+    var groupsArray = ["images", "security"];
 
     var toolsArray = [
         {
-            "title": "Client-Side AES-GCM Encryption Tool",
-            "group": "Security",
-            "icon": "ri-lock-line",
-            "description": "Encrypt and decrypt any text directly in your browser using PBKDF2 with AES-256-GCM, then save results safely as Base64",
-            "linkto": "toolset/security/encrypt.html"
+            titleKey: "tool_webp_title",
+            titleEn: "Convert to WebP",
+            descKey: "tool_webp_desc",
+            descEn: "Convert JPG or PNG images to lightweight WebP format, reducing file sizes for the web",
+            groupKey: "group_images",
+            icon: "ri-image-line",
+            linkto: "toolset/images/convert-to-webp.html"
         },
         {
-            "title": "Secure Password Generator",
-            "group": "Security",
-            "icon": "ri-key-2-line",
-            "description": "Generate strong and random passwords instantly with adjustable length, full character sets, and built-in security options",
-            "linkto": "toolset/security/generate-password.html"
-        },
-
-
-
-
-        {
-            "title": "Convert to WebP",
-            "group": "Images",
-            "icon": "ri-folder-image-line",
-            "description": "Convert JPG or PNG images into lightweight WebP format in seconds, reducing file sizes and improving website performance",
-            "linkto": "toolset/images/convert-to-webp.html"
+            titleKey: "tool_resizer_title",
+            titleEn: "Image Resizer",
+            descKey: "tool_resizer_desc",
+            descEn: "Resize multiple images at once with center crop, instant previews, and ZIP download",
+            groupKey: "group_images",
+            icon: "ri-crop-line",
+            linkto: "toolset/images/image-resizer.html"
         },
         {
-            "title": "Image resizer",
-            "group": "Images",
-            "icon": "ri-folder-image-line",
-            "description": "Resize multiple images at once into common dimensions with crop-fit center, instant previews, and ZIP file downloads",
-            "linkto": "toolset/images/image-resizer.html"
+            titleKey: "tool_encrypt_title",
+            titleEn: "AES-GCM Encryption",
+            descKey: "tool_encrypt_desc",
+            descEn: "Encrypt and decrypt any text in your browser using PBKDF2 + AES-256-GCM, save as Base64",
+            groupKey: "group_security",
+            icon: "ri-lock-line",
+            linkto: "toolset/security/encrypt.html"
+        },
+        {
+            titleKey: "tool_password_title",
+            titleEn: "Password Generator",
+            descKey: "tool_password_desc",
+            descEn: "Generate strong random passwords with adjustable length, full character sets, and security options",
+            groupKey: "group_security",
+            icon: "ri-key-2-line",
+            linkto: "toolset/security/generate-password.html"
         }
     ];
-</script>
 
-<div class="container py-4">
-    <div id="tools-list"></div>
-</div>
-
-<script>
-    function renderTools() {
-        const container = document.getElementById("tools-list");
+    window.renderTools = function () {
+        var tr = window.t || function(k, def) { return def || k; };
+        var container = document.getElementById("tools-list");
+        if (!container) return;
         container.innerHTML = "";
+        var langPrefix = (window.getLangPrefix && window.getLangPrefix()) || '';
+        var base = window.location.origin + langPrefix + '/';
 
-        groupsArray.forEach(groupName => {
-            // group header
-            const groupHeader = document.createElement("h3");
-            groupHeader.className = "mb-3 mt-4";
-            groupHeader.textContent = groupName;
-            container.appendChild(groupHeader);
+        var heroTitle = document.getElementById("hero-title");
+        var heroDesc = document.getElementById("hero-desc");
+        if (heroTitle) heroTitle.innerHTML = tr('hero_title', 'Free tools for <br>smarter workflows');
+        if (heroDesc) heroDesc.textContent = tr('hero_desc', 'Privacy-first utilities that run entirely in your browser. No uploads, no accounts, no tracking.');
 
-            // row chứa card
-            const row = document.createElement("div");
+        groupsArray.forEach(function (groupKey) {
+            var groupLabel = tr('group_' + groupKey, groupKey.charAt(0).toUpperCase() + groupKey.slice(1));
+
+            var section = document.createElement("div");
+            section.className = "tools-section";
+
+            var label = document.createElement("div");
+            label.className = "tools-section-label";
+            label.innerHTML = '<span>' + groupLabel + '</span>';
+            section.appendChild(label);
+
+            var row = document.createElement("div");
             row.className = "row g-3";
 
             toolsArray
-                .filter(tool => tool.group === groupName)
-                .forEach(tool => {
-                    const col = document.createElement("div");
-                    col.className = "col-md-4";
-
-                    col.innerHTML = `
-              <a href="${rootDomain}${tool.linkto}" class="text-decoration-none text-dark">
-                <div class="card card-toolset h-100 shadow-sm hover-card">
-                  <div class="card-body d-flex flex-column">
-                    
-                    <!-- Vòng tròn icon -->
-                    <div class="icon-circle mb-3">
-                      <i class="${tool.icon}"></i>
-                    </div>
-                    
-                    <h5 class="card-title">${tool.title}</h5>
-                    <p class="card-text flex-grow-1">${tool.description}</p>
-                  </div>
-                </div>
-              </a>
-            `;
+                .filter(function (tool) { return tool.groupKey === 'group_' + groupKey; })
+                .forEach(function (tool) {
+                    var col = document.createElement("div");
+                    col.className = "col-sm-6 col-lg-4";
+                    col.innerHTML =
+                        '<a href="' + base + tool.linkto + '" class="card-tool">' +
+                        '<div class="card-tool-icon"><i class="' + tool.icon + '"></i></div>' +
+                        '<div class="card-tool-title">' + tr(tool.titleKey, tool.titleEn) + '</div>' +
+                        '<p class="card-tool-desc">' + tr(tool.descKey, tool.descEn) + '</p>' +
+                        '<div class="card-tool-arrow">Open tool <i class="ri-arrow-right-line"></i></div>' +
+                        '</a>';
                     row.appendChild(col);
                 });
 
-            container.appendChild(row);
+            section.appendChild(row);
+            container.appendChild(section);
         });
-    }
+    };
 
-    renderTools();
+    if (!window._i18nReady) renderTools();
 </script>
+
+<div class="tools-hero">
+  <div class="container">
+    <div class="tools-hero-badge"><i class="ri-tools-line"></i> Navi+ Toolbox</div>
+    <h1 id="hero-title">Free tools for <br>smarter workflows</h1>
+    <p id="hero-desc">Privacy-first utilities that run entirely in your browser. No uploads, no accounts, no tracking.</p>
+  </div>
+</div>
+
+<div class="container">
+  <div id="tools-list"></div>
+  <div style="padding-bottom: 48px;"></div>
+</div>

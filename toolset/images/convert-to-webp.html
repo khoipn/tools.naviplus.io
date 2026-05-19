@@ -5,58 +5,50 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
 ---
 
 <div class="container py-4">
-  <!-- Header -->
-  <div class="row mb-3">
-    <div class="col-12">
-      <h1 class="h3 mb-1">Batch WebP Converter</h1>
-      <p class="text-muted mb-0">Drag & drop JPG/PNG → export .webp. All processing runs locally in your browser.</p>
-    </div>
+  <div class="tool-page-header">
+    <h1 data-i18n="webp_h1">Batch WebP Converter</h1>
+    <p data-i18n="webp_desc">Drag & drop JPG/PNG → export .webp. All processing runs locally in your browser.</p>
   </div>
 
-  <!-- Card: Dropzone & Controls -->
   <div class="card mb-3">
-    <div class="card-header"><strong>Upload & Settings</strong></div>
+    <div class="card-header"><strong data-i18n="upload_settings">Upload & Settings</strong></div>
     <div class="card-body">
-      <!-- Dropzone -->
-      <div id="dropzone" class="border border-2 border-primary-subtle rounded-3 p-4 text-center bg-light mb-3">
-        <p class="mb-2"><strong>Drop images here</strong> or</p>
-        <label for="fileInput" class="btn btn-primary">Choose files</label>
+      <div id="dropzone" class="tool-dropzone p-4 text-center mb-3">
+        <p class="mb-2"><strong data-i18n="drop_here">Drop images here</strong> or</p>
+        <label for="fileInput" class="btn btn-primary" data-i18n="choose_files">Choose files</label>
         <input id="fileInput" type="file" accept="image/jpeg,image/png" multiple class="d-none" />
-        <p class="small text-muted mb-0">Supports JPEG/JPG & PNG. Files are processed locally on your device.</p>
+        <p class="small text-muted mb-0" data-i18n="supports_jpeg_png">Supports JPEG/JPG & PNG. Files are processed locally on your device.</p>
       </div>
 
-      <!-- Controls -->
       <div class="row g-3 align-items-end">
         <div class="col-12 col-md-4">
-          <label for="quality" class="form-label">WebP Quality (0.1–1.0)</label>
+          <label for="quality" class="form-label" data-i18n="webp_quality">WebP Quality (0.1–1.0)</label>
           <input type="range" id="quality" min="0.1" max="1" step="0.01" value="0.8" class="form-range" />
-          <div class="form-text">Current value: <span id="qualityVal">0.80</span></div>
+          <div class="form-text"><span data-i18n="current_val">Current value:</span> <span id="qualityVal">0.80</span></div>
         </div>
         <div class="col-6 col-md-4">
-          <label for="maxDim" class="form-label">Max dimension (px)</label>
+          <label for="maxDim" class="form-label" data-i18n="max_dim">Max dimension (px)</label>
           <input type="number" id="maxDim" min="0" step="1" value="0" class="form-control" />
-          <div class="form-text">0 = keep original size</div>
+          <div class="form-text" data-i18n="zero_keep">0 = keep original size</div>
         </div>
         <div class="col-6 col-md-4">
-          <label for="concurrency" class="form-label">Concurrent tasks</label>
+          <label for="concurrency" class="form-label" data-i18n="concurrency">Concurrent tasks</label>
           <input type="number" id="concurrency" min="1" max="8" step="1" value="3" class="form-control" />
-          <div class="form-text">Increase if your machine is powerful</div>
+          <div class="form-text" data-i18n="concurrency_tip">Increase if your machine is powerful</div>
         </div>
       </div>
 
-      <!-- Actions -->
       <div class="d-flex gap-2 flex-wrap mt-3">
-        <button id="startBtn" class="btn btn-success" disabled>Start Conversion</button>
-        <button id="clearBtn" class="btn btn-outline-secondary">Clear List</button>
-        <button id="zipBtn" class="btn btn-outline-primary" disabled>Download ZIP (.webp)</button>
+        <button id="startBtn" class="btn btn-success" disabled data-i18n="start_conv">Start Conversion</button>
+        <button id="clearBtn" class="btn btn-outline-secondary" data-i18n="clear">Clear List</button>
+        <button id="zipBtn" class="btn btn-outline-primary" disabled data-i18n="dl_zip">Download ZIP (.webp)</button>
       </div>
     </div>
   </div>
 
-  <!-- Card: File list -->
   <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <strong>File List</strong>
+      <strong data-i18n="file_list">File List</strong>
       <span id="summary" class="text-muted small">0 files</span>
     </div>
     <div class="card-body">
@@ -64,13 +56,12 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
     </div>
   </div>
 
-  <!-- Note -->
   <div class="alert alert-secondary small">
-    <strong>Tip:</strong> Use quality ~0.7–0.85 for a good balance. Set max dimension if you need lighter images for the web.
+    <strong data-i18n="tip">Tip:</strong>
+    <span data-i18n="webp_tip"> Use quality ~0.7–0.85 for a good balance. Set max dimension if you need lighter images for the web.</span>
   </div>
 </div>
 
-<!-- JSZip for ZIP downloads -->
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
 <script>
@@ -90,6 +81,8 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
 
   let queue = [];
   let processing = false;
+
+  function tr(key) { return (window.t && window.t(key)) || key; }
 
   function bytes(n){
     if(n < 1024) return n + ' B';
@@ -113,7 +106,7 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
       </div>
       <div class="d-flex flex-column align-items-end gap-2">
         <progress max="100" value="0" style="width:160px;height:10px;"></progress>
-        <a class="btn btn-sm btn-outline-success d-none" target="_blank">Download .webp</a>
+        <a class="btn btn-sm btn-outline-success d-none" target="_blank">${tr('download_label')} .webp</a>
       </div>`;
     item.el = row;
     return row;
@@ -138,15 +131,11 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
     updateSummary();
   }
 
-  // Drag & drop
   ['dragenter','dragover','dragleave','drop'].forEach(evt => {
     document.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); }, false);
   });
   dropzone.addEventListener('drop', e => addFiles(e.dataTransfer.files));
-
-  // Fix: open file dialog only on label/button click
   fileInput.addEventListener('change', e => { addFiles(e.target.files); fileInput.value = ''; });
-
   quality.addEventListener('input', () => (qualityVal.textContent = (+quality.value).toFixed(2)));
 
   clearBtn.addEventListener('click', () => {
@@ -161,9 +150,7 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
     } catch (e) {
       const url = URL.createObjectURL(file);
       const img = await new Promise((res, rej) => {
-        const im = new Image();
-        im.onload = () => res(im);
-        im.onerror = rej; im.src = url;
+        const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = url;
       });
       URL.revokeObjectURL(url);
       const canvas = document.createElement('canvas');
@@ -189,11 +176,9 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
     const ctx = canvas.getContext('2d');
     ctx.drawImage(bitmap, 0, 0, W, H);
     const blob = await new Promise((res, rej) => {
-      if(canvas.convertToBlob){
-        canvas.convertToBlob({ type: 'image/webp', quality: q }).then(res).catch(rej);
-      } else if(canvas.toBlob){
-        canvas.toBlob(b => b ? res(b) : rej(new Error('toBlob null')), 'image/webp', q);
-      } else {
+      if(canvas.convertToBlob){ canvas.convertToBlob({ type: 'image/webp', quality: q }).then(res).catch(rej); }
+      else if(canvas.toBlob){ canvas.toBlob(b => b ? res(b) : rej(new Error('toBlob null')), 'image/webp', q); }
+      else {
         try {
           const dataURL = canvas.toDataURL('image/webp', q);
           const bstr = atob(dataURL.split(',')[1]);
@@ -212,14 +197,15 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
     const progress = row.querySelector('progress');
     const statusEl = row.querySelector('.status');
     const link = row.querySelector('a');
-    statusEl.textContent = 'Processing...'; progress.value = 10;
+    statusEl.textContent = tr('processing'); progress.value = 10;
     try {
       const { bmp, w, h } = await decodeToBitmap(item.file); progress.value = 40;
       const { W, H } = getTargetSize(w, h, +maxDim.value || 0);
       const blob = await rasterizeToWebP(bmp, W, H, +quality.value); progress.value = 90;
       const webpName = item.file.name.replace(/\.(jpe?g|png)$/i, '') + '.webp';
       const url = URL.createObjectURL(blob);
-      link.classList.remove('d-none'); link.download = webpName; link.href = url; link.textContent = 'Download ' + webpName;
+      link.classList.remove('d-none'); link.download = webpName; link.href = url;
+      link.textContent = tr('download_label') + ' ' + webpName;
       item.status = 'done'; item.blob = blob; item.url = url;
       statusEl.textContent = `${bytes(item.file.size)} → ${bytes(blob.size)} (${((blob.size/item.file.size)*100).toFixed(0)}%)`;
       progress.value = 100;
@@ -245,11 +231,10 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
 
   startBtn.addEventListener('click', runQueue);
 
-  // Build ZIP
   zipBtn.addEventListener('click', async () => {
     const doneItems = queue.filter(x => x.status === 'done');
     if(doneItems.length === 0) return;
-    zipBtn.disabled = true; zipBtn.textContent = 'Zipping...';
+    zipBtn.disabled = true; zipBtn.textContent = tr('zipping');
     const zip = new JSZip();
     doneItems.forEach(it => {
       const name = (it.el.querySelector('a').download) || (it.file.name.replace(/\.(jpe?g|png)$/i, '') + '.webp');
@@ -260,13 +245,12 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
     const a = document.createElement('a'); a.href = url; a.download = 'webp_batch.zip';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
-    zipBtn.disabled = false; zipBtn.textContent = 'Download ZIP (.webp)';
+    zipBtn.disabled = false; zipBtn.textContent = tr('dl_zip');
   });
 
   const obs = new MutationObserver(updateSummary);
   obs.observe(list, { childList: true, subtree: false });
 
-  // WebP support check
   (async () => {
     let supported = true;
     try { const c = document.createElement('canvas'); supported = c.toDataURL('image/webp').startsWith('data:image/webp'); } catch { supported = false; }

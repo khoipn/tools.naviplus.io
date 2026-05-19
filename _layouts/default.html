@@ -26,6 +26,7 @@
 
     <!-- CSS/JS chung của bạn -->
     <link rel="stylesheet" href="/assets/css/style.css">
+    <script defer src="/assets/js/i18n.js"></script>
     <script defer src="/assets/js/common.js"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" integrity="sha512-XcIsjKMcuVe0Ucj/xgIXQnytNwBttJbNjltBV18IOnru2lDPe9KRRyvCXw6Y5H415vbBLRm8+q6fmLUU7DfO6Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -34,8 +35,15 @@
   <body>
     {% include head.html %}
     <!-- Content BEG ---------------------------------------->
+    {% unless page.url == "/" %}
+    <nav class="tools-breadcrumb">
+      <div class="container">
+        <a href="/" class="tools-back-link"><i class="ri-arrow-left-line"></i> <span data-i18n="back_home">Home</span></a>
+      </div>
+    </nav>
+    {% endunless %}
 
-      {{ content }}    
+      {{ content }}
 
     <!-- Content END ---------------------------------------->  
     {% include footer.html %}  
