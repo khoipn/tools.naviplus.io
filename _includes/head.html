@@ -131,8 +131,14 @@
   .np-mega-title { font-size: 13.5px; font-weight: 600; color: #0f1117; margin-bottom: 2px; line-height: 1.2; }
   .np-mega-desc { font-size: 12px; color: #6b7280; line-height: 1.4; }
 
-  /* ── Toolbox mega (right-aligned) ────────────────────────── */
-  .np-toolbox-mega { left: auto; right: 0; transform: none; }
+  /* ── Toolbox simple dropdown (right-aligned) ─────────────── */
+  .np-toolbox-dd { left: auto; right: 0; }
+  .np-toolbox-dd .np-dropdown-inner { min-width: 230px; }
+  .np-dropdown-section {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: #9ba3b5;
+    padding: 8px 12px 4px;
+  }
 
   /* ── CTA Buttons ──────────────────────────────────────────── */
   .np-header-cta { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
@@ -348,48 +354,48 @@
       <!-- Features -->
       <li class="np-nav-item">
         <span class="np-nav-link" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
-          Features
+          <span data-i18n="nav_features">Features</span>
           <svg class="np-nav-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
         <div class="np-mega" role="region" aria-label="Features">
           <div class="np-mega-inner">
-            <div class="np-mega-header">Navigation types</div>
+            <div class="np-mega-header" data-i18n="feat_navigation_types">Navigation types</div>
             <div class="np-mega-grid">
               <a href="https://naviplus.io/features/tab-bar/" class="np-mega-item">
                 <div class="np-mega-icon" aria-hidden="true"><i class="ri-layout-bottom-2-line"></i></div>
                 <div class="np-mega-text">
-                  <div class="np-mega-title">Tab Bar</div>
-                  <div class="np-mega-desc">Fixed bottom nav for mobile, like a native app</div>
+                  <div class="np-mega-title" data-i18n="feat_tab_bar">Tab Bar</div>
+                  <div class="np-mega-desc" data-i18n="feat_tab_bar_desc">Fixed bottom nav for mobile, like a native app</div>
                 </div>
               </a>
               <a href="https://naviplus.io/features/mega-menu/" class="np-mega-item">
                 <div class="np-mega-icon" aria-hidden="true"><i class="ri-layout-masonry-line"></i></div>
                 <div class="np-mega-text">
-                  <div class="np-mega-title">Mega Menu</div>
-                  <div class="np-mega-desc">Rich dropdown with columns, images & links</div>
+                  <div class="np-mega-title" data-i18n="feat_mega_menu">Mega Menu</div>
+                  <div class="np-mega-desc" data-i18n="feat_mega_menu_desc">Rich dropdown with columns, images & links</div>
                 </div>
               </a>
               <a href="https://naviplus.io/features/slide-menu/" class="np-mega-item">
                 <div class="np-mega-icon" aria-hidden="true"><i class="ri-side-bar-line"></i></div>
                 <div class="np-mega-text">
-                  <div class="np-mega-title">Slide Menu</div>
-                  <div class="np-mega-desc">Smooth slide-in panel, multi-level navigation</div>
+                  <div class="np-mega-title" data-i18n="feat_slide_menu">Slide Menu</div>
+                  <div class="np-mega-desc" data-i18n="feat_slide_menu_desc">Smooth slide-in panel, multi-level navigation</div>
                 </div>
               </a>
               <a href="https://naviplus.io/features/fab-menu/" class="np-mega-item">
                 <div class="np-mega-icon" aria-hidden="true"><i class="ri-flashlight-line"></i></div>
                 <div class="np-mega-text">
-                  <div class="np-mega-title">FAB / Floating Menu</div>
-                  <div class="np-mega-desc">Quick-access floating button for key actions</div>
+                  <div class="np-mega-title" data-i18n="feat_fab_menu">FAB / Floating Menu</div>
+                  <div class="np-mega-desc" data-i18n="feat_fab_menu_desc">Quick-access floating button for key actions</div>
                 </div>
               </a>
               <a href="https://naviplus.io/features/grid-menu/" class="np-mega-item">
                 <div class="np-mega-icon" aria-hidden="true"><i class="ri-grid-line"></i></div>
                 <div class="np-mega-text">
-                  <div class="np-mega-title">Grid Menu</div>
-                  <div class="np-mega-desc">Visual image grid for product categories</div>
+                  <div class="np-mega-title" data-i18n="feat_grid_menu">Grid Menu</div>
+                  <div class="np-mega-desc" data-i18n="feat_grid_menu_desc">Visual image grid for product categories</div>
                 </div>
               </a>
             </div>
@@ -399,18 +405,18 @@
 
       <!-- Pricing -->
       <li class="np-nav-item">
-        <a href="https://naviplus.io/pricing" class="np-nav-link">Pricing</a>
+        <a href="https://naviplus.io/pricing" class="np-nav-link" data-i18n="nav_pricing">Pricing</a>
       </li>
 
       <!-- Ideas -->
       <li class="np-nav-item">
-        <a href="https://naviplus.io/ideas" class="np-nav-link">Ideas</a>
+        <a href="https://naviplus.io/ideas" class="np-nav-link" data-i18n="nav_ideas">Ideas</a>
       </li>
 
       <!-- User Guide -->
       <li class="np-nav-item">
         <span class="np-nav-link" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
-          User Guide
+          <span data-i18n="nav_user_guide">User Guide</span>
           <svg class="np-nav-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -419,20 +425,20 @@
           <div class="np-dropdown-inner">
             <a href="https://naviplus.io/guides/shopify-menu-builder/" class="np-dropdown-item">
               <i class="ri-store-2-line" style="font-size:15px;color:#5e8e3e;" aria-hidden="true"></i>
-              Navi+ on Shopify
+              <span data-i18n="guide_shopify">Navi+ on Shopify</span>
             </a>
             <a href="https://naviplus.io/guides/wordpress-menu-builder/" class="np-dropdown-item">
               <i class="ri-wordpress-fill" style="font-size:15px;color:#21759b;" aria-hidden="true"></i>
-              Navi+ on WordPress
+              <span data-i18n="guide_wordpress">Navi+ on WordPress</span>
             </a>
             <div class="np-dropdown-divider" role="separator"></div>
             <a href="https://help.naviplus.io/" class="np-dropdown-item">
               <i class="ri-book-2-line" style="font-size:15px;color:#377e62;" aria-hidden="true"></i>
-              Help Center
+              <span data-i18n="guide_help_center">Help Center</span>
             </a>
             <a href="https://help.naviplus.io/docs/getting-started/" class="np-dropdown-item">
               <i class="ri-rocket-line" style="font-size:15px;color:#6b7280;" aria-hidden="true"></i>
-              Getting Started
+              <span data-i18n="guide_getting_started">Getting Started</span>
             </a>
           </div>
         </div>
@@ -441,62 +447,29 @@
       <!-- Toolbox dropdown -->
       <li class="np-nav-item">
         <span class="np-nav-link active" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false" aria-current="page">
-          Toolbox
+          <span data-i18n="nav_toolbox">Toolbox</span>
           <svg class="np-nav-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
-        <div class="np-mega np-toolbox-mega" role="region" aria-label="Toolbox">
-          <div class="np-mega-inner">
-
-            <div class="np-mega-header">Design &amp; Images</div>
-            <div class="np-mega-grid">
-              <a href="https://tools.naviplus.io/toolset/images/convert-to-webp.html" class="np-mega-item">
-                <div class="np-mega-icon" aria-hidden="true"><i class="ri-image-line"></i></div>
-                <div class="np-mega-text">
-                  <div class="np-mega-title">Batch Image Converter</div>
-                  <div class="np-mega-desc">Convert to WebP, PNG, JPG, AVIF and more</div>
-                </div>
-              </a>
-              <a href="https://tools.naviplus.io/toolset/images/image-resizer.html" class="np-mega-item">
-                <div class="np-mega-icon" aria-hidden="true"><i class="ri-crop-line"></i></div>
-                <div class="np-mega-text">
-                  <div class="np-mega-title">Image Resizer</div>
-                  <div class="np-mega-desc">Batch resize with center crop &amp; ZIP export</div>
-                </div>
-              </a>
-              <a href="https://tools.naviplus.io/toolset/design/color-palette.html" class="np-mega-item">
-                <div class="np-mega-icon" aria-hidden="true"><i class="ri-palette-line"></i></div>
-                <div class="np-mega-text">
-                  <div class="np-mega-title">Color Palette Generator</div>
-                  <div class="np-mega-desc">Color scale, tokens &amp; WCAG contrast ratios</div>
-                </div>
-              </a>
-            </div>
-
-            <div class="np-mega-header" style="margin-top:16px;">Security</div>
-            <div class="np-mega-grid">
-              <a href="https://tools.naviplus.io/toolset/security/encrypt.html" class="np-mega-item">
-                <div class="np-mega-icon" aria-hidden="true"><i class="ri-lock-line"></i></div>
-                <div class="np-mega-text">
-                  <div class="np-mega-title">AES-GCM Encryption</div>
-                  <div class="np-mega-desc">Client-side text encryption &amp; decryption</div>
-                </div>
-              </a>
-              <a href="https://tools.naviplus.io/toolset/security/generate-password.html" class="np-mega-item">
-                <div class="np-mega-icon" aria-hidden="true"><i class="ri-key-2-line"></i></div>
-                <div class="np-mega-text">
-                  <div class="np-mega-title">Password Generator</div>
-                  <div class="np-mega-desc">Strong random passwords, fully offline</div>
-                </div>
-              </a>
-            </div>
-
-            <div class="np-dropdown-divider" style="margin-top:12px;"></div>
-            <a href="https://tools.naviplus.io/" class="np-dropdown-item" style="justify-content:center;color:#377e62;">
-              View all tools <i class="ri-arrow-right-line" style="font-size:12px;margin-left:2px;" aria-hidden="true"></i>
+        <div class="np-dropdown np-toolbox-dd" role="region" aria-label="Toolbox">
+          <div class="np-dropdown-inner">
+            <div class="np-dropdown-section" data-i18n="group_images">Design &amp; Images</div>
+            <a href="https://tools.naviplus.io/toolset/images/convert-to-webp.html" class="np-dropdown-item"><i class="ri-swap-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_webp_title">Batch Image Converter</span></a>
+            <a href="https://tools.naviplus.io/toolset/images/image-resizer.html" class="np-dropdown-item"><i class="ri-crop-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_resizer_title">Image Resizer</span></a>
+            <a href="https://tools.naviplus.io/toolset/design/color-palette.html" class="np-dropdown-item"><i class="ri-palette-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_palette_title">Color Palette Generator</span></a>
+            <a href="https://tools.naviplus.io/toolset/images/photo-collage.html" class="np-dropdown-item"><i class="ri-layout-grid-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_collage_title">Photo Collage Maker</span></a>
+            <a href="https://tools.naviplus.io/toolset/images/color-picker.html" class="np-dropdown-item"><i class="ri-contrast-drop-2-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_cp_title">Image Color Picker</span></a>
+            <a href="https://tools.naviplus.io/toolset/images/remove-background.html" class="np-dropdown-item"><i class="ri-scissors-cut-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_rmbg_title">AI Background Remover</span></a>
+            <a href="https://tools.naviplus.io/toolset/images/watermark.html" class="np-dropdown-item"><i class="ri-copyright-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_watermark_title">Image Watermark</span></a>
+            <div class="np-dropdown-divider"></div>
+            <div class="np-dropdown-section" data-i18n="group_security">Security</div>
+            <a href="https://tools.naviplus.io/toolset/security/encrypt.html" class="np-dropdown-item"><i class="ri-lock-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_encrypt_title">AES-GCM Encryption</span></a>
+            <a href="https://tools.naviplus.io/toolset/security/generate-password.html" class="np-dropdown-item"><i class="ri-key-2-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_password_title">Password Generator</span></a>
+            <div class="np-dropdown-divider"></div>
+            <a href="https://tools.naviplus.io/" class="np-dropdown-item" style="color:#377e62;">
+              <i class="ri-apps-line" style="font-size:15px;"></i> <span data-i18n="nav_view_all_tools">View all tools</span>
             </a>
-
           </div>
         </div>
       </li>
@@ -528,9 +501,9 @@
         </div>
       </div>
       <a href="https://showcase.naviplus.io/" class="np-hbtn-secondary" target="_blank" rel="noopener">
-        <span class="np-hbtn-label">See demo</span>
+        <span class="np-hbtn-label" data-i18n="nav_see_demo">See demo</span>
       </a>
-      <a href="https://naviplus.io/#get-started-for-free" class="np-hbtn-primary">
+      <a href="https://naviplus.io/#get-started-for-free" class="np-hbtn-primary" data-i18n="nav_get_started">
         Get started
       </a>
     </div>
@@ -562,7 +535,7 @@
       <!-- Features accordion -->
       <li>
         <button class="np-mob-link" aria-expanded="false" aria-controls="np-mob-features" id="np-mob-features-btn">
-          Features
+          <span data-i18n="nav_features">Features</span>
           <svg class="np-mob-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -572,8 +545,8 @@
             <a href="https://naviplus.io/features/tab-bar/" class="np-mob-sub-item">
               <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-layout-bottom-2-line"></i></span>
               <span>
-                <div class="np-mob-sub-title">Tab Bar</div>
-                <div class="np-mob-sub-desc">Fixed bottom nav for mobile, like a native app</div>
+                <div class="np-mob-sub-title" data-i18n="feat_tab_bar">Tab Bar</div>
+                <div class="np-mob-sub-desc" data-i18n="feat_tab_bar_desc">Fixed bottom nav for mobile, like a native app</div>
               </span>
             </a>
           </li>
@@ -581,8 +554,8 @@
             <a href="https://naviplus.io/features/mega-menu/" class="np-mob-sub-item">
               <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-layout-masonry-line"></i></span>
               <span>
-                <div class="np-mob-sub-title">Mega Menu</div>
-                <div class="np-mob-sub-desc">Rich dropdown with columns, images & links</div>
+                <div class="np-mob-sub-title" data-i18n="feat_mega_menu">Mega Menu</div>
+                <div class="np-mob-sub-desc" data-i18n="feat_mega_menu_desc">Rich dropdown with columns, images & links</div>
               </span>
             </a>
           </li>
@@ -590,8 +563,8 @@
             <a href="https://naviplus.io/features/slide-menu/" class="np-mob-sub-item">
               <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-side-bar-line"></i></span>
               <span>
-                <div class="np-mob-sub-title">Slide Menu</div>
-                <div class="np-mob-sub-desc">Smooth slide-in panel, multi-level navigation</div>
+                <div class="np-mob-sub-title" data-i18n="feat_slide_menu">Slide Menu</div>
+                <div class="np-mob-sub-desc" data-i18n="feat_slide_menu_desc">Smooth slide-in panel, multi-level navigation</div>
               </span>
             </a>
           </li>
@@ -599,8 +572,8 @@
             <a href="https://naviplus.io/features/fab-menu/" class="np-mob-sub-item">
               <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-flashlight-line"></i></span>
               <span>
-                <div class="np-mob-sub-title">FAB / Floating Menu</div>
-                <div class="np-mob-sub-desc">Quick-access floating button for key actions</div>
+                <div class="np-mob-sub-title" data-i18n="feat_fab_menu">FAB / Floating Menu</div>
+                <div class="np-mob-sub-desc" data-i18n="feat_fab_menu_desc">Quick-access floating button for key actions</div>
               </span>
             </a>
           </li>
@@ -608,8 +581,8 @@
             <a href="https://naviplus.io/features/grid-menu/" class="np-mob-sub-item">
               <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-grid-line"></i></span>
               <span>
-                <div class="np-mob-sub-title">Grid Menu</div>
-                <div class="np-mob-sub-desc">Visual image grid for product categories</div>
+                <div class="np-mob-sub-title" data-i18n="feat_grid_menu">Grid Menu</div>
+                <div class="np-mob-sub-desc" data-i18n="feat_grid_menu_desc">Visual image grid for product categories</div>
               </span>
             </a>
           </li>
@@ -618,18 +591,18 @@
 
       <!-- Pricing -->
       <li>
-        <a href="https://naviplus.io/pricing" class="np-mob-link">Pricing</a>
+        <a href="https://naviplus.io/pricing" class="np-mob-link" data-i18n="nav_pricing">Pricing</a>
       </li>
 
       <!-- Ideas -->
       <li>
-        <a href="https://naviplus.io/ideas" class="np-mob-link">Ideas</a>
+        <a href="https://naviplus.io/ideas" class="np-mob-link" data-i18n="nav_ideas">Ideas</a>
       </li>
 
       <!-- User Guide accordion -->
       <li>
         <button class="np-mob-link" aria-expanded="false" aria-controls="np-mob-guide" id="np-mob-guide-btn">
-          User Guide
+          <span data-i18n="nav_user_guide">User Guide</span>
           <svg class="np-mob-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -638,26 +611,26 @@
           <li>
             <a href="https://naviplus.io/guides/shopify-menu-builder/" class="np-mob-sub-item">
               <span class="np-mob-sub-icon" style="color:#5e8e3e;" aria-hidden="true"><i class="ri-store-2-line"></i></span>
-              <span><div class="np-mob-sub-title">Navi+ on Shopify</div></span>
+              <span><div class="np-mob-sub-title" data-i18n="guide_shopify">Navi+ on Shopify</div></span>
             </a>
           </li>
           <li>
             <a href="https://naviplus.io/guides/wordpress-menu-builder/" class="np-mob-sub-item">
               <span class="np-mob-sub-icon" style="color:#21759b;" aria-hidden="true"><i class="ri-wordpress-fill"></i></span>
-              <span><div class="np-mob-sub-title">Navi+ on WordPress</div></span>
+              <span><div class="np-mob-sub-title" data-i18n="guide_wordpress">Navi+ on WordPress</div></span>
             </a>
           </li>
           <li><div class="np-mob-divider"></div></li>
           <li>
             <a href="https://help.naviplus.io/" class="np-mob-sub-item">
               <span class="np-mob-sub-icon" style="color:#377e62;" aria-hidden="true"><i class="ri-book-2-line"></i></span>
-              <span><div class="np-mob-sub-title">Help Center</div></span>
+              <span><div class="np-mob-sub-title" data-i18n="guide_help_center">Help Center</div></span>
             </a>
           </li>
           <li>
             <a href="https://help.naviplus.io/docs/getting-started/" class="np-mob-sub-item">
               <span class="np-mob-sub-icon" style="color:#6b7280;" aria-hidden="true"><i class="ri-rocket-line"></i></span>
-              <span><div class="np-mob-sub-title">Getting Started</div></span>
+              <span><div class="np-mob-sub-title" data-i18n="guide_getting_started">Getting Started</div></span>
             </a>
           </li>
         </ul>
@@ -666,67 +639,26 @@
       <!-- Toolbox accordion -->
       <li>
         <button class="np-mob-link active" aria-expanded="false" aria-controls="np-mob-toolbox" id="np-mob-toolbox-btn" aria-current="page">
-          Toolbox
+          <span data-i18n="nav_toolbox">Toolbox</span>
           <svg class="np-mob-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
         <ul class="np-mob-sub" id="np-mob-toolbox" role="list" aria-labelledby="np-mob-toolbox-btn">
-          <li><div style="padding:8px 20px 2px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ba3b5;">Design &amp; Images</div></li>
-          <li>
-            <a href="https://tools.naviplus.io/toolset/images/convert-to-webp.html" class="np-mob-sub-item">
-              <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-image-line"></i></span>
-              <span>
-                <div class="np-mob-sub-title">Batch Image Converter</div>
-                <div class="np-mob-sub-desc">WebP, PNG, JPG, AVIF and more</div>
-              </span>
-            </a>
-          </li>
-          <li>
-            <a href="https://tools.naviplus.io/toolset/images/image-resizer.html" class="np-mob-sub-item">
-              <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-crop-line"></i></span>
-              <span>
-                <div class="np-mob-sub-title">Image Resizer</div>
-                <div class="np-mob-sub-desc">Batch resize with center crop</div>
-              </span>
-            </a>
-          </li>
-          <li>
-            <a href="https://tools.naviplus.io/toolset/design/color-palette.html" class="np-mob-sub-item">
-              <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-palette-line"></i></span>
-              <span>
-                <div class="np-mob-sub-title">Color Palette Generator</div>
-                <div class="np-mob-sub-desc">Color scale &amp; WCAG contrast checks</div>
-              </span>
-            </a>
-          </li>
+          <li><div style="padding:8px 20px 2px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ba3b5;" data-i18n="group_images">Design &amp; Images</div></li>
+          <li><a href="https://tools.naviplus.io/toolset/images/convert-to-webp.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-swap-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_webp_title">Batch Image Converter</div></span></a></li>
+          <li><a href="https://tools.naviplus.io/toolset/images/image-resizer.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-crop-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_resizer_title">Image Resizer</div></span></a></li>
+          <li><a href="https://tools.naviplus.io/toolset/design/color-palette.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-palette-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_palette_title">Color Palette Generator</div></span></a></li>
+          <li><a href="https://tools.naviplus.io/toolset/images/photo-collage.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-layout-grid-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_collage_title">Photo Collage Maker</div></span></a></li>
+          <li><a href="https://tools.naviplus.io/toolset/images/color-picker.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-contrast-drop-2-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_cp_title">Image Color Picker</div></span></a></li>
+          <li><a href="https://tools.naviplus.io/toolset/images/remove-background.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-scissors-cut-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_rmbg_title">AI Background Remover</div></span></a></li>
+          <li><a href="https://tools.naviplus.io/toolset/images/watermark.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-copyright-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_watermark_title">Image Watermark</div></span></a></li>
           <li><div class="np-mob-divider"></div></li>
-          <li><div style="padding:8px 20px 2px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ba3b5;">Security</div></li>
-          <li>
-            <a href="https://tools.naviplus.io/toolset/security/encrypt.html" class="np-mob-sub-item">
-              <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-lock-line"></i></span>
-              <span>
-                <div class="np-mob-sub-title">AES-GCM Encryption</div>
-                <div class="np-mob-sub-desc">Client-side text encryption</div>
-              </span>
-            </a>
-          </li>
-          <li>
-            <a href="https://tools.naviplus.io/toolset/security/generate-password.html" class="np-mob-sub-item">
-              <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-key-2-line"></i></span>
-              <span>
-                <div class="np-mob-sub-title">Password Generator</div>
-                <div class="np-mob-sub-desc">Strong random passwords, offline</div>
-              </span>
-            </a>
-          </li>
+          <li><div style="padding:8px 20px 2px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ba3b5;" data-i18n="group_security">Security</div></li>
+          <li><a href="https://tools.naviplus.io/toolset/security/encrypt.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-lock-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_encrypt_title">AES-GCM Encryption</div></span></a></li>
+          <li><a href="https://tools.naviplus.io/toolset/security/generate-password.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-key-2-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_password_title">Password Generator</div></span></a></li>
           <li><div class="np-mob-divider"></div></li>
-          <li>
-            <a href="https://tools.naviplus.io/" class="np-mob-sub-item">
-              <span class="np-mob-sub-icon" style="background:#f0faf6;color:#377e62;" aria-hidden="true"><i class="ri-apps-line"></i></span>
-              <span><div class="np-mob-sub-title" style="color:#377e62;">View all tools</div></span>
-            </a>
-          </li>
+          <li><a href="https://tools.naviplus.io/" class="np-mob-sub-item"><span class="np-mob-sub-icon" style="background:#f0faf6;color:#377e62;" aria-hidden="true"><i class="ri-apps-line"></i></span><span><div class="np-mob-sub-title" data-i18n="nav_view_all_tools" style="color:#377e62;">View all tools</div></span></a></li>
         </ul>
       </li>
 
@@ -734,8 +666,8 @@
 
     <!-- Mobile CTA -->
     <div class="np-mob-cta">
-      <a href="https://naviplus.io/#get-started-for-free" class="np-mob-btn-primary">Get started for free</a>
-      <a href="https://showcase.naviplus.io/" class="np-mob-btn-secondary" target="_blank" rel="noopener">See demo</a>
+      <a href="https://naviplus.io/#get-started-for-free" class="np-mob-btn-primary" data-i18n="nav_get_started_free">Get started for free</a>
+      <a href="https://showcase.naviplus.io/" class="np-mob-btn-secondary" target="_blank" rel="noopener" data-i18n="nav_see_demo">See demo</a>
     </div>
   </nav>
 </div>

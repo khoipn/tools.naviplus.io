@@ -1,0 +1,604 @@
+---
+layout: default
+title: "Free Image Color Picker — HEX, RGB, HSL from Any Photo"
+description: "Free online image color picker by Navi+. Upload up to 10 photos, hover to magnify, click to pick exact pixel colors — HEX, RGB, HSL, CMYK. State saved locally. 100% in-browser."
+---
+
+<style>
+.cp-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 1rem;
+  align-items: start;
+}
+@media (max-width: 767px) { .cp-layout { grid-template-columns: 1fr; } }
+
+.cp-right-sticky { position: sticky; top: 64px; }
+
+/* Instance card */
+.cp-inst-card {
+  border: 1px solid var(--c-border, #dee2e6);
+  border-radius: 10px;
+  padding: 0.75rem;
+}
+.cp-inst-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.cp-inst-num {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--c-muted, #6c757d);
+}
+.cp-inst-rm {
+  background: none; border: none; cursor: pointer; padding: 2px 4px;
+  border-radius: 4px; font-size: 16px; line-height: 1; color: var(--c-muted,#6c757d);
+  opacity: .45; transition: opacity .15s, color .15s;
+}
+.cp-inst-rm:hover { opacity: 1; color: #dc3545; }
+
+/* Upload zone */
+.cp-outer {
+  position: relative;
+  background: var(--c-surface, #f8f9fa);
+  border: 2px dashed var(--c-border, #dee2e6);
+  border-radius: 8px;
+  min-height: 150px;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .15s; overflow: hidden;
+}
+.cp-outer.drag-over { border-color: var(--bs-primary,#0d6efd); background: rgba(13,110,253,.04); }
+.cp-outer.has-image { border-style: solid; cursor: crosshair; min-height: unset; }
+
+.cp-dz {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .4rem; padding: 1.25rem 1rem; text-align: center;
+}
+.cp-inst-canvas { display: none; max-width: 100%; border-radius: 6px; }
+
+/* Magnifier */
+.cp-mag {
+  position: fixed; width: 128px; height: 128px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.95);
+  box-shadow: 0 2px 16px rgba(0,0,0,.45), inset 0 0 0 1px rgba(0,0,0,.12);
+  overflow: hidden; pointer-events: none; display: none; z-index: 9999;
+}
+#cp-mag-canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+
+/* Current color swatch */
+.cp-swatch-big {
+  width: 80px; height: 80px; border-radius: 8px;
+  border: 1px solid rgba(0,0,0,.12); flex-shrink: 0; transition: background .08s;
+}
+@keyframes cp-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(13,110,253,0); }
+  40%  { box-shadow: 0 0 0 6px rgba(13,110,253,.35); }
+  100% { box-shadow: 0 0 0 0 rgba(13,110,253,0); }
+}
+.cp-swatch-big.flash { animation: cp-flash .4s ease-out; }
+
+/* Color rows */
+.cp-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.cp-lbl { width: 52px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--c-muted,#6c757d); flex-shrink: 0; }
+.cp-val { flex: 1; font-family: ui-monospace,'SF Mono','Fira Code',monospace; font-size: 12px; word-break: break-all; }
+.cp-cpbtn { background: none; border: none; cursor: pointer; color: var(--c-muted,#6c757d); padding: 2px 4px; border-radius: 4px; font-size: 12px; line-height: 1; opacity: .5; transition: opacity .15s, background .15s; }
+.cp-cpbtn:hover { opacity: 1; background: rgba(0,0,0,.07); }
+
+/* Dominant bar */
+.cp-dom-bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; border: 1px solid rgba(0,0,0,.1); }
+.cp-dom-cell { cursor: pointer; transition: flex .25s ease; }
+.cp-dom-cell:hover { flex: 3 !important; }
+.cp-dom-cell:first-child { border-radius: 6px 0 0 6px; }
+.cp-dom-cell:last-child  { border-radius: 0 6px 6px 0; }
+
+/* Picked swatches (per-instance, compact) */
+.cp-picked-wrap { display: flex; flex-wrap: wrap; gap: 5px; }
+.cp-sw {
+  position: relative; width: 24px; height: 24px;
+  border-radius: 4px; border: 1px solid rgba(0,0,0,.14);
+  cursor: pointer; flex-shrink: 0; transition: transform .1s;
+}
+.cp-sw:hover { transform: scale(1.2); z-index: 2; }
+.cp-sw .cp-rm {
+  position: absolute; top: -5px; right: -5px;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: #dc3545; color: #fff; font-size: 8px;
+  line-height: 13px; text-align: center; display: none; cursor: pointer; z-index: 3;
+}
+.cp-sw:hover .cp-rm { display: block; }
+
+/* Add button */
+#cp-add-btn { border-style: dashed; }
+#cp-add-btn:disabled { opacity: .4; pointer-events: none; }
+
+/* Tooltip */
+.cp-ttip {
+  position: fixed; background: rgba(18,18,18,.88); color: #fff;
+  font-size: 11px; line-height: 1.5; padding: 4px 8px;
+  border-radius: 5px; pointer-events: none; display: none;
+  z-index: 10000; white-space: pre; font-family: ui-monospace,monospace;
+}
+</style>
+
+<div class="cp-mag" id="cp-mag"><canvas id="cp-mag-canvas" width="128" height="128"></canvas></div>
+<div class="cp-ttip" id="cp-ttip"></div>
+
+<div class="container py-4">
+  <div class="tool-page-header">
+    <h1 data-i18n="cp_h1">Image Color Picker</h1>
+    <p data-i18n="cp_desc">Upload images, hover to magnify, click to pick exact pixel colors. State is saved locally.</p>
+  </div>
+
+  <div class="cp-layout">
+    <!-- Left: instance list -->
+    <div class="d-flex flex-column gap-3">
+      <div id="cp-instances" class="d-flex flex-column gap-3"></div>
+      <button id="cp-add-btn" class="btn btn-outline-primary btn-sm w-100">
+        <i class="ri-add-line"></i>
+        <span data-i18n="cp_add_image">Add image</span>
+        <span id="cp-add-count" class="ms-1 text-muted" style="font-size:11px;">(1/10)</span>
+      </button>
+    </div>
+
+    <!-- Right: current color + export -->
+    <div class="cp-right-sticky d-flex flex-column gap-3">
+      <div class="card">
+        <div class="card-header"><strong data-i18n="cp_current">Current Color</strong></div>
+        <div class="card-body">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="cp-swatch-big" id="cp-swatch" style="background:#e9ecef;"></div>
+            <div class="flex-fill" id="cp-rows">
+              <p class="text-muted small mb-0 mt-1" id="cp-hint" data-i18n="cp_hover_hint">Hover over an image to see colors.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><strong data-i18n="cp_export">Export All</strong></div>
+        <div class="card-body d-flex gap-2 flex-wrap">
+          <button id="cp-css-btn" class="btn btn-sm btn-outline-secondary" data-i18n="palette_copy_css">Copy CSS Variables</button>
+          <button id="cp-json-btn" class="btn btn-sm btn-outline-secondary" data-i18n="palette_export_json">Export JSON</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-secondary small mt-3">
+    <strong data-i18n="tip">Tip:</strong>
+    <span data-i18n="cp_tip"> Use the magnifier ring to pick pixel-perfect colors. Click to lock a color into your palette. Export as CSS variables or JSON when done.</span>
+  </div>
+</div>
+
+<script>
+(() => {
+  const tr  = k => (window.t && window.t(k)) || k;
+  const esc = s => s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+
+  /* ── Constants ────────────────────────────────────────────────── */
+  const STORE_KEY = 'np_cp_v3';
+  const MAX_INST  = 10;
+  const MAX_OFF   = 2000;
+  const STORE_DIM = 800;
+  const STORE_Q   = 0.75;
+  const MAX_PICK  = 20;
+  const MAG = 128, SAMP = 11, HALF = 5;
+
+  /* ── Global DOM ───────────────────────────────────────────────── */
+  const instListEl = document.getElementById('cp-instances');
+  const addBtn     = document.getElementById('cp-add-btn');
+  const addCountEl = document.getElementById('cp-add-count');
+  const swatchEl   = document.getElementById('cp-swatch');
+  const rowsEl     = document.getElementById('cp-rows');
+  const hintEl     = document.getElementById('cp-hint');
+  const cssBtn     = document.getElementById('cp-css-btn');
+  const jsonBtn    = document.getElementById('cp-json-btn');
+  const magEl      = document.getElementById('cp-mag');
+  const magCv      = document.getElementById('cp-mag-canvas');
+  const magCtx     = magCv.getContext('2d');
+  const ttip       = document.getElementById('cp-ttip');
+
+  let instances = [];
+
+  /* ── Color math ───────────────────────────────────────────────── */
+  const h2    = v => v.toString(16).padStart(2,'0');
+  const toHex = (r,g,b) => '#'+h2(r)+h2(g)+h2(b);
+
+  function toHsl(r,g,b) {
+    const rn=r/255,gn=g/255,bn=b/255,mx=Math.max(rn,gn,bn),mn=Math.min(rn,gn,bn);
+    let h=0,s=0; const l=(mx+mn)/2;
+    if(mx!==mn){
+      const d=mx-mn; s=l>.5?d/(2-mx-mn):d/(mx+mn);
+      switch(mx){
+        case rn: h=((gn-bn)/d+(gn<bn?6:0))/6; break;
+        case gn: h=((bn-rn)/d+2)/6; break;
+        default: h=((rn-gn)/d+4)/6;
+      }
+    }
+    return {h:Math.round(h*360),s:Math.round(s*100),l:Math.round(l*100)};
+  }
+
+  function toCmyk(r,g,b) {
+    const rn=r/255,gn=g/255,bn=b/255,k=1-Math.max(rn,gn,bn);
+    if(k===1) return {c:0,m:0,y:0,k:100};
+    return {c:Math.round((1-rn-k)/(1-k)*100),m:Math.round((1-gn-k)/(1-k)*100),y:Math.round((1-bn-k)/(1-k)*100),k:Math.round(k*100)};
+  }
+
+  function wcLum(r,g,b) {
+    const f=v=>{const s=v/255;return s<=.03928?s/12.92:Math.pow((s+.055)/1.055,2.4);};
+    return +(0.2126*f(r)+0.7152*f(g)+0.0722*f(b)).toFixed(3);
+  }
+
+  /* ── Right panel: current color ───────────────────────────────── */
+  function setColor(r,g,b) {
+    const hex=toHex(r,g,b);
+    const {h,s,l}=toHsl(r,g,b);
+    const {c,m,y,k}=toCmyk(r,g,b);
+    const lum=wcLum(r,g,b);
+    swatchEl.style.background=hex;
+    if(hintEl) hintEl.style.display='none';
+    const rows=[
+      {lb:'HEX',  v:hex,                           cp:hex},
+      {lb:'RGB',  v:`rgb(${r}, ${g}, ${b})`,        cp:`rgb(${r}, ${g}, ${b})`},
+      {lb:'HSL',  v:`hsl(${h}°, ${s}%, ${l}%)`,    cp:`hsl(${h}, ${s}%, ${l}%)`},
+      {lb:'CMYK', v:`C:${c} M:${m} Y:${y} K:${k}`, cp:`cmyk(${c}%, ${m}%, ${y}%, ${k}%)`},
+      {lb:'Lum',  v:`${lum} (${lum<.18?tr('cp_dark'):tr('cp_light')})`, cp:String(lum)},
+    ];
+    rowsEl.innerHTML=rows.map(row=>`<div class="cp-row"><span class="cp-lbl">${row.lb}</span><span class="cp-val">${row.v}</span><button class="cp-cpbtn" data-v="${esc(row.cp)}"><i class="ri-clipboard-line"></i></button></div>`).join('');
+    rowsEl.querySelectorAll('.cp-cpbtn').forEach(b=>b.addEventListener('click',()=>doCopy(b.dataset.v,b)));
+  }
+
+  /* ── Clipboard ────────────────────────────────────────────────── */
+  async function doCopy(text,btn) {
+    try{ await navigator.clipboard.writeText(text); }
+    catch{ const ta=document.createElement('textarea'); ta.value=text; ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+    if(btn){ const o=btn.innerHTML; btn.innerHTML='<i class="ri-check-line"></i>'; setTimeout(()=>btn.innerHTML=o,1200); }
+  }
+
+  /* ── Tooltip ──────────────────────────────────────────────────── */
+  const showTtip = (e,t) => { ttip.textContent=t; ttip.style.cssText=`display:block;left:${e.clientX+12}px;top:${e.clientY-4}px;`; };
+  const hideTtip = () => { ttip.style.display='none'; };
+
+  /* ── Instance factory ─────────────────────────────────────────── */
+  function mkInst(id) {
+    const off = document.createElement('canvas');
+    return {
+      id: id || (Date.now()+'_'+Math.random().toString(36).slice(2,6)),
+      imageDataUrl: null,
+      picked:   [],
+      dominant: [],
+      loaded: false,
+      elCard:null, elOuter:null, elDz:null, elCanvas:null, elNum:null,
+      elDomSection:null, elDomBar:null,
+      elPickedSection:null, elPickedWrap:null,
+      ctx:null, off, offCtx: off.getContext('2d',{willReadFrequently:true})
+    };
+  }
+
+  /* ── Build card DOM ───────────────────────────────────────────── */
+  function buildCard(inst) {
+    const card = document.createElement('div');
+    card.className = 'cp-inst-card';
+
+    // Header
+    const hdr = document.createElement('div');
+    hdr.className = 'cp-inst-hdr';
+    const num = document.createElement('span');
+    num.className = 'cp-inst-num';
+    const rmBtn = document.createElement('button');
+    rmBtn.className = 'cp-inst-rm'; rmBtn.innerHTML = '<i class="ri-close-line"></i>';
+    rmBtn.addEventListener('click', () => removeInst(inst));
+    hdr.appendChild(num); hdr.appendChild(rmBtn);
+
+    // Canvas area
+    const outer = document.createElement('div');
+    outer.className = 'cp-outer';
+    const dz = document.createElement('div');
+    dz.className = 'cp-dz';
+    dz.innerHTML = `<i class="ri-contrast-drop-2-line" style="font-size:1.75rem;color:#adb5bd;"></i><p class="mb-1 small fw-semibold">${tr('cp_drop_msg')||'Drop an image here'}</p><label class="btn btn-primary btn-sm mb-0">${tr('choose_files')||'Choose file'}<input type="file" accept="image/*" class="d-none"></label><p class="small text-muted mb-0">${tr('cp_file_hint')||'JPEG · PNG · WebP · GIF · max 15 MB'}</p>`;
+    const fileIn = dz.querySelector('input');
+    fileIn.addEventListener('change', e => { loadFile(inst, e.target.files[0]); fileIn.value=''; });
+    const cvs = document.createElement('canvas');
+    cvs.className = 'cp-inst-canvas'; cvs.style.maxWidth='100%';
+    outer.appendChild(dz); outer.appendChild(cvs);
+
+    // Dominant section
+    const domSection = document.createElement('div');
+    domSection.className = 'mt-2'; domSection.style.display='none';
+    const domBar = document.createElement('div'); domBar.className='cp-dom-bar';
+    domSection.innerHTML = `<div class="d-flex align-items-center justify-content-between mb-1"><small class="fw-semibold text-uppercase text-muted" style="font-size:10px;letter-spacing:.05em;">${tr('cp_dominant')||'Dominant'}</small><small class="text-muted" style="font-size:10px;">${tr('cp_click_add')||'click to add'}</small></div>`;
+    domSection.appendChild(domBar);
+
+    // Picked section
+    const pickedSection = document.createElement('div');
+    pickedSection.className = 'mt-2'; pickedSection.style.display='none';
+    const clearBtn = document.createElement('button');
+    clearBtn.className='btn btn-link text-muted p-0'; clearBtn.style.fontSize='11px';
+    clearBtn.textContent=tr('cp_clear_all')||'Clear all';
+    clearBtn.addEventListener('click',()=>{ inst.picked=[]; renderPicked(inst); saveState(); });
+    const pickedHdr = document.createElement('div');
+    pickedHdr.className='d-flex align-items-center justify-content-between mb-1';
+    pickedHdr.innerHTML=`<small class="fw-semibold text-uppercase text-muted" style="font-size:10px;letter-spacing:.05em;">${tr('cp_picked')||'Picked'}</small>`;
+    pickedHdr.appendChild(clearBtn);
+    const pickedWrap = document.createElement('div'); pickedWrap.className='cp-picked-wrap';
+    pickedSection.appendChild(pickedHdr); pickedSection.appendChild(pickedWrap);
+
+    card.appendChild(hdr); card.appendChild(outer); card.appendChild(domSection); card.appendChild(pickedSection);
+
+    // Store refs
+    inst.elCard=card; inst.elOuter=outer; inst.elDz=dz; inst.elCanvas=cvs;
+    inst.ctx=cvs.getContext('2d'); inst.elNum=num;
+    inst.elDomSection=domSection; inst.elDomBar=domBar;
+    inst.elPickedSection=pickedSection; inst.elPickedWrap=pickedWrap;
+
+    // Drag & drop
+    outer.addEventListener('dragover', e=>{ e.preventDefault(); e.stopPropagation(); outer.classList.add('drag-over'); });
+    outer.addEventListener('dragleave',e=>{ e.preventDefault(); e.stopPropagation(); outer.classList.remove('drag-over'); });
+    outer.addEventListener('drop',     e=>{ e.preventDefault(); e.stopPropagation(); outer.classList.remove('drag-over'); loadFile(inst,e.dataTransfer.files[0]); });
+
+    // Canvas mouse events
+    cvs.addEventListener('mousemove', e=>{
+      if(!inst.loaded) return;
+      const {cx,cy}=evCoords(e,cvs);
+      const {r,g,b}=readPixel(inst,cx,cy);
+      setColor(r,g,b); showMag(e,cvs,cx,cy);
+    });
+    cvs.addEventListener('mouseleave', ()=>{ magEl.style.display='none'; });
+    cvs.addEventListener('click', e=>{
+      if(!inst.loaded) return;
+      const {cx,cy}=evCoords(e,cvs);
+      const {r,g,b}=readPixel(inst,cx,cy);
+      addPicked(inst,r,g,b);
+      swatchEl.classList.remove('flash'); void swatchEl.offsetWidth; swatchEl.classList.add('flash');
+    });
+
+    return card;
+  }
+
+  /* ── Add / Remove ─────────────────────────────────────────────── */
+  function addInst(id) {
+    if(instances.length>=MAX_INST) return null;
+    const inst=mkInst(id);
+    instances.push(inst);
+    instListEl.appendChild(buildCard(inst));
+    syncUI(); return inst;
+  }
+
+  function removeInst(inst) {
+    const idx=instances.indexOf(inst); if(idx<0) return;
+    instances.splice(idx,1); inst.elCard.remove();
+    if(!instances.length) addInst();
+    syncUI(); saveState();
+  }
+
+  function syncUI() {
+    const n=instances.length;
+    addCountEl.textContent=`(${n}/${MAX_INST})`;
+    addBtn.disabled=(n>=MAX_INST);
+    instances.forEach((inst,i)=>{
+      if(inst.elNum) inst.elNum.textContent=`${tr('cp_image')||'Image'} ${i+1}`;
+    });
+  }
+
+  /* ── Load image ───────────────────────────────────────────────── */
+  function loadFile(inst,file) {
+    if(!file||!file.type.startsWith('image/')) return;
+    if(file.size>15*1024*1024){ alert(tr('cp_too_large')); return; }
+    const url=URL.createObjectURL(file);
+    loadFromUrl(inst,url,true).finally(()=>URL.revokeObjectURL(url));
+  }
+
+  function loadFromUrl(inst,url,genStore=false) {
+    return new Promise((res,rej)=>{
+      const img=new Image();
+      img.onload=()=>{
+        const ow=img.naturalWidth,oh=img.naturalHeight;
+        // Off-screen (pixel picking)
+        const os=Math.min(1,MAX_OFF/Math.max(ow,oh));
+        inst.off.width=Math.round(ow*os); inst.off.height=Math.round(oh*os);
+        inst.offCtx.drawImage(img,0,0,inst.off.width,inst.off.height);
+        // Display canvas (max 600px height)
+        const dw=inst.elOuter.clientWidth||480;
+        const ds=Math.min(dw/ow,600/oh,1);
+        inst.elCanvas.width=Math.round(ow*ds); inst.elCanvas.height=Math.round(oh*ds);
+        inst.ctx.drawImage(img,0,0,inst.elCanvas.width,inst.elCanvas.height);
+        // Compressed copy for storage
+        if(genStore){
+          const ss=Math.min(1,STORE_DIM/Math.max(ow,oh));
+          const sc=document.createElement('canvas');
+          sc.width=Math.round(ow*ss); sc.height=Math.round(oh*ss);
+          sc.getContext('2d').drawImage(img,0,0,sc.width,sc.height);
+          inst.imageDataUrl=sc.toDataURL('image/jpeg',STORE_Q);
+        }
+        inst.elDz.style.display='none'; inst.elCanvas.style.display='block';
+        inst.elOuter.classList.add('has-image'); inst.loaded=true;
+        setTimeout(()=>{ extractDominant(inst); saveState(); },30);
+        res();
+      };
+      img.onerror=rej; img.src=url;
+    });
+  }
+
+  /* ── Pixel read ───────────────────────────────────────────────── */
+  function readPixel(inst,cx,cy) {
+    const sx=Math.round(cx*(inst.off.width/inst.elCanvas.width));
+    const sy=Math.round(cy*(inst.off.height/inst.elCanvas.height));
+    const d=inst.offCtx.getImageData(Math.max(0,Math.min(sx,inst.off.width-1)),Math.max(0,Math.min(sy,inst.off.height-1)),1,1).data;
+    const a=d[3]/255;
+    return {r:Math.round(d[0]*a+255*(1-a)),g:Math.round(d[1]*a+255*(1-a)),b:Math.round(d[2]*a+255*(1-a))};
+  }
+
+  function evCoords(e,canvas) {
+    const r=canvas.getBoundingClientRect();
+    return {cx:Math.floor((e.clientX-r.left)*(canvas.width/r.width)),cy:Math.floor((e.clientY-r.top)*(canvas.height/r.height))};
+  }
+
+  /* ── Magnifier ────────────────────────────────────────────────── */
+  function showMag(e,canvas,cx,cy) {
+    magCtx.imageSmoothingEnabled=false;
+    magCtx.clearRect(0,0,MAG,MAG);
+    magCtx.drawImage(canvas,cx-HALF,cy-HALF,SAMP,SAMP,0,0,MAG,MAG);
+    const c=MAG/2;
+    magCtx.strokeStyle='rgba(255,255,255,.9)'; magCtx.lineWidth=1.5;
+    magCtx.beginPath(); magCtx.moveTo(c,0); magCtx.lineTo(c,MAG); magCtx.moveTo(0,c); magCtx.lineTo(MAG,c); magCtx.stroke();
+    magCtx.strokeStyle='rgba(0,0,0,.3)'; magCtx.lineWidth=.6;
+    magCtx.beginPath(); magCtx.moveTo(c+2,0); magCtx.lineTo(c+2,MAG); magCtx.moveTo(0,c+2); magCtx.lineTo(MAG,c+2); magCtx.stroke();
+    let lx=e.clientX+24,ly=e.clientY-MAG/2;
+    if(lx+MAG>window.innerWidth-8) lx=e.clientX-MAG-24;
+    if(ly<8) ly=8;
+    if(ly+MAG>window.innerHeight-8) ly=window.innerHeight-MAG-8;
+    magEl.style.left=lx+'px'; magEl.style.top=ly+'px'; magEl.style.display='block';
+  }
+
+  /* ── Picked colors ────────────────────────────────────────────── */
+  function addPicked(inst,r,g,b) {
+    if(inst.picked.length>=MAX_PICK) inst.picked.shift();
+    inst.picked.push({r,g,b,hex:toHex(r,g,b)});
+    renderPicked(inst); saveState();
+  }
+
+  function renderPicked(inst) {
+    const wrap=inst.elPickedWrap; wrap.innerHTML='';
+    if(!inst.picked.length){ inst.elPickedSection.style.display='none'; return; }
+    inst.elPickedSection.style.display='';
+    inst.picked.forEach((c,i)=>{
+      const sw=document.createElement('div');
+      sw.className='cp-sw'; sw.style.background=c.hex;
+      const rm=document.createElement('div'); rm.className='cp-rm'; rm.textContent='×';
+      rm.addEventListener('click',ev=>{ ev.stopPropagation(); inst.picked.splice(i,1); renderPicked(inst); saveState(); });
+      sw.appendChild(rm);
+      sw.addEventListener('click',()=>setColor(c.r,c.g,c.b));
+      sw.addEventListener('mouseenter',ev=>showTtip(ev,c.hex+'\nrgb('+c.r+', '+c.g+', '+c.b+')'));
+      sw.addEventListener('mouseleave',hideTtip);
+      wrap.appendChild(sw);
+    });
+  }
+
+  /* ── Dominant colors (Median Cut) ─────────────────────────────── */
+  function extractDominant(inst) {
+    const imgData=inst.offCtx.getImageData(0,0,inst.off.width,inst.off.height);
+    const data=imgData.data, total=inst.off.width*inst.off.height;
+    const N=Math.min(1500,total), pixels=[];
+    for(let i=0;i<N;i++){
+      const idx=Math.floor(Math.random()*total)*4;
+      if(data[idx+3]>128) pixels.push([data[idx],data[idx+1],data[idx+2]]);
+    }
+    if(pixels.length<4) return;
+    inst.dominant=medianCut(pixels,3)
+      .filter(px=>px.length>0)
+      .map(px=>{
+        const r=Math.round(px.reduce((s,p)=>s+p[0],0)/px.length);
+        const g=Math.round(px.reduce((s,p)=>s+p[1],0)/px.length);
+        const b=Math.round(px.reduce((s,p)=>s+p[2],0)/px.length);
+        return {r,g,b,hex:toHex(r,g,b),w:px.length};
+      })
+      .sort((a,b)=>b.w-a.w);
+    renderDominant(inst);
+  }
+
+  function medianCut(pixels,depth) {
+    if(depth===0||pixels.length<3) return [pixels];
+    let mn=[255,255,255],mx=[0,0,0];
+    pixels.forEach(p=>{ for(let c=0;c<3;c++){ if(p[c]<mn[c])mn[c]=p[c]; if(p[c]>mx[c])mx[c]=p[c]; } });
+    const ranges=[mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2]];
+    const ch=ranges.indexOf(Math.max(...ranges));
+    const sorted=[...pixels].sort((a,b)=>a[ch]-b[ch]);
+    const mid=Math.floor(sorted.length/2);
+    return [...medianCut(sorted.slice(0,mid),depth-1),...medianCut(sorted.slice(mid),depth-1)];
+  }
+
+  function renderDominant(inst) {
+    if(!inst.dominant.length){ inst.elDomSection.style.display='none'; return; }
+    inst.elDomSection.style.display='';
+    const total=inst.dominant.reduce((s,d)=>s+d.w,0);
+    inst.elDomBar.innerHTML='';
+    inst.dominant.forEach(d=>{
+      const cell=document.createElement('div');
+      cell.className='cp-dom-cell';
+      cell.style.cssText=`background:${d.hex};flex:${(d.w/total*inst.dominant.length).toFixed(2)};`;
+      cell.addEventListener('click',()=>{ addPicked(inst,d.r,d.g,d.b); setColor(d.r,d.g,d.b); });
+      cell.addEventListener('mouseenter',ev=>showTtip(ev,d.hex+'\nrgb('+d.r+', '+d.g+', '+d.b+')'));
+      cell.addEventListener('mouseleave',hideTtip);
+      inst.elDomBar.appendChild(cell);
+    });
+  }
+
+  /* ── localStorage ─────────────────────────────────────────────── */
+  function saveState() {
+    const payload = {
+      v: 3,
+      instances: instances.map(inst=>({
+        id: inst.id,
+        imageDataUrl: inst.imageDataUrl,
+        picked:   inst.picked,
+        dominant: inst.dominant
+      }))
+    };
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(payload)); }
+    catch {
+      // Quota exceeded — retry without images
+      const light={...payload,instances:payload.instances.map(i=>({...i,imageDataUrl:null}))};
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(light)); } catch {}
+    }
+  }
+
+  async function restoreState() {
+    let data;
+    try { const raw=localStorage.getItem(STORE_KEY); if(raw) data=JSON.parse(raw); } catch {}
+
+    if(!data?.instances?.length) { addInst(); return; }
+
+    for(const saved of data.instances.slice(0,MAX_INST)){
+      const inst=addInst(saved.id); if(!inst) break;
+      inst.picked   = saved.picked   || [];
+      inst.dominant = saved.dominant || [];
+      renderPicked(inst);
+      if(saved.imageDataUrl){
+        inst.imageDataUrl = saved.imageDataUrl;
+        try { await loadFromUrl(inst, saved.imageDataUrl, false); }
+        catch { renderDominant(inst); }
+      } else {
+        renderDominant(inst);
+      }
+    }
+  }
+
+  /* ── Global drag prevention ───────────────────────────────────── */
+  ['dragenter','dragover','dragleave','drop'].forEach(ev=>
+    document.addEventListener(ev,e=>{ e.preventDefault(); e.stopPropagation(); },false));
+
+  /* ── Export all ───────────────────────────────────────────────── */
+  cssBtn.addEventListener('click',()=>{
+    const allPicked=instances.flatMap(i=>i.picked);
+    const allDom=instances.flatMap(i=>i.dominant);
+    if(!allPicked.length&&!allDom.length) return;
+    const lines=[':root {'];
+    allPicked.forEach((c,i)=>lines.push(`  --picked-${i+1}: ${c.hex};`));
+    allDom.forEach((c,i)=>lines.push(`  --dominant-${i+1}: ${c.hex};`));
+    lines.push('}');
+    doCopy(lines.join('\n'),cssBtn);
+  });
+
+  jsonBtn.addEventListener('click',()=>{
+    const data={
+      picked:   instances.flatMap(i=>i.picked.map(c=>c.hex)),
+      dominant: instances.flatMap(i=>i.dominant.map(c=>c.hex)),
+      byImage:  instances.map((inst,i)=>({
+        label:`Image ${i+1}`,
+        picked:   inst.picked.map(c=>c.hex),
+        dominant: inst.dominant.map(c=>c.hex)
+      }))
+    };
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='palette.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+  });
+
+  addBtn.addEventListener('click',()=>{ addInst(); saveState(); });
+
+  /* ── Init ─────────────────────────────────────────────────────── */
+  restoreState();
+})();
+</script>

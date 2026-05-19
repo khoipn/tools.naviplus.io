@@ -1,0 +1,1033 @@
+---
+layout: default
+title: "Free Photo Collage Maker"
+description: "Create photo collages in your browser. Upload images, choose a layout, drag & drop to arrange, then export as JPEG or PNG — no signup, no server uploads."
+---
+
+<div class="container py-4">
+  <div class="tool-page-header">
+    <h1 data-i18n="collage_h1">Photo Collage Maker</h1>
+    <p data-i18n="collage_desc">Upload photos, pick a layout, drag &amp; drop to arrange, then export — all in your browser.</p>
+  </div>
+
+  <!-- Photo Tray -->
+  <div class="card mb-3">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <strong data-i18n="collage_photos">Photos</strong>
+      <span id="photo-count" class="text-muted small">0 / 12</span>
+    </div>
+    <div id="tray-body" class="card-body p-2">
+      <div id="tray-drop" class="collage-tray-drop">
+        <div id="tray-empty-msg" class="collage-tray-empty">
+          <i class="ri-image-add-line" style="font-size:28px;color:var(--c-muted)"></i>
+          <span><strong data-i18n="collage_drop_photos">Drop photos here</strong>&nbsp;
+            <button id="upload-trigger" class="btn btn-sm btn-outline-secondary" data-i18n="collage_select">Select files</button>
+          </span>
+          <span class="small text-muted" data-i18n="collage_supports">JPEG, PNG, WebP — max 12 photos, 10 MB each</span>
+        </div>
+        <div id="photo-tray" class="collage-photo-tray d-none"></div>
+      </div>
+      <input id="photo-input" type="file" accept="image/jpeg,image/png,image/webp" multiple class="d-none">
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <!-- Settings -->
+    <div class="col-lg-4">
+
+      <div class="card mb-3">
+        <div class="card-header"><strong data-i18n="collage_layout">Layout</strong></div>
+        <div class="card-body pb-2">
+          <div id="layout-picker" class="collage-layout-picker"></div>
+          <div id="freeform-row" class="d-none d-flex align-items-center gap-2 flex-wrap mt-2">
+            <span class="small fw-semibold" data-i18n="collage_grid">Grid</span>
+            <input id="g-cols" type="number" value="2" min="1" max="4" class="form-control form-control-sm" style="width:52px">
+            <span class="text-muted small">×</span>
+            <input id="g-rows" type="number" value="2" min="1" max="4" class="form-control form-control-sm" style="width:52px">
+            <button id="apply-grid" class="btn btn-sm btn-outline-secondary" data-i18n="collage_apply">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header"><strong data-i18n="collage_style">Style</strong></div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label" data-i18n="collage_output_size">Output Size</label>
+            <select id="size-preset" class="form-select form-select-sm mb-2">
+              <optgroup label="Square">
+                <option value="1080x1080">Instagram Post — 1080 × 1080</option>
+                <option value="1200x1200">1200 × 1200</option>
+                <option value="720x720">720 × 720</option>
+              </optgroup>
+              <optgroup label="Landscape">
+                <option value="1920x1080">Full HD 16:9 — 1920 × 1080</option>
+                <option value="1280x720">HD 16:9 — 1280 × 720</option>
+                <option value="1200x900">4:3 — 1200 × 900</option>
+                <option value="1200x628">Facebook / OG — 1200 × 628</option>
+                <option value="1500x500">X/Twitter Header — 1500 × 500</option>
+                <option value="1584x396">LinkedIn Cover — 1584 × 396</option>
+                <option value="2560x1440">YouTube Cover — 2560 × 1440</option>
+              </optgroup>
+              <optgroup label="Portrait">
+                <option value="1080x1920">Instagram Story 9:16 — 1080 × 1920</option>
+                <option value="1080x1350">Instagram Portrait 4:5 — 1080 × 1350</option>
+                <option value="900x1200">3:4 — 900 × 1200</option>
+              </optgroup>
+              <optgroup label="Custom">
+                <option value="custom" data-i18n="collage_custom">Custom…</option>
+              </optgroup>
+            </select>
+            <div id="custom-size-row" class="d-none d-flex align-items-center gap-2">
+              <input id="out-w" type="number" value="1080" min="100" max="6000" class="form-control form-control-sm" style="width:78px">
+              <span class="text-muted">×</span>
+              <input id="out-h" type="number" value="1080" min="100" max="6000" class="form-control form-control-sm" style="width:78px">
+              <span class="text-muted small">px</span>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label d-flex justify-content-between">
+              <span data-i18n="collage_gap">Gap</span>
+              <span id="gap-lbl" class="text-muted fw-normal">8 px</span>
+            </label>
+            <input id="gap" type="range" min="0" max="40" value="8" class="form-range">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" data-i18n="collage_bg">Background</label>
+            <div class="d-flex align-items-center gap-2">
+              <input id="bg-color" type="color" value="#ffffff" class="form-control form-control-color" style="width:36px;height:32px;padding:2px 3px;cursor:pointer">
+              <input id="bg-hex" type="text" value="#ffffff" class="form-control form-control-sm" style="width:84px;font-family:monospace;font-size:13px">
+              <button id="bg-trans" class="btn btn-sm btn-outline-secondary" data-i18n="collage_transparent">None</button>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label d-flex justify-content-between">
+              <span data-i18n="collage_radius">Corner Radius</span>
+              <span id="radius-lbl" class="text-muted fw-normal">0 px</span>
+            </label>
+            <input id="radius" type="range" min="0" max="40" value="0" class="form-range">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label d-flex justify-content-between">
+              <span data-i18n="collage_padding">Outer Padding</span>
+              <span id="padding-lbl" class="text-muted fw-normal">0 px</span>
+            </label>
+            <input id="padding" type="range" min="0" max="60" value="0" class="form-range">
+          </div>
+
+          <div class="mb-0">
+            <label class="form-label" data-i18n="collage_fit">Fit Mode</label>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm collage-fit-btn active" data-fit="cover" data-i18n="collage_cover">Cover</button>
+              <button class="btn btn-sm collage-fit-btn" data-fit="contain" data-i18n="collage_contain">Contain</button>
+              <button class="btn btn-sm collage-fit-btn" data-fit="stretch" data-i18n="collage_stretch">Stretch</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header"><strong data-i18n="collage_export">Export</strong></div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label d-flex justify-content-between">
+              <span data-i18n="collage_quality">JPEG Quality</span>
+              <span id="q-lbl" class="text-muted fw-normal">90%</span>
+            </label>
+            <input id="quality" type="range" min="60" max="100" value="90" class="form-range">
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            <button id="dl-btn" class="btn btn-primary flex-fill">
+              <i class="ri-download-2-line me-1"></i><span data-i18n="collage_download">Download</span>
+            </button>
+            <button id="cp-btn" class="btn btn-outline-secondary" title="Copy to clipboard">
+              <i class="ri-clipboard-line"></i>
+            </button>
+            <button id="share-link-btn" class="btn btn-outline-info" data-i18n="get_link">Get Link</button>
+          </div>
+          <div id="size-info" class="mt-2 small text-muted"></div>
+          <div id="share-link-result" class="mt-2 d-none">
+            <div class="input-group input-group-sm">
+              <input type="text" id="share-link-input" class="form-control font-monospace" readonly>
+              <button type="button" id="copy-link-btn" class="btn btn-outline-secondary" data-i18n="copy_link">Copy</button>
+            </div>
+          </div>
+          <div id="share-link-error" class="form-text text-danger d-none mt-1"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Canvas preview -->
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <strong data-i18n="collage_preview">Preview</strong>
+          <span id="dim-info" class="text-muted small"></span>
+        </div>
+        <div class="card-body p-2 p-sm-3" style="background:#ebebeb;border-radius:0 0 var(--radius-md) var(--radius-md);">
+          <div id="canvas-wrap" class="collage-canvas-wrap">
+            <div id="canvas-box" class="collage-canvas-box">
+              <canvas id="cv"></canvas>
+              <div id="cell-overlay" class="collage-cell-overlay"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-secondary small mt-3">
+    <strong data-i18n="tip">Tip:</strong>
+    <span data-i18n="collage_tip"> Drag photos from the tray into cells, or between cells to swap. Click × on a cell to clear it. Right-click a cell to cycle its fit mode.</span>
+  </div>
+</div>
+
+<style>
+/* ── tray ─────────────────────────────────────────────────── */
+.collage-tray-drop {
+  border: 2px dashed var(--c-border);
+  border-radius: var(--radius-md);
+  transition: border-color .15s, background .15s;
+  min-height: 88px;
+}
+.collage-tray-drop.drag-over {
+  border-color: var(--c-accent);
+  background: rgba(55,126,98,.06);
+}
+.collage-tray-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 7px; padding: 18px 12px; color: var(--c-muted);
+  text-align: center; font-size: 13.5px; cursor: pointer;
+}
+.collage-tray-empty:hover { background: rgba(0,0,0,.02); border-radius: var(--radius-md); }
+.collage-photo-tray {
+  display: flex; gap: 8px; padding: 8px 6px;
+  overflow-x: auto; flex-wrap: nowrap;
+  scrollbar-width: thin;
+}
+.collage-photo-tray::-webkit-scrollbar { height: 4px; }
+.collage-photo-tray::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 2px; }
+.c-thumb {
+  position: relative; flex-shrink: 0;
+  width: 70px; height: 70px;
+  border: 2px solid var(--c-border); border-radius: 8px;
+  cursor: grab; transition: border-color .12s;
+  overflow: visible;
+}
+.c-thumb:hover { border-color: #999; }
+.c-thumb.is-dragging { opacity: .4; cursor: grabbing; }
+.c-thumb img {
+  width: 66px; height: 66px; object-fit: cover;
+  border-radius: 6px; display: block; pointer-events: none;
+}
+.c-thumb-del {
+  position: absolute; top: -7px; right: -7px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #111; color: #fff; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; opacity: 0; transition: opacity .12s;
+}
+.c-thumb:hover .c-thumb-del { opacity: 1; }
+.c-add-btn {
+  flex-shrink: 0; width: 70px; height: 70px; border-radius: 8px;
+  border: 2px dashed var(--c-border); background: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; cursor: pointer; color: var(--c-muted); font-size: 11px; font-weight: 600;
+  transition: border-color .12s, color .12s;
+}
+.c-add-btn:hover { border-color: #999; color: var(--c-text); }
+.c-add-btn i { font-size: 20px; }
+
+/* ── layout picker ──────────────────────────────────────────── */
+.collage-layout-picker { display: flex; flex-wrap: wrap; gap: 0; }
+.collage-lgroup-label {
+  width: 100%; font-size: 10px; font-weight: 700; color: var(--c-muted);
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 7px 1px 3px; line-height: 1;
+}
+.collage-lgroup-label:first-child { padding-top: 2px; }
+.collage-lgroup { display: flex; flex-wrap: wrap; gap: 5px; width: 100%; margin-bottom: 2px; }
+.collage-lbtn {
+  width: 46px; height: 34px; padding: 3px 4px;
+  border: 2px solid var(--c-border); border-radius: 6px;
+  background: #fafafa; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .12s, background .12s;
+}
+.collage-lbtn:hover { border-color: #999; background: #f0f0f0; }
+.collage-lbtn.active { border-color: var(--c-text); background: #efefef; }
+.collage-lbtn svg { width: 100%; height: 100%; }
+
+/* ── fit buttons ────────────────────────────────────────────── */
+.collage-fit-btn {
+  border: 1.5px solid var(--c-border) !important;
+  color: var(--c-muted) !important;
+  font-size: 12px !important; padding: 4px 10px !important;
+}
+.collage-fit-btn.active {
+  background: var(--c-text) !important;
+  border-color: var(--c-text) !important;
+  color: #fff !important;
+}
+
+/* ── canvas area ────────────────────────────────────────────── */
+.collage-canvas-wrap {
+  display: flex; justify-content: center; align-items: flex-start;
+  min-height: 180px;
+}
+.collage-canvas-box {
+  position: relative; display: inline-block;
+  max-width: 100%; line-height: 0;
+}
+#cv {
+  display: block; max-width: 100%;
+  box-shadow: 0 2px 16px rgba(0,0,0,.14); border-radius: 3px;
+}
+.collage-cell-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+}
+.c-hit {
+  position: absolute; box-sizing: border-box;
+  border: 2px solid transparent; border-radius: 3px;
+  cursor: default; transition: background .1s, border-color .1s;
+}
+.c-hit.has-photo { cursor: grab; }
+.c-hit.drag-over-cell {
+  background: rgba(55,126,98,.2);
+  border-color: var(--c-accent) !important;
+}
+.c-hit-del {
+  position: absolute; top: 4px; right: 4px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(0,0,0,.55); color: #fff;
+  border: none; cursor: pointer; z-index: 10;
+  display: none; align-items: center; justify-content: center;
+  font-size: 11px; line-height: 1;
+}
+.c-hit:hover .c-hit-del { display: flex; }
+.c-fit-badge {
+  position: absolute; bottom: 4px; right: 4px;
+  background: rgba(0,0,0,.45); color: #fff;
+  font-size: 9px; font-weight: 700;
+  padding: 2px 5px; border-radius: 3px;
+  pointer-events: none; opacity: 0; transition: opacity .1s;
+  text-transform: uppercase; letter-spacing: .4px;
+}
+.c-hit:hover .c-fit-badge { opacity: 1; }
+</style>
+
+<script>
+(function () {
+'use strict';
+
+/* ── constants ──────────────────────────────────────────────── */
+var MAX_N = 12, MAX_MB = 10;
+var PRESETS = {
+  /* square */
+  '1080x1080': {w:1080, h:1080},
+  '1200x1200': {w:1200, h:1200},
+  '720x720':   {w:720,  h:720},
+  /* landscape */
+  '1920x1080': {w:1920, h:1080},
+  '1280x720':  {w:1280, h:720},
+  '1200x900':  {w:1200, h:900},
+  '1200x628':  {w:1200, h:628},
+  '1500x500':  {w:1500, h:500},
+  '1584x396':  {w:1584, h:396},
+  '2560x1440': {w:2560, h:1440},
+  /* portrait */
+  '1080x1920': {w:1080, h:1920},
+  '1080x1350': {w:1080, h:1350},
+  '900x1200':  {w:900,  h:1200},
+  /* legacy ratio keys — kept for localStorage compat */
+  '1:1':  {w:1080, h:1080},
+  '4:3':  {w:1200, h:900},
+  '16:9': {w:1920, h:1080},
+  '3:4':  {w:900,  h:1200},
+  '9:16': {w:1080, h:1920}
+};
+
+/* ── state ──────────────────────────────────────────────────── */
+var S = {
+  photos: [],     // {id, img, objUrl, name}
+  cells:  [],     // [photoId | null]
+  cFit:   [],     // per-cell fit override
+  layout: '2_cols',
+  gcols: 2, grows: 2,
+  cfg: {
+    W: 1080, H: 1080,
+    gap: 8, bg: '#ffffff',
+    transp: false,
+    radius: 0, padding: 0,
+    fit: 'cover', quality: .90
+  }
+};
+var nid = 1, dragSrc = null;
+
+/* ── layout definitions ─────────────────────────────────────── */
+var LAYOUTS = {
+  '1_full':   function(){ return [{x:0,y:0,w:1,h:1}]; },
+  /* 2-photo */
+  '2_cols':   function(){ return [{x:0,y:0,w:.5,h:1},{x:.5,y:0,w:.5,h:1}]; },
+  '2_rows':   function(){ return [{x:0,y:0,w:1,h:.5},{x:0,y:.5,w:1,h:.5}]; },
+  '2_left':   function(){ return [{x:0,y:0,w:2/3,h:1},{x:2/3,y:0,w:1/3,h:1}]; },
+  '2_right':  function(){ return [{x:0,y:0,w:1/3,h:1},{x:1/3,y:0,w:2/3,h:1}]; },
+  '2_top':    function(){ return [{x:0,y:0,w:1,h:2/3},{x:0,y:2/3,w:1,h:1/3}]; },
+  '2_bottom': function(){ return [{x:0,y:0,w:1,h:1/3},{x:0,y:1/3,w:1,h:2/3}]; },
+  /* 3-photo */
+  '3_cols':   function(){ return [{x:0,y:0,w:1/3,h:1},{x:1/3,y:0,w:1/3,h:1},{x:2/3,y:0,w:1/3,h:1}]; },
+  '3_left':   function(){ return [{x:0,y:0,w:.5,h:1},{x:.5,y:0,w:.5,h:.5},{x:.5,y:.5,w:.5,h:.5}]; },
+  '3_right':  function(){ return [{x:0,y:0,w:.5,h:.5},{x:0,y:.5,w:.5,h:.5},{x:.5,y:0,w:.5,h:1}]; },
+  '3_top':    function(){ return [{x:0,y:0,w:1,h:.5},{x:0,y:.5,w:.5,h:.5},{x:.5,y:.5,w:.5,h:.5}]; },
+  '3_bottom': function(){ return [{x:0,y:0,w:.5,h:.5},{x:.5,y:0,w:.5,h:.5},{x:0,y:.5,w:1,h:.5}]; },
+  /* 4-photo */
+  '4_grid':   function(){ return [{x:0,y:0,w:.5,h:.5},{x:.5,y:0,w:.5,h:.5},{x:0,y:.5,w:.5,h:.5},{x:.5,y:.5,w:.5,h:.5}]; },
+  '4_left':   function(){ return [{x:0,y:0,w:.5,h:1},{x:.5,y:0,w:.5,h:1/3},{x:.5,y:1/3,w:.5,h:1/3},{x:.5,y:2/3,w:.5,h:1/3}]; },
+  '4_right':  function(){ return [{x:0,y:0,w:.5,h:1/3},{x:0,y:1/3,w:.5,h:1/3},{x:0,y:2/3,w:.5,h:1/3},{x:.5,y:0,w:.5,h:1}]; },
+  '4_top':    function(){ return [{x:0,y:0,w:1,h:.5},{x:0,y:.5,w:1/3,h:.5},{x:1/3,y:.5,w:1/3,h:.5},{x:2/3,y:.5,w:1/3,h:.5}]; },
+  '4_bottom': function(){ return [{x:0,y:0,w:1/3,h:.5},{x:1/3,y:0,w:1/3,h:.5},{x:2/3,y:0,w:1/3,h:.5},{x:0,y:.5,w:1,h:.5}]; },
+  /* zigzag */
+  'zig_3':    function(){ return [{x:0,y:0,w:2/3,h:.5},{x:2/3,y:0,w:1/3,h:.5},{x:0,y:.5,w:1,h:.5}]; },
+  'zig_4':    function(){ return [{x:0,y:0,w:2/3,h:.5},{x:2/3,y:0,w:1/3,h:.5},{x:0,y:.5,w:1/3,h:.5},{x:1/3,y:.5,w:2/3,h:.5}]; },
+  'zig_5':    function(){ return [{x:0,y:0,w:2/3,h:1/3},{x:2/3,y:0,w:1/3,h:1/3},{x:0,y:1/3,w:1/3,h:1/3},{x:1/3,y:1/3,w:2/3,h:1/3},{x:0,y:2/3,w:1,h:1/3}]; },
+  'zig_6':    function(){ return [{x:0,y:0,w:2/3,h:1/3},{x:2/3,y:0,w:1/3,h:1/3},{x:0,y:1/3,w:1/3,h:1/3},{x:1/3,y:1/3,w:2/3,h:1/3},{x:0,y:2/3,w:2/3,h:1/3},{x:2/3,y:2/3,w:1/3,h:1/3}]; },
+  /* 5-photo */
+  '5_cols':   function(){ return [{x:0,y:0,w:.2,h:1},{x:.2,y:0,w:.2,h:1},{x:.4,y:0,w:.2,h:1},{x:.6,y:0,w:.2,h:1},{x:.8,y:0,w:.2,h:1}]; },
+  '5_top':    function(){ return [{x:0,y:0,w:1,h:.5},{x:0,y:.5,w:.25,h:.5},{x:.25,y:.5,w:.25,h:.5},{x:.5,y:.5,w:.25,h:.5},{x:.75,y:.5,w:.25,h:.5}]; },
+  '5_left':   function(){ return [{x:0,y:0,w:.5,h:1},{x:.5,y:0,w:.25,h:.5},{x:.75,y:0,w:.25,h:.5},{x:.5,y:.5,w:.25,h:.5},{x:.75,y:.5,w:.25,h:.5}]; },
+  /* 6-photo */
+  '6_grid':   function(){ var r=[],w=1/3,h=.5; for(var row=0;row<2;row++) for(var col=0;col<3;col++) r.push({x:col*w,y:row*h,w:w,h:h}); return r; },
+  '6_tall':   function(){ var r=[],w=.5,h=1/3; for(var row=0;row<3;row++) for(var col=0;col<2;col++) r.push({x:col*w,y:row*h,w:w,h:h}); return r; },
+  /* diagonal */
+  'diag_2':   function(){ return [{poly:[[0,0],[.55,0],[.45,1],[0,1]]},{poly:[[.55,0],[1,0],[1,1],[.45,1]]}]; },
+  'diag_2r':  function(){ return [{poly:[[0,0],[.45,0],[.55,1],[0,1]]},{poly:[[.45,0],[1,0],[1,1],[.55,1]]}]; },
+  'diag_3v':  function(){ return [{poly:[[0,0],[.33,0],[.23,1],[0,1]]},{poly:[[.33,0],[.67,0],[.57,1],[.23,1]]},{poly:[[.67,0],[1,0],[1,1],[.57,1]]}]; },
+  'diag_3h':  function(){ return [{poly:[[0,0],[1,0],[1,.3],[0,.35]]},{poly:[[0,.35],[1,.3],[1,.65],[0,.7]]},{poly:[[0,.7],[1,.65],[1,1],[0,1]]}]; },
+  'diag_x':   function(){ return [{poly:[[0,0],[1,0],[.5,.5]]},{poly:[[1,0],[1,1],[.5,.5]]},{poly:[[1,1],[0,1],[.5,.5]]},{poly:[[0,1],[0,0],[.5,.5]]}]; },
+  /* freeform */
+  'freeform': function(){
+    var r=S.grows, c=S.gcols, out=[];
+    for(var ri=0;ri<r;ri++) for(var ci=0;ci<c;ci++)
+      out.push({x:ci/c, y:ri/r, w:1/c, h:1/r});
+    return out;
+  }
+};
+
+var LGROUPS = [
+  { en: '2 Photos',   ids: ['2_cols','2_rows','2_left','2_right','2_top','2_bottom'] },
+  { en: '3 Photos',   ids: ['3_cols','3_left','3_right','3_top','3_bottom'] },
+  { en: '4 Photos',   ids: ['4_grid','4_left','4_right','4_top','4_bottom'] },
+  { en: 'Zigzag',     ids: ['zig_3','zig_4','zig_5','zig_6'] },
+  { en: '5–6 Photos', ids: ['5_cols','5_top','5_left','6_grid','6_tall'] },
+  { en: 'Diagonal',   ids: ['diag_2','diag_2r','diag_3v','diag_3h','diag_x'] },
+  { en: '1 / Grid',   ids: ['1_full','freeform'] },
+];
+var LDEFS = LGROUPS.reduce(function(a,g){ return a.concat(g.ids); }, []);
+
+function lSVG(cells) {
+  var W=40, H=30, P=2, G=1.5;
+  var s = '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">';
+  cells.forEach(function(c){
+    if(c.poly) {
+      var px = c.poly.map(function(p){ return [P+p[0]*(W-P*2), P+p[1]*(H-P*2)]; });
+      var cx=0, cy=0;
+      px.forEach(function(p){ cx+=p[0]; cy+=p[1]; });
+      cx/=px.length; cy/=px.length;
+      var ip = px.map(function(p){
+        var dx=p[0]-cx, dy=p[1]-cy, len=Math.sqrt(dx*dx+dy*dy);
+        return len<1 ? p : [p[0]-dx/len*G, p[1]-dy/len*G];
+      });
+      s += '<polygon points="'+ip.map(function(p){return p[0]+','+p[1];}).join(' ')+'" fill="currentColor" opacity=".6"/>';
+    } else {
+      var x=P+c.x*(W-P*2)+G, y=P+c.y*(H-P*2)+G;
+      var w=c.w*(W-P*2)-G*2, h=c.h*(H-P*2)-G*2;
+      if(w>0&&h>0) s+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="1.5" fill="currentColor" opacity=".6"/>';
+    }
+  });
+  return s+'</svg>';
+}
+
+function polyToPixels(poly, W, H, pad, gap) {
+  var aW = W-pad*2, aH = H-pad*2;
+  var pts = poly.map(function(p){ return [pad+p[0]*aW, pad+p[1]*aH]; });
+  if(gap > 0) {
+    var cx=0, cy=0;
+    pts.forEach(function(p){ cx+=p[0]; cy+=p[1]; });
+    cx/=pts.length; cy/=pts.length;
+    var d=gap/2;
+    pts = pts.map(function(p){
+      var dx=p[0]-cx, dy=p[1]-cy, len=Math.sqrt(dx*dx+dy*dy);
+      return len<1 ? p : [p[0]-dx/len*d, p[1]-dy/len*d];
+    });
+  }
+  return pts;
+}
+
+/* ── DOM refs ───────────────────────────────────────────────── */
+var trayDrop    = document.getElementById('tray-drop');
+var trayEmpty   = document.getElementById('tray-empty-msg');
+var photoTray   = document.getElementById('photo-tray');
+var photoInput  = document.getElementById('photo-input');
+var photoCount  = document.getElementById('photo-count');
+var uploadTrig  = document.getElementById('upload-trigger');
+var lpicker     = document.getElementById('layout-picker');
+var freeRow     = document.getElementById('freeform-row');
+var gColsEl     = document.getElementById('g-cols');
+var gRowsEl     = document.getElementById('g-rows');
+var applyGrid   = document.getElementById('apply-grid');
+var sizePreset  = document.getElementById('size-preset');
+var customSzRow = document.getElementById('custom-size-row');
+var outWEl      = document.getElementById('out-w');
+var outHEl      = document.getElementById('out-h');
+var gapEl       = document.getElementById('gap');
+var gapLbl      = document.getElementById('gap-lbl');
+var bgColorEl   = document.getElementById('bg-color');
+var bgHexEl     = document.getElementById('bg-hex');
+var bgTransBtn  = document.getElementById('bg-trans');
+var radiusEl    = document.getElementById('radius');
+var radiusLbl   = document.getElementById('radius-lbl');
+var paddingEl   = document.getElementById('padding');
+var paddingLbl  = document.getElementById('padding-lbl');
+var fitBtns     = document.querySelectorAll('.collage-fit-btn');
+var qualityEl   = document.getElementById('quality');
+var qLbl        = document.getElementById('q-lbl');
+var dlBtn          = document.getElementById('dl-btn');
+var cpBtn          = document.getElementById('cp-btn');
+var shareLinkBtn   = document.getElementById('share-link-btn');
+var shareLinkRes   = document.getElementById('share-link-result');
+var shareLinkErr   = document.getElementById('share-link-error');
+var shareLinkInput = document.getElementById('share-link-input');
+var copyLinkBtn    = document.getElementById('copy-link-btn');
+var dimInfo     = document.getElementById('dim-info');
+var sizeInfo    = document.getElementById('size-info');
+var canvas      = document.getElementById('cv');
+var overlay     = document.getElementById('cell-overlay');
+var ctx         = canvas.getContext('2d');
+
+/* ── localStorage persistence ───────────────────────────────── */
+var PREF_KEY = 'np_collage_prefs';
+
+function savePrefs() {
+  try {
+    localStorage.setItem(PREF_KEY, JSON.stringify({
+      layout: S.layout, gcols: S.gcols, grows: S.grows,
+      sizePreset: sizePreset.value,
+      W: S.cfg.W, H: S.cfg.H,
+      gap: S.cfg.gap,
+      bg: S.cfg.bg, transp: S.cfg.transp,
+      radius: S.cfg.radius, padding: S.cfg.padding,
+      fit: S.cfg.fit,
+      quality: Math.round(S.cfg.quality * 100)
+    }));
+  } catch(e) {}
+}
+
+function loadPrefs() {
+  var p;
+  try { p = JSON.parse(localStorage.getItem(PREF_KEY) || 'null'); } catch(e) {}
+  if(!p) return;
+
+  if(LAYOUTS[p.layout]) S.layout = p.layout;
+  if(p.gcols) { S.gcols = Math.max(1, Math.min(4, p.gcols)); gColsEl.value = S.gcols; }
+  if(p.grows)  { S.grows  = Math.max(1, Math.min(4, p.grows));  gRowsEl.value  = S.grows; }
+  if(p.sizePreset && (PRESETS[p.sizePreset] || p.sizePreset === 'custom')) {
+    sizePreset.value = p.sizePreset;
+    customSzRow.classList.toggle('d-none', p.sizePreset !== 'custom');
+  }
+  if(p.W) { S.cfg.W = p.W; outWEl.value = p.W; }
+  if(p.H) { S.cfg.H = p.H; outHEl.value = p.H; }
+  if(p.gap !== undefined) { S.cfg.gap = p.gap; gapEl.value = p.gap; gapLbl.textContent = p.gap + ' px'; }
+  if(p.bg)  { S.cfg.bg = p.bg; bgColorEl.value = p.bg; bgHexEl.value = p.bg; }
+  if(p.transp !== undefined) { S.cfg.transp = !!p.transp; bgTransBtn.classList.toggle('active', p.transp); }
+  if(p.radius  !== undefined) { S.cfg.radius  = p.radius;  radiusEl.value  = p.radius;  radiusLbl.textContent  = p.radius  + ' px'; }
+  if(p.padding !== undefined) { S.cfg.padding = p.padding; paddingEl.value = p.padding; paddingLbl.textContent = p.padding + ' px'; }
+  if(p.fit) {
+    S.cfg.fit = p.fit;
+    fitBtns.forEach(function(b){ b.classList.toggle('active', b.dataset.fit === p.fit); });
+  }
+  if(p.quality) { S.cfg.quality = p.quality / 100; qualityEl.value = p.quality; qLbl.textContent = p.quality + '%'; }
+
+  // sync layout picker active state (buttons already rendered by this point)
+  document.querySelectorAll('.collage-lbtn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.layout === S.layout);
+  });
+  freeRow.classList.toggle('d-none', S.layout !== 'freeform');
+}
+
+/* ── helpers ────────────────────────────────────────────────── */
+function getCells() { return LAYOUTS[S.layout](); }
+
+function getPhoto(id) {
+  for(var i=0;i<S.photos.length;i++) if(S.photos[i].id===id) return S.photos[i];
+  return null;
+}
+
+function rebuildCells() {
+  var cells = getCells(), old = S.cells.slice();
+  S.cells = []; S.cFit = [];
+  for(var i=0;i<cells.length;i++) {
+    S.cells.push(old[i] !== undefined ? old[i] : null);
+    S.cFit.push(S.cfg.fit);
+  }
+}
+
+function autoFill() {
+  var cells = getCells(), used = {};
+  S.cells.forEach(function(id){ if(id!==null) used[id]=true; });
+  S.photos.forEach(function(p){
+    if(used[p.id]) return;
+    for(var i=0;i<cells.length;i++) {
+      if(S.cells[i]===null) { S.cells[i]=p.id; used[p.id]=true; break; }
+    }
+  });
+}
+
+/* ── photo management ───────────────────────────────────────── */
+function addPhotos(files) {
+  Array.from(files).forEach(function(f){
+    if(S.photos.length >= MAX_N) return;
+    if(f.size > MAX_MB*1024*1024) return;
+    if(!/^image\/(jpeg|png|webp)$/.test(f.type)) return;
+    var id = nid++, url = URL.createObjectURL(f);
+    var img = new Image();
+    img.onload = function(){
+      S.photos.push({id:id, img:img, objUrl:url, name:f.name});
+      autoFill();
+      renderTray(); draw(); buildOverlay();
+    };
+    img.src = url;
+  });
+}
+
+function removePhoto(id) {
+  var p = getPhoto(id);
+  if(p) URL.revokeObjectURL(p.objUrl);
+  S.photos = S.photos.filter(function(x){ return x.id!==id; });
+  S.cells  = S.cells.map(function(c){ return c===id ? null : c; });
+  renderTray(); draw(); buildOverlay();
+}
+
+function renderTray() {
+  var n = S.photos.length;
+  photoCount.textContent = n + ' / ' + MAX_N;
+  if(n === 0) {
+    trayEmpty.style.display = '';
+    photoTray.classList.add('d-none');
+    return;
+  }
+  trayEmpty.style.display = 'none';
+  photoTray.classList.remove('d-none');
+  photoTray.innerHTML = '';
+
+  S.photos.forEach(function(p){
+    var wrap = document.createElement('div');
+    wrap.className = 'c-thumb';
+    wrap.draggable = true;
+    wrap.dataset.id = p.id;
+
+    var img = document.createElement('img');
+    img.src = p.objUrl; img.alt = p.name;
+    wrap.appendChild(img);
+
+    var del = document.createElement('button');
+    del.className = 'c-thumb-del';
+    del.innerHTML = '&times;';
+    del.title = 'Remove';
+    del.addEventListener('click', function(e){
+      e.stopPropagation(); removePhoto(p.id);
+    });
+    wrap.appendChild(del);
+
+    wrap.addEventListener('dragstart', function(e){
+      dragSrc = {type:'tray', id:p.id};
+      wrap.classList.add('is-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(p.id));
+    });
+    wrap.addEventListener('dragend', function(){
+      wrap.classList.remove('is-dragging');
+    });
+
+    photoTray.appendChild(wrap);
+  });
+
+  if(n < MAX_N) {
+    var addBtn = document.createElement('button');
+    addBtn.className = 'c-add-btn';
+    addBtn.innerHTML = '<i class="ri-add-line"></i><span data-i18n="collage_add">Add</span>';
+    addBtn.addEventListener('click', function(){ photoInput.click(); });
+    photoTray.appendChild(addBtn);
+  }
+}
+
+/* ── tray events ────────────────────────────────────────────── */
+function isFiles(e){ return e.dataTransfer && Array.from(e.dataTransfer.types||[]).indexOf('Files') !== -1; }
+
+trayEmpty.addEventListener('click', function(){ photoInput.click(); });
+uploadTrig.addEventListener('click', function(e){ e.stopPropagation(); photoInput.click(); });
+photoInput.addEventListener('change', function(){ addPhotos(photoInput.files); photoInput.value=''; });
+
+trayDrop.addEventListener('dragover', function(e){
+  if(isFiles(e)){ e.preventDefault(); trayDrop.classList.add('drag-over'); }
+});
+trayDrop.addEventListener('dragleave', function(){ trayDrop.classList.remove('drag-over'); });
+trayDrop.addEventListener('drop', function(e){
+  trayDrop.classList.remove('drag-over');
+  if(e.dataTransfer.files && e.dataTransfer.files.length){ e.preventDefault(); addPhotos(e.dataTransfer.files); }
+});
+
+/* ── layout picker ──────────────────────────────────────────── */
+LGROUPS.forEach(function(grp){
+  var glabel = document.createElement('div');
+  glabel.className = 'collage-lgroup-label';
+  glabel.textContent = grp.en;
+  lpicker.appendChild(glabel);
+  var grow = document.createElement('div');
+  grow.className = 'collage-lgroup';
+  grp.ids.forEach(function(id){
+    var btn = document.createElement('button');
+    btn.className = 'collage-lbtn' + (id===S.layout ? ' active' : '');
+    btn.dataset.layout = id;
+    btn.title = id.replace(/_/g,' ');
+    if(id === 'freeform') {
+      btn.innerHTML = '<svg viewBox="0 0 40 30" xmlns="http://www.w3.org/2000/svg"><text x="20" y="22" text-anchor="middle" font-size="16" fill="currentColor" opacity=".6" font-family="monospace">#</text></svg>';
+    } else {
+      btn.innerHTML = lSVG(LAYOUTS[id]());
+    }
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.collage-lbtn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      S.layout = id;
+      freeRow.classList.toggle('d-none', id !== 'freeform');
+      rebuildCells(); autoFill(); draw(); buildOverlay();
+      savePrefs();
+    });
+    grow.appendChild(btn);
+  });
+  lpicker.appendChild(grow);
+});
+
+applyGrid.addEventListener('click', function(){
+  S.gcols = Math.max(1, Math.min(4, parseInt(gColsEl.value)||2));
+  S.grows = Math.max(1, Math.min(4, parseInt(gRowsEl.value)||2));
+  gColsEl.value = S.gcols; gRowsEl.value = S.grows;
+  rebuildCells(); autoFill(); draw(); buildOverlay();
+  savePrefs();
+});
+
+/* ── style controls ─────────────────────────────────────────── */
+sizePreset.addEventListener('change', function(){
+  var v = sizePreset.value;
+  customSzRow.classList.toggle('d-none', v !== 'custom');
+  if(PRESETS[v]) {
+    S.cfg.W = PRESETS[v].w; S.cfg.H = PRESETS[v].h;
+    outWEl.value = S.cfg.W; outHEl.value = S.cfg.H;
+    draw(); buildOverlay();
+  }
+  savePrefs();
+});
+[outWEl, outHEl].forEach(function(el){
+  el.addEventListener('change', function(){
+    S.cfg.W = Math.min(6000, Math.max(100, parseInt(outWEl.value)||1080));
+    S.cfg.H = Math.min(6000, Math.max(100, parseInt(outHEl.value)||1080));
+    outWEl.value = S.cfg.W; outHEl.value = S.cfg.H;
+    draw(); buildOverlay();
+    savePrefs();
+  });
+});
+
+gapEl.addEventListener('input', function(){
+  S.cfg.gap = +gapEl.value;
+  gapLbl.textContent = S.cfg.gap + ' px';
+  draw(); savePrefs();
+});
+bgColorEl.addEventListener('input', function(){
+  S.cfg.bg = bgColorEl.value; S.cfg.transp = false;
+  bgHexEl.value = bgColorEl.value; bgTransBtn.classList.remove('active');
+  draw(); savePrefs();
+});
+bgHexEl.addEventListener('change', function(){
+  if(/^#[0-9a-f]{6}$/i.test(bgHexEl.value)) {
+    S.cfg.bg = bgHexEl.value; bgColorEl.value = bgHexEl.value; S.cfg.transp = false;
+    bgTransBtn.classList.remove('active'); draw(); savePrefs();
+  }
+});
+bgTransBtn.addEventListener('click', function(){
+  S.cfg.transp = !S.cfg.transp;
+  bgTransBtn.classList.toggle('active', S.cfg.transp);
+  draw(); savePrefs();
+});
+radiusEl.addEventListener('input', function(){
+  S.cfg.radius = +radiusEl.value;
+  radiusLbl.textContent = S.cfg.radius + ' px';
+  draw(); savePrefs();
+});
+paddingEl.addEventListener('input', function(){
+  S.cfg.padding = +paddingEl.value;
+  paddingLbl.textContent = S.cfg.padding + ' px';
+  draw(); savePrefs();
+});
+fitBtns.forEach(function(b){
+  b.addEventListener('click', function(){
+    fitBtns.forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+    S.cfg.fit = b.dataset.fit;
+    S.cFit = S.cFit.map(function(){ return S.cfg.fit; });
+    draw(); savePrefs();
+  });
+});
+qualityEl.addEventListener('input', function(){
+  S.cfg.quality = +qualityEl.value / 100;
+  qLbl.textContent = qualityEl.value + '%';
+  savePrefs();
+});
+
+/* ── canvas drawing ─────────────────────────────────────────── */
+function draw() {
+  var W = S.cfg.W, H = S.cfg.H;
+  canvas.width = W; canvas.height = H;
+  ctx.clearRect(0, 0, W, H);
+  if(!S.cfg.transp) { ctx.fillStyle = S.cfg.bg; ctx.fillRect(0,0,W,H); }
+
+  var cells = getCells(), pad = S.cfg.padding, gap = S.cfg.gap, R = S.cfg.radius;
+  cells.forEach(function(cell, idx){
+    var pid = S.cells[idx], p = pid !== null ? getPhoto(pid) : null;
+    ctx.save();
+    if(cell.poly) {
+      var pts = polyToPixels(cell.poly, W, H, pad, gap);
+      var xs=pts.map(function(p){return p[0];}), ys=pts.map(function(p){return p[1];});
+      var bx=Math.min.apply(null,xs), by=Math.min.apply(null,ys);
+      var bw=Math.max.apply(null,xs)-bx, bh=Math.max.apply(null,ys)-by;
+      ctx.beginPath();
+      ctx.moveTo(pts[0][0], pts[0][1]);
+      for(var i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+      ctx.closePath(); ctx.clip();
+      if(p) {
+        drawFit(p.img, bx, by, bw, bh, S.cFit[idx] || S.cfg.fit);
+      } else {
+        ctx.fillStyle='#e0e0e0'; ctx.fillRect(bx,by,bw,bh);
+        drawPlaceholder(bx+bw/2, by+bh/2, Math.min(bw,bh)*.2);
+      }
+    } else {
+      var cx = Math.round(pad + cell.x*(W-pad*2) + gap/2);
+      var cy = Math.round(pad + cell.y*(H-pad*2) + gap/2);
+      var cw = Math.round(cell.w*(W-pad*2) - gap);
+      var ch = Math.round(cell.h*(H-pad*2) - gap);
+      if(cw > 0 && ch > 0) {
+        clipRR(cx, cy, cw, ch, Math.min(R, cw/2, ch/2));
+        if(p) {
+          drawFit(p.img, cx, cy, cw, ch, S.cFit[idx] || S.cfg.fit);
+        } else {
+          ctx.fillStyle = '#e0e0e0'; ctx.fillRect(cx, cy, cw, ch);
+          drawPlaceholder(cx + cw/2, cy + ch/2, Math.min(cw, ch) * .2);
+        }
+      }
+    }
+    ctx.restore();
+  });
+
+  updateInfo();
+  requestAnimationFrame(buildOverlay);
+}
+
+function clipRR(x, y, w, h, r) {
+  ctx.beginPath();
+  if(r > 0) {
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+    ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+    ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+    ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r);
+  } else {
+    ctx.rect(x, y, w, h);
+  }
+  ctx.closePath(); ctx.clip();
+}
+
+function drawFit(img, x, y, w, h, mode) {
+  var iw = img.naturalWidth, ih = img.naturalHeight;
+  if(mode === 'cover') {
+    var sc = Math.max(w/iw, h/ih);
+    var sw = w/sc, sh = h/sc;
+    ctx.drawImage(img, (iw-sw)/2, (ih-sh)/2, sw, sh, x, y, w, h);
+  } else if(mode === 'contain') {
+    var sc2 = Math.min(w/iw, h/ih);
+    var dw = iw*sc2, dh = ih*sc2;
+    ctx.fillStyle = '#e0e0e0'; ctx.fillRect(x, y, w, h);
+    ctx.drawImage(img, 0, 0, iw, ih, x+(w-dw)/2, y+(h-dh)/2, dw, dh);
+  } else {
+    ctx.drawImage(img, 0, 0, iw, ih, x, y, w, h);
+  }
+}
+
+function drawPlaceholder(cx, cy, s) {
+  ctx.save();
+  ctx.strokeStyle = '#b8b8b8'; ctx.lineWidth = Math.max(1.5, s*.1);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.rect(cx-s*.7, cy-s*.55, s*1.4, s*1.1); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx-s*.35, cy+s*.35); ctx.lineTo(cx, cy-.05); ctx.lineTo(cx+s*.38, cy+s*.35); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx+s*.3, cy-s*.18, s*.15, 0, Math.PI*2); ctx.stroke();
+  ctx.restore();
+}
+
+function updateInfo() {
+  dimInfo.textContent = S.cfg.W + ' × ' + S.cfg.H + ' px';
+  canvas.toBlob(function(blob){
+    if(!blob) return;
+    var kb = Math.round(blob.size/1024);
+    sizeInfo.textContent = '≈ ' + (kb >= 1024 ? (kb/1024).toFixed(1)+' MB' : kb+' KB');
+  }, 'image/jpeg', S.cfg.quality);
+}
+
+/* ── cell overlay ───────────────────────────────────────────── */
+function buildOverlay() {
+  overlay.innerHTML = '';
+  var cells = getCells(), W = S.cfg.W, H = S.cfg.H;
+  var pad = S.cfg.padding, gap = S.cfg.gap;
+
+  cells.forEach(function(cell, idx){
+    var hit = document.createElement('div');
+    hit.className = 'c-hit' + (S.cells[idx] !== null ? ' has-photo' : '');
+
+    if(cell.poly) {
+      var pts = polyToPixels(cell.poly, W, H, pad, gap);
+      var xs=pts.map(function(p){return p[0];}), ys=pts.map(function(p){return p[1];});
+      var bx=Math.min.apply(null,xs), by=Math.min.apply(null,ys);
+      var bw=Math.max.apply(null,xs)-bx, bh=Math.max.apply(null,ys)-by;
+      hit.style.left   = (bx/W*100)+'%';
+      hit.style.top    = (by/H*100)+'%';
+      hit.style.width  = (bw/W*100)+'%';
+      hit.style.height = (bh/H*100)+'%';
+      var cpStr = pts.map(function(p){ return ((p[0]-bx)/bw*100)+'% '+((p[1]-by)/bh*100)+'%'; }).join(',');
+      hit.style.clipPath = 'polygon('+cpStr+')';
+    } else {
+      var cx = (pad + cell.x*(W-pad*2) + gap/2) / W;
+      var cy = (pad + cell.y*(H-pad*2) + gap/2) / H;
+      var cw = (cell.w*(W-pad*2) - gap) / W;
+      var ch = (cell.h*(H-pad*2) - gap) / H;
+      if(cw <= 0 || ch <= 0) return;
+      hit.style.left   = (cx*100) + '%';
+      hit.style.top    = (cy*100) + '%';
+      hit.style.width  = (cw*100) + '%';
+      hit.style.height = (ch*100) + '%';
+    }
+
+    var badge = document.createElement('div');
+    badge.className = 'c-fit-badge';
+    badge.textContent = S.cFit[idx] || S.cfg.fit;
+    hit.appendChild(badge);
+
+    var del = document.createElement('button');
+    del.className = 'c-hit-del'; del.innerHTML = '&times;';
+    del.addEventListener('click', function(){ S.cells[idx]=null; draw(); buildOverlay(); });
+    hit.appendChild(del);
+
+    hit.draggable = S.cells[idx] !== null;
+    hit.addEventListener('dragstart', function(e){
+      if(S.cells[idx] === null){ e.preventDefault(); return; }
+      dragSrc = {type:'cell', id:S.cells[idx], idx:idx};
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(S.cells[idx]));
+    });
+
+    hit.addEventListener('dragenter', function(e){ e.preventDefault(); hit.classList.add('drag-over-cell'); });
+    hit.addEventListener('dragover',  function(e){ e.preventDefault(); e.dataTransfer.dropEffect='move'; });
+    hit.addEventListener('dragleave', function(){ hit.classList.remove('drag-over-cell'); });
+    hit.addEventListener('drop', function(e){
+      e.preventDefault(); hit.classList.remove('drag-over-cell');
+      if(!dragSrc) return;
+      if(dragSrc.type === 'tray') {
+        var oi = S.cells.indexOf(dragSrc.id);
+        if(oi !== -1) S.cells[oi] = null;
+        S.cells[idx] = dragSrc.id;
+      } else if(dragSrc.type === 'cell') {
+        var tmp = S.cells[idx];
+        S.cells[idx] = S.cells[dragSrc.idx];
+        S.cells[dragSrc.idx] = tmp;
+        var tf = S.cFit[idx];
+        S.cFit[idx] = S.cFit[dragSrc.idx];
+        S.cFit[dragSrc.idx] = tf;
+      }
+      dragSrc = null; draw(); buildOverlay();
+    });
+
+    hit.addEventListener('contextmenu', function(e){
+      e.preventDefault();
+      var fits = ['cover','contain','stretch'];
+      var cur = S.cFit[idx] || S.cfg.fit;
+      S.cFit[idx] = fits[(fits.indexOf(cur)+1) % fits.length];
+      draw(); buildOverlay();
+    });
+
+    overlay.appendChild(hit);
+  });
+}
+
+/* ── export ─────────────────────────────────────────────────── */
+dlBtn.addEventListener('click', function(){
+  var png = S.cfg.transp, mime = png ? 'image/png' : 'image/jpeg', ext = png ? 'png' : 'jpg';
+  var ts = new Date().toISOString().replace(/\D/g,'').slice(0,14);
+  canvas.toBlob(function(blob){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href=url; a.download='collage-'+ts+'.'+ext;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  }, mime, S.cfg.quality);
+});
+
+cpBtn.addEventListener('click', function(){
+  if(!navigator.clipboard || !window.ClipboardItem) { alert('Clipboard API not supported.'); return; }
+  canvas.toBlob(function(blob){
+    navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){
+      cpBtn.innerHTML = '<i class="ri-check-line"></i>';
+      setTimeout(function(){ cpBtn.innerHTML = '<i class="ri-clipboard-line"></i>'; }, 2000);
+    }).catch(function(){ alert('Copy failed. Try downloading instead.'); });
+  }, 'image/png');
+});
+
+/* ── Share link ─────────────────────────────────────────────── */
+shareLinkBtn.addEventListener('click', async function() {
+  var origHtml = shareLinkBtn.innerHTML;
+  shareLinkBtn.disabled = true;
+  shareLinkBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>' + tr('uploading_img');
+  shareLinkRes.classList.add('d-none');
+  shareLinkErr.classList.add('d-none');
+  try {
+    if (!navigator.onLine) { var e = new Error(); e.code = 'offline'; throw e; }
+    var url = await window.uploadToFreeImageHost(canvas, { type: 'jpeg', quality: S.cfg.quality });
+    shareLinkInput.value = url;
+    shareLinkRes.classList.remove('d-none');
+    window.copyToClipboard(url).then(function() { window.showSnackbar(tr('copied_snack')); });
+  } catch (err) {
+    console.error('[share-link] upload error:', err);
+    shareLinkErr.textContent = err.code === 'timeout' ? tr('upload_timeout') : err.code === 'offline' ? tr('no_network') : tr('upload_failed') + ' (' + (err.message || err) + ')';
+    shareLinkErr.classList.remove('d-none');
+  } finally {
+    shareLinkBtn.disabled = false;
+    shareLinkBtn.innerHTML = origHtml;
+  }
+});
+
+copyLinkBtn.addEventListener('click', function() {
+  if (!shareLinkInput.value) return;
+  window.copyToClipboard(shareLinkInput.value).then(function() { window.showSnackbar(tr('copied_snack')); });
+});
+
+shareLinkInput.addEventListener('click', function() { this.select(); });
+
+/* ── global drag housekeeping ───────────────────────────────── */
+document.addEventListener('dragover',  function(e){ e.preventDefault(); });
+document.addEventListener('drop',      function(e){ e.preventDefault(); });
+document.addEventListener('dragend',   function(){ dragSrc = null; });
+
+/* ── init ───────────────────────────────────────────────────── */
+loadPrefs();    // restore saved preferences (layout buttons already rendered above)
+rebuildCells();
+renderTray();
+draw();
+
+})();
+</script>

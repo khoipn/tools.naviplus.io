@@ -1,0 +1,842 @@
+---
+layout: default
+title: "Free AI Background Remover — Remove Image Background Online"
+description: "Free AI background remover by Navi+. Remove backgrounds from photos instantly in your browser — no upload, no API key, powered by WebAssembly AI."
+---
+
+<style>
+.rmbg-dropzone {
+  border: 2px dashed var(--c-border);
+  border-radius: var(--radius-md);
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  transition: border-color .2s, background .2s;
+  cursor: pointer;
+}
+.rmbg-dropzone:hover, .rmbg-dropzone.drag-over {
+  border-color: var(--c-accent);
+  background: rgba(55,126,98,.04);
+}
+.rmbg-file-info {
+  display: flex; gap: 1rem; flex-wrap: wrap;
+  font-size: 13px; color: var(--c-muted);
+  margin-top: .75rem;
+}
+.rmbg-file-info span { display: flex; align-items: center; gap: 4px; }
+
+/* Compare slider */
+.rmbg-compare-outer {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  cursor: ew-resize;
+  touch-action: none;
+  user-select: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='10' height='10' fill='%23d0d0d0'/%3E%3Crect x='10' y='10' width='10' height='10' fill='%23d0d0d0'/%3E%3Crect x='10' width='10' height='10' fill='%23f8f8f8'/%3E%3Crect y='10' width='10' height='10' fill='%23f8f8f8'/%3E%3C/svg%3E");
+}
+.rmbg-compare-before {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+.rmbg-compare-after {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 50% 0 0);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='10' height='10' fill='%23d0d0d0'/%3E%3Crect x='10' y='10' width='10' height='10' fill='%23d0d0d0'/%3E%3Crect x='10' width='10' height='10' fill='%23f8f8f8'/%3E%3Crect y='10' width='10' height='10' fill='%23f8f8f8'/%3E%3C/svg%3E");
+}
+.rmbg-compare-after canvas {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+}
+.rmbg-divider {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: #fff;
+  transform: translateX(-50%);
+  box-shadow: 0 0 6px rgba(0,0,0,.3);
+  pointer-events: none;
+}
+.rmbg-handle {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px; height: 40px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 12px rgba(0,0,0,.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: #333;
+}
+
+/* Bg presets */
+.rmbg-presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.rmbg-preset {
+  width: 40px; height: 40px; border-radius: 8px;
+  border: 2px solid transparent; cursor: pointer;
+  transition: border-color .15s, transform .15s;
+  flex-shrink: 0;
+}
+.rmbg-preset:hover { transform: scale(1.08); }
+.rmbg-preset.active { border-color: var(--c-accent); }
+
+/* Batch queue */
+.rmbg-queue-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm); font-size: 13px;
+  background: var(--c-surface);
+}
+.rmbg-queue-item .rmbg-qi-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rmbg-queue-badge {
+  font-size: 11px; padding: 2px 8px;
+  border-radius: 999px; font-weight: 600;
+}
+.rmbg-qi-pending  { background: #f0f0f0; color: #666; }
+.rmbg-qi-working  { background: #fff3cd; color: #856404; }
+.rmbg-qi-done     { background: #d1e7dd; color: #0a5c38; }
+.rmbg-qi-error    { background: #f8d7da; color: #721c24; }
+</style>
+
+<div class="container py-4">
+  <div class="tool-page-header">
+    <h1 data-i18n="rmbg_h1">AI Background Remover</h1>
+    <p data-i18n="rmbg_desc">Remove backgrounds from images with AI — runs 100% in your browser, no upload, no server.</p>
+  </div>
+
+  <!-- WebAssembly warning -->
+  <div id="wasmWarn" class="alert alert-danger d-none">
+    <i class="ri-error-warning-line"></i> <span data-i18n="rmbg_wasm_error">Your browser doesn't support WebAssembly. Please use Chrome 80+, Firefox 79+, Safari 15+, or Edge 80+.</span>
+  </div>
+
+  <!-- Upload card -->
+  <div class="card mb-3">
+    <div class="card-header"><strong data-i18n="rmbg_upload_title">Upload Image</strong></div>
+    <div class="card-body">
+      <div id="dropzone" class="rmbg-dropzone mb-2">
+        <i class="ri-image-add-line" style="font-size:2rem;color:var(--c-muted);display:block;margin-bottom:.5rem;"></i>
+        <p class="mb-2"><strong data-i18n="rmbg_drop_here">Drop image here</strong> <span data-i18n="or_word">or</span></p>
+        <label for="fileInput" class="btn btn-primary" data-i18n="rmbg_choose_file">Choose file</label>
+        <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" multiple class="d-none" />
+        <p class="small text-muted mb-0 mt-2" data-i18n="rmbg_supports">JPEG, PNG, WebP · Max 10MB · Processed locally on your device</p>
+      </div>
+      <div id="fileInfo" class="rmbg-file-info d-none"></div>
+      <div class="d-flex gap-2 flex-wrap mt-3">
+        <button id="removeBtn" class="btn btn-success" disabled data-i18n="rmbg_remove_btn">Remove Background</button>
+        <button id="clearBtn" class="btn btn-outline-secondary" data-i18n="clear">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress card -->
+  <div id="progressCard" class="card mb-3 d-none">
+    <div class="card-body">
+      <div id="progressLabel" class="small text-muted mb-2" data-i18n="rmbg_loading_model">Loading AI model for the first time (~40MB)…</div>
+      <div class="progress" style="height:10px;">
+        <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%;transition:width .3s;"></div>
+      </div>
+      <div id="progressSub" class="small text-muted mt-1" data-i18n="rmbg_cache_note">Subsequent uses load from browser cache.</div>
+    </div>
+  </div>
+
+  <!-- Compare card -->
+  <div id="compareCard" class="card mb-3 d-none">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong data-i18n="rmbg_compare_title">Before / After</strong>
+      <span id="processTime" class="text-muted small"></span>
+    </div>
+    <div class="card-body p-2">
+      <div class="rmbg-compare-outer" id="compareOuter">
+        <img id="beforeImg" class="rmbg-compare-before" alt="original" />
+        <div class="rmbg-compare-after" id="afterPane">
+          <canvas id="afterCanvas"></canvas>
+        </div>
+        <div class="rmbg-divider" id="dividerLine">
+          <div class="rmbg-handle"><i class="ri-arrow-left-right-line"></i></div>
+        </div>
+      </div>
+      <div class="d-flex gap-2 mt-2 small text-muted justify-content-center">
+        <span data-i18n="rmbg_drag_hint">← Drag divider to compare →</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Batch queue card (shown when multiple files) -->
+  <div id="batchCard" class="card mb-3 d-none">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong id="batchTitle" data-i18n="rmbg_batch_title">Batch Queue</strong>
+      <button id="zipBtn" class="btn btn-outline-primary btn-sm d-none" data-i18n="rmbg_dl_zip">Download all as ZIP</button>
+    </div>
+    <div class="card-body">
+      <div id="queueList" class="vstack gap-2"></div>
+    </div>
+  </div>
+
+  <!-- Background card -->
+  <div id="bgCard" class="card mb-3 d-none">
+    <div class="card-header"><strong data-i18n="rmbg_bg_title">Background</strong></div>
+    <div class="card-body">
+      <div class="rmbg-presets mb-3" id="presetRow"></div>
+      <div class="row g-2 align-items-center">
+        <div class="col-auto">
+          <label class="form-label mb-1 small" data-i18n="rmbg_bg_custom_color">Custom color</label><br>
+          <input type="color" id="bgColorPicker" class="form-control form-control-color" value="#ffffff" style="width:56px;height:38px;padding:2px;cursor:pointer;" />
+        </div>
+        <div class="col-auto">
+          <label class="form-label mb-1 small" data-i18n="rmbg_bg_custom_img">Custom image</label><br>
+          <label for="bgImgInput" class="btn btn-outline-secondary btn-sm"><i class="ri-image-line"></i> <span data-i18n="rmbg_choose_file">Choose file</span></label>
+          <input id="bgImgInput" type="file" accept="image/*" class="d-none" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edge refinement card -->
+  <div id="edgeCard" class="card mb-3 d-none">
+    <div class="card-header"><strong data-i18n="rmbg_edge_title">Edge Refinement</strong></div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-12 col-md-5">
+          <label class="form-label small" data-i18n="rmbg_feather">Feather (px): <span id="featherVal">0</span></label>
+          <input type="range" id="featherSlider" min="0" max="10" step="1" value="0" class="form-range" />
+        </div>
+        <div class="col-12 col-md-5">
+          <label class="form-label small" data-i18n="rmbg_inset">Inset (px): <span id="insetVal">0</span></label>
+          <input type="range" id="insetSlider" min="0" max="10" step="1" value="0" class="form-range" />
+        </div>
+        <div class="col-12 col-md-2 d-flex align-items-end">
+          <button id="applyEdgeBtn" class="btn btn-primary w-100" data-i18n="rmbg_apply">Apply</button>
+        </div>
+      </div>
+      <div class="form-text mt-1" data-i18n="rmbg_edge_tip">Feather softens the edge; Inset shrinks it inward to remove color fringing.</div>
+    </div>
+  </div>
+
+  <!-- Export card -->
+  <div id="exportCard" class="card mb-3 d-none">
+    <div class="card-header"><strong data-i18n="rmbg_export_title">Download</strong></div>
+    <div class="card-body">
+      <div class="d-flex gap-2 flex-wrap">
+        <button id="dlTransparentBtn" class="btn btn-success"><i class="ri-download-line"></i> <span data-i18n="rmbg_dl_transparent">Download PNG (transparent)</span></button>
+        <button id="dlWithBgBtn" class="btn btn-outline-primary"><i class="ri-image-line"></i> <span data-i18n="rmbg_dl_with_bg">Download with background</span></button>
+        <button id="copyImgBtn" class="btn btn-outline-secondary"><i class="ri-clipboard-line"></i> <span data-i18n="rmbg_copy_img">Copy image</span></button>
+        <button id="rmbgShareLinkBtn" class="btn btn-outline-info"><i class="ri-links-line"></i> <span data-i18n="get_link">Get Link</span></button>
+      </div>
+      <div id="rmbgShareResult" class="mt-2 d-none">
+        <div class="input-group input-group-sm">
+          <input type="text" id="rmbgShareInput" class="form-control font-monospace" readonly>
+          <button type="button" id="rmbgCopyLinkBtn" class="btn btn-outline-secondary" data-i18n="copy_link">Copy</button>
+        </div>
+      </div>
+      <div id="rmbgShareError" class="form-text text-danger d-none mt-1"></div>
+    </div>
+  </div>
+
+  <div class="alert alert-secondary small">
+    <strong data-i18n="tip">Tip:</strong>
+    <span data-i18n="rmbg_tip"> The AI model (~40MB) downloads once and caches in your browser. First use requires a good internet connection; after that it works offline.</span>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script type="module">
+import { removeBackground } from 'https://esm.sh/@imgly/background-removal@1.4.5';
+
+const tr = key => (window.t && window.t(key)) || key;
+
+// ── DOM refs ──────────────────────────────────────────────────────
+const dropzone       = document.getElementById('dropzone');
+const fileInput      = document.getElementById('fileInput');
+const removeBtn      = document.getElementById('removeBtn');
+const clearBtn       = document.getElementById('clearBtn');
+const fileInfoEl     = document.getElementById('fileInfo');
+const progressCard   = document.getElementById('progressCard');
+const progressBar    = document.getElementById('progressBar');
+const progressLabel  = document.getElementById('progressLabel');
+const progressSub    = document.getElementById('progressSub');
+const compareCard    = document.getElementById('compareCard');
+const compareOuter   = document.getElementById('compareOuter');
+const beforeImg      = document.getElementById('beforeImg');
+const afterPane      = document.getElementById('afterPane');
+const afterCanvas    = document.getElementById('afterCanvas');
+const dividerLine    = document.getElementById('dividerLine');
+const processTime    = document.getElementById('processTime');
+const bgCard         = document.getElementById('bgCard');
+const edgeCard       = document.getElementById('edgeCard');
+const exportCard        = document.getElementById('exportCard');
+const rmbgShareLinkBtn  = document.getElementById('rmbgShareLinkBtn');
+const rmbgShareResult   = document.getElementById('rmbgShareResult');
+const rmbgShareError    = document.getElementById('rmbgShareError');
+const rmbgShareInput    = document.getElementById('rmbgShareInput');
+const rmbgCopyLinkBtn   = document.getElementById('rmbgCopyLinkBtn');
+const batchCard      = document.getElementById('batchCard');
+const batchTitle     = document.getElementById('batchTitle');
+const queueList      = document.getElementById('queueList');
+const zipBtn         = document.getElementById('zipBtn');
+const presetRow      = document.getElementById('presetRow');
+const bgColorPicker  = document.getElementById('bgColorPicker');
+const bgImgInput     = document.getElementById('bgImgInput');
+const featherSlider  = document.getElementById('featherSlider');
+const insetSlider    = document.getElementById('insetSlider');
+const featherVal     = document.getElementById('featherVal');
+const insetVal       = document.getElementById('insetVal');
+const applyEdgeBtn   = document.getElementById('applyEdgeBtn');
+const dlTransparentBtn = document.getElementById('dlTransparentBtn');
+const dlWithBgBtn    = document.getElementById('dlWithBgBtn');
+const copyImgBtn     = document.getElementById('copyImgBtn');
+const wasmWarn       = document.getElementById('wasmWarn');
+
+// ── State ─────────────────────────────────────────────────────────
+let state = {
+  files: [],          // all uploaded files (batch)
+  currentFile: null,  // currently selected/displayed file
+  originalURL: null,  // object URL for original
+  resultBlob: null,   // raw result from library (no edge ops)
+  rawImageData: null, // ImageData from result (preserved for edge re-apply)
+  bgType: 'transparent',
+  bgColor: '#ffffff',
+  bgImage: null,      // HTMLImageElement custom bg
+  feather: 0,
+  inset: 0,
+  sliderPct: 50,
+  dragging: false,
+  queue: [],          // batch items: { file, status, blob, dlUrl, el }
+  processing: false,
+};
+
+const PRESETS = [
+  { label: 'Transparent', value: 'transparent', style: 'background:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'20\' height=\'20\'%3E%3Crect width=\'10\' height=\'10\' fill=\'%23d0d0d0\'/%3E%3Crect x=\'10\' y=\'10\' width=\'10\' height=\'10\' fill=\'%23d0d0d0\'/%3E%3Crect x=\'10\' width=\'10\' height=\'10\' fill=\'%23f8f8f8\'/%3E%3Crect y=\'10\' width=\'10\' height=\'10\' fill=\'%23f8f8f8\'/%3E%3C/svg%3E")' },
+  { label: 'White',       value: '#ffffff', style: 'background:#ffffff;border:1px solid #ddd;' },
+  { label: 'Black',       value: '#111111', style: 'background:#111111;' },
+  { label: 'Sky',         value: '#bfdbfe', style: 'background:#bfdbfe;' },
+  { label: 'Blush',       value: '#fce7f3', style: 'background:#fce7f3;' },
+  { label: 'Sage',        value: '#d1fae5', style: 'background:#d1fae5;' },
+  { label: 'Sunrise',     value: 'linear-gradient(135deg,#fbbf24,#f87171)', style: 'background:linear-gradient(135deg,#fbbf24,#f87171);' },
+  { label: 'Ocean',       value: 'linear-gradient(135deg,#38bdf8,#6366f1)', style: 'background:linear-gradient(135deg,#38bdf8,#6366f1);' },
+];
+
+// ── WebAssembly check ─────────────────────────────────────────────
+if (typeof WebAssembly === 'undefined') {
+  wasmWarn.classList.remove('d-none');
+  removeBtn.disabled = true;
+}
+
+// ── Build preset swatches ─────────────────────────────────────────
+function buildPresets() {
+  PRESETS.forEach((p, i) => {
+    const el = document.createElement('div');
+    el.className = 'rmbg-preset' + (i === 0 ? ' active' : '');
+    el.title = p.label;
+    el.setAttribute('style', p.style);
+    el.dataset.value = p.value;
+    el.addEventListener('click', () => selectPreset(p.value, el));
+    presetRow.appendChild(el);
+  });
+}
+buildPresets();
+
+function selectPreset(value, el) {
+  document.querySelectorAll('.rmbg-preset').forEach(x => x.classList.remove('active'));
+  el && el.classList.add('active');
+  if (value === 'transparent') {
+    state.bgType = 'transparent';
+  } else if (value.startsWith('#') || value.startsWith('rgb')) {
+    state.bgType = 'color';
+    state.bgColor = value;
+    bgColorPicker.value = value.startsWith('#') ? value : '#ffffff';
+  } else {
+    state.bgType = 'gradient';
+    state.bgGradient = value;
+  }
+  state.bgImage = null;
+  renderAfterCanvas();
+}
+
+// ── File handling ─────────────────────────────────────────────────
+['dragenter','dragover','dragleave','drop'].forEach(evt =>
+  document.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); }));
+dropzone.addEventListener('dragover', () => dropzone.classList.add('drag-over'));
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', e => { dropzone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
+dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => { handleFiles(e.target.files); fileInput.value = ''; });
+
+function handleFiles(fileList) {
+  const allowed = Array.from(fileList).filter(f =>
+    ['image/jpeg','image/png','image/webp'].includes(f.type) && f.size <= 10 * 1024 * 1024
+  );
+  if (!allowed.length) return;
+
+  const tooLarge = Array.from(fileList).filter(f => f.size > 10 * 1024 * 1024);
+  if (tooLarge.length) alert(tr('rmbg_file_too_large'));
+
+  state.files = allowed.slice(0, 5);
+  state.currentFile = state.files[0];
+  showFileInfo(state.files);
+  removeBtn.disabled = false;
+
+  // Show batch UI if > 1 file
+  if (state.files.length > 1) {
+    buildBatchQueue(state.files);
+    batchCard.classList.remove('d-none');
+  } else {
+    batchCard.classList.add('d-none');
+  }
+
+  // Preview the first file
+  if (state.originalURL) URL.revokeObjectURL(state.originalURL);
+  state.originalURL = URL.createObjectURL(state.files[0]);
+}
+
+function showFileInfo(files) {
+  if (!files.length) return;
+  const f = files[0];
+  const img = new Image();
+  img.onload = () => {
+    fileInfoEl.innerHTML =
+      `<span><i class="ri-file-image-line"></i>${f.name}</span>` +
+      `<span><i class="ri-expand-line"></i>${img.naturalWidth}×${img.naturalHeight}</span>` +
+      `<span><i class="ri-hard-drive-line"></i>${fmtBytes(f.size)}</span>` +
+      (files.length > 1 ? `<span><i class="ri-stack-line"></i>${files.length} files</span>` : '');
+    fileInfoEl.classList.remove('d-none');
+    URL.revokeObjectURL(img.src);
+  };
+  img.src = URL.createObjectURL(f);
+}
+
+function fmtBytes(n) {
+  if (n < 1024) return n + ' B';
+  if (n < 1048576) return (n/1024).toFixed(1) + ' KB';
+  return (n/1048576).toFixed(2) + ' MB';
+}
+
+// ── Batch queue ───────────────────────────────────────────────────
+function buildBatchQueue(files) {
+  state.queue = files.map(f => ({ file: f, status: 'pending', blob: null, dlUrl: null, el: null }));
+  queueList.innerHTML = '';
+  state.queue.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'rmbg-queue-item';
+    row.innerHTML =
+      `<span class="rmbg-qi-name" title="${item.file.name}">${item.file.name}</span>` +
+      `<span class="rmbg-queue-badge rmbg-qi-pending" id="qbadge-${i}">Pending</span>` +
+      `<a id="qdl-${i}" class="btn btn-sm btn-outline-success d-none" download>Download</a>`;
+    item.el = row;
+    queueList.appendChild(row);
+  });
+  zipBtn.classList.add('d-none');
+}
+
+// ── Progress ──────────────────────────────────────────────────────
+const fetchProgress = new Map();
+
+function onLibProgress(key, current, total) {
+  if (key.startsWith('fetch:')) {
+    fetchProgress.set(key, { current, total: total || 1 });
+    let totalBytes = 0, doneBytes = 0;
+    fetchProgress.forEach(v => { totalBytes += v.total; doneBytes += v.current; });
+    const pct = totalBytes > 0 ? Math.round(doneBytes / totalBytes * 100) : 0;
+    progressBar.style.width = pct + '%';
+    progressLabel.textContent = tr('rmbg_loading_model');
+    progressSub.textContent = tr('rmbg_cache_note');
+    progressCard.classList.remove('d-none');
+  } else {
+    progressBar.style.width = '100%';
+    progressBar.classList.add('progress-bar-striped', 'progress-bar-animated');
+    progressLabel.textContent = tr('rmbg_processing_img');
+    progressSub.textContent = '';
+  }
+}
+
+// ── Remove background ─────────────────────────────────────────────
+removeBtn.addEventListener('click', async () => {
+  if (!state.files.length || state.processing) return;
+
+  if (state.files.length > 1) {
+    await processBatch();
+  } else {
+    await processSingle(state.currentFile);
+  }
+});
+
+async function processSingle(file) {
+  state.processing = true;
+  removeBtn.disabled = true;
+  fetchProgress.clear();
+  progressCard.classList.remove('d-none');
+  progressBar.style.width = '0%';
+  progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
+
+  const t0 = Date.now();
+  try {
+    const config = {
+      progress: onLibProgress,
+      model: 'medium',
+      output: { format: 'image/png', quality: 1 },
+    };
+    const blob = await removeBackground(file, config);
+    state.resultBlob = blob;
+
+    // Load result into ImageData for edge ops
+    const bmp = await createImageBitmap(blob);
+    const canvas = new OffscreenCanvas(bmp.width, bmp.height);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bmp, 0, 0);
+    state.rawImageData = ctx.getImageData(0, 0, bmp.width, bmp.height);
+
+    progressCard.classList.add('d-none');
+    const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+    processTime.textContent = elapsed + 's';
+
+    showCompare(file, blob);
+    bgCard.classList.remove('d-none');
+    edgeCard.classList.remove('d-none');
+    exportCard.classList.remove('d-none');
+  } catch (err) {
+    progressCard.classList.add('d-none');
+    alert('Error: ' + err.message);
+  }
+  state.processing = false;
+  removeBtn.disabled = false;
+}
+
+async function processBatch() {
+  state.processing = true;
+  removeBtn.disabled = true;
+  fetchProgress.clear();
+
+  let doneCount = 0;
+  for (let i = 0; i < state.queue.length; i++) {
+    const item = state.queue[i];
+    const badge = document.getElementById('qbadge-' + i);
+    const dlLink = document.getElementById('qdl-' + i);
+
+    badge.textContent = 'Processing'; badge.className = 'rmbg-queue-badge rmbg-qi-working';
+    batchTitle.textContent = tr('rmbg_processing_batch').replace('{current}', i+1).replace('{total}', state.queue.length) || `Processing ${i+1}/${state.queue.length}…`;
+
+    try {
+      const config = {
+        progress: onLibProgress,
+        model: 'medium',
+        output: { format: 'image/png', quality: 1 },
+      };
+      const blob = await removeBackground(item.file, config);
+      item.blob = blob;
+      item.status = 'done';
+      item.dlUrl = URL.createObjectURL(blob);
+      badge.textContent = 'Done'; badge.className = 'rmbg-queue-badge rmbg-qi-done';
+      dlLink.href = item.dlUrl;
+      dlLink.download = item.file.name.replace(/\.[^.]+$/, '') + '-nobg.png';
+      dlLink.classList.remove('d-none');
+      doneCount++;
+
+      if (i === 0) {
+        const bmp = await createImageBitmap(blob);
+        const cvs = new OffscreenCanvas(bmp.width, bmp.height);
+        const ctx = cvs.getContext('2d');
+        ctx.drawImage(bmp, 0, 0);
+        state.rawImageData = ctx.getImageData(0, 0, bmp.width, bmp.height);
+        state.resultBlob = blob;
+        showCompare(item.file, blob);
+        bgCard.classList.remove('d-none');
+        edgeCard.classList.remove('d-none');
+        exportCard.classList.remove('d-none');
+      }
+    } catch (err) {
+      item.status = 'error';
+      badge.textContent = 'Error'; badge.className = 'rmbg-queue-badge rmbg-qi-error';
+    }
+  }
+
+  progressCard.classList.add('d-none');
+  batchTitle.textContent = tr('rmbg_batch_title') + ' (' + doneCount + '/' + state.queue.length + ')';
+  if (doneCount > 1) zipBtn.classList.remove('d-none');
+  state.processing = false;
+  removeBtn.disabled = false;
+}
+
+// ── Compare view ──────────────────────────────────────────────────
+function showCompare(file, blob) {
+  if (state.originalURL) URL.revokeObjectURL(state.originalURL);
+  state.originalURL = URL.createObjectURL(file);
+  beforeImg.src = state.originalURL;
+  beforeImg.onload = () => {
+    renderAfterCanvas();
+    compareCard.classList.remove('d-none');
+    setSlider(50);
+  };
+}
+
+async function renderAfterCanvas() {
+  if (!state.rawImageData) return;
+  const { width, height } = state.rawImageData;
+
+  // Apply edge ops
+  const edited = applyEdgeOps(state.rawImageData, state.feather, state.inset);
+
+  afterCanvas.width = width;
+  afterCanvas.height = height;
+  const ctx = afterCanvas.getContext('2d');
+  ctx.clearRect(0, 0, width, height);
+
+  // Draw background
+  if (state.bgType === 'color') {
+    ctx.fillStyle = state.bgColor;
+    ctx.fillRect(0, 0, width, height);
+  } else if (state.bgType === 'gradient' && state.bgGradient) {
+    const grad = ctx.createLinearGradient(0, 0, width, height);
+    const stops = parseGradientStops(state.bgGradient);
+    stops.forEach(s => grad.addColorStop(s.pos, s.color));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+  } else if (state.bgType === 'image' && state.bgImage) {
+    ctx.drawImage(state.bgImage, 0, 0, width, height);
+  }
+  // Draw result
+  ctx.putImageData(edited, 0, 0);
+}
+
+function parseGradientStops(cssGrad) {
+  const match = cssGrad.match(/linear-gradient\(.*?,\s*(#[0-9a-fA-F]+),\s*(#[0-9a-fA-F]+)\)/);
+  if (match) return [{ pos: 0, color: match[1] }, { pos: 1, color: match[2] }];
+  return [{ pos: 0, color: '#fff' }, { pos: 1, color: '#ccc' }];
+}
+
+// ── Edge ops ──────────────────────────────────────────────────────
+function applyEdgeOps(src, feather, inset) {
+  // Clone
+  const data = new Uint8ClampedArray(src.data);
+  const { width, height } = src;
+
+  if (inset > 0) erodeAlpha(data, width, height, inset);
+  if (feather > 0) blurAlpha(data, width, height, feather);
+
+  return new ImageData(data, width, height);
+}
+
+function erodeAlpha(data, w, h, r) {
+  const alpha = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) alpha[i] = data[i * 4 + 3];
+
+  const eroded = new Uint8Array(alpha);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (alpha[y * w + x] === 0) continue;
+      let mn = 255;
+      const y0 = Math.max(0, y - r), y1 = Math.min(h - 1, y + r);
+      const x0 = Math.max(0, x - r), x1 = Math.min(w - 1, x + r);
+      for (let ny = y0; ny <= y1; ny++) {
+        for (let nx = x0; nx <= x1; nx++) {
+          if (alpha[ny * w + nx] < mn) mn = alpha[ny * w + nx];
+        }
+      }
+      eroded[y * w + x] = mn;
+    }
+  }
+  for (let i = 0; i < w * h; i++) data[i * 4 + 3] = eroded[i];
+}
+
+function blurAlpha(data, w, h, r) {
+  const alpha = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) alpha[i] = data[i * 4 + 3];
+
+  // Horizontal pass
+  const tmp = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let sum = 0, cnt = 0;
+      for (let dx = -r; dx <= r; dx++) {
+        const nx = x + dx;
+        if (nx >= 0 && nx < w) { sum += alpha[y * w + nx]; cnt++; }
+      }
+      tmp[y * w + x] = sum / cnt;
+    }
+  }
+  // Vertical pass
+  const out = new Float32Array(w * h);
+  for (let x = 0; x < w; x++) {
+    for (let y = 0; y < h; y++) {
+      let sum = 0, cnt = 0;
+      for (let dy = -r; dy <= r; dy++) {
+        const ny = y + dy;
+        if (ny >= 0 && ny < h) { sum += tmp[ny * w + x]; cnt++; }
+      }
+      out[y * w + x] = sum / cnt;
+    }
+  }
+  for (let i = 0; i < w * h; i++) data[i * 4 + 3] = Math.round(out[i]);
+}
+
+// ── Comparison slider ─────────────────────────────────────────────
+function setSlider(pct) {
+  state.sliderPct = Math.max(0, Math.min(100, pct));
+  afterPane.style.clipPath = `inset(0 ${100 - state.sliderPct}% 0 0)`;
+  dividerLine.style.left = state.sliderPct + '%';
+}
+
+function sliderFromEvent(e) {
+  const rect = compareOuter.getBoundingClientRect();
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  setSlider(x / rect.width * 100);
+}
+
+compareOuter.addEventListener('mousedown', e => { state.dragging = true; sliderFromEvent(e); });
+document.addEventListener('mousemove', e => { if (state.dragging) sliderFromEvent(e); });
+document.addEventListener('mouseup', () => { state.dragging = false; });
+compareOuter.addEventListener('touchstart', e => { state.dragging = true; sliderFromEvent(e); }, { passive: true });
+document.addEventListener('touchmove', e => { if (state.dragging) { e.preventDefault(); sliderFromEvent(e); } }, { passive: false });
+document.addEventListener('touchend', () => { state.dragging = false; });
+
+// ── Background controls ───────────────────────────────────────────
+bgColorPicker.addEventListener('input', () => {
+  state.bgType = 'color';
+  state.bgColor = bgColorPicker.value;
+  document.querySelectorAll('.rmbg-preset').forEach(x => x.classList.remove('active'));
+  renderAfterCanvas();
+});
+
+bgImgInput.addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = new Image();
+  img.onload = () => {
+    state.bgType = 'image';
+    state.bgImage = img;
+    document.querySelectorAll('.rmbg-preset').forEach(x => x.classList.remove('active'));
+    renderAfterCanvas();
+  };
+  img.src = URL.createObjectURL(f);
+  e.target.value = '';
+});
+
+// ── Edge refinement controls ──────────────────────────────────────
+featherSlider.addEventListener('input', () => { featherVal.textContent = featherSlider.value; });
+insetSlider.addEventListener('input', () => { insetVal.textContent = insetSlider.value; });
+applyEdgeBtn.addEventListener('click', () => {
+  state.feather = +featherSlider.value;
+  state.inset = +insetSlider.value;
+  renderAfterCanvas();
+});
+
+// ── Export ────────────────────────────────────────────────────────
+function getResultBlob() {
+  return new Promise(resolve => {
+    const { width, height } = state.rawImageData;
+    const edited = applyEdgeOps(state.rawImageData, state.feather, state.inset);
+    const cvs = document.createElement('canvas');
+    cvs.width = width; cvs.height = height;
+    const ctx = cvs.getContext('2d');
+    ctx.putImageData(edited, 0, 0);
+    cvs.toBlob(resolve, 'image/png', 1);
+  });
+}
+
+function getCompositeBlob() {
+  return new Promise(resolve => {
+    const cvs = afterCanvas;
+    cvs.toBlob(resolve, 'image/png', 1);
+  });
+}
+
+function baseName() {
+  return (state.currentFile || state.files[0])?.name.replace(/\.[^.]+$/, '') || 'image';
+}
+
+dlTransparentBtn.addEventListener('click', async () => {
+  const blob = await getResultBlob();
+  dlBlob(blob, baseName() + '-nobg.png');
+});
+
+dlWithBgBtn.addEventListener('click', async () => {
+  const blob = await getCompositeBlob();
+  dlBlob(blob, baseName() + '-newbg.png');
+});
+
+copyImgBtn.addEventListener('click', async () => {
+  try {
+    const blob = await getResultBlob();
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    copyImgBtn.innerHTML = '<i class="ri-check-line"></i> ' + tr('a_copied');
+    setTimeout(() => {
+      copyImgBtn.innerHTML = '<i class="ri-clipboard-line"></i> ' + tr('rmbg_copy_img');
+    }, 2000);
+  } catch {
+    alert('Clipboard write not supported in this browser.');
+  }
+});
+
+function dlBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+// ── Share link ────────────────────────────────────────────────────
+rmbgShareLinkBtn.addEventListener('click', async () => {
+  if (!state.rawImageData) return;
+  const origHtml = rmbgShareLinkBtn.innerHTML;
+  rmbgShareLinkBtn.disabled = true;
+  rmbgShareLinkBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>' + tr('uploading_img');
+  rmbgShareResult.classList.add('d-none');
+  rmbgShareError.classList.add('d-none');
+  try {
+    if (!navigator.onLine) { const e = new Error(); e.code = 'offline'; throw e; }
+    const blob = await getResultBlob();
+    const url = await window.uploadToFreeImageHost(blob);
+    rmbgShareInput.value = url;
+    rmbgShareResult.classList.remove('d-none');
+    window.copyToClipboard(url).then(() => window.showSnackbar(tr('copied_snack')));
+  } catch (err) {
+    console.error('[share-link] upload error:', err);
+    rmbgShareError.textContent = err.code === 'timeout' ? tr('upload_timeout') : err.code === 'offline' ? tr('no_network') : tr('upload_failed') + ' (' + (err.message || err) + ')';
+    rmbgShareError.classList.remove('d-none');
+  } finally {
+    rmbgShareLinkBtn.disabled = false;
+    rmbgShareLinkBtn.innerHTML = origHtml;
+  }
+});
+
+rmbgCopyLinkBtn.addEventListener('click', () => {
+  if (!rmbgShareInput.value) return;
+  window.copyToClipboard(rmbgShareInput.value).then(() => window.showSnackbar(tr('copied_snack')));
+});
+
+rmbgShareInput.addEventListener('click', function() { this.select(); });
+
+// ── Batch ZIP ─────────────────────────────────────────────────────
+zipBtn.addEventListener('click', async () => {
+  const done = state.queue.filter(x => x.status === 'done');
+  if (!done.length || typeof JSZip === 'undefined') return;
+  zipBtn.disabled = true;
+  const zip = new JSZip();
+  done.forEach(item => {
+    zip.file(item.file.name.replace(/\.[^.]+$/, '') + '-nobg.png', item.blob);
+  });
+  const blob = await zip.generateAsync({ type: 'blob' });
+  dlBlob(blob, 'backgrounds_removed.zip');
+  zipBtn.disabled = false;
+});
+
+// ── Clear ─────────────────────────────────────────────────────────
+clearBtn.addEventListener('click', () => {
+  state.files = []; state.currentFile = null;
+  if (state.originalURL) URL.revokeObjectURL(state.originalURL);
+  state.originalURL = null; state.resultBlob = null;
+  state.rawImageData = null; state.queue = [];
+  state.feather = 0; state.inset = 0;
+  featherSlider.value = 0; insetSlider.value = 0;
+  featherVal.textContent = '0'; insetVal.textContent = '0';
+  fileInfoEl.classList.add('d-none');
+  progressCard.classList.add('d-none');
+  compareCard.classList.add('d-none');
+  bgCard.classList.add('d-none');
+  edgeCard.classList.add('d-none');
+  exportCard.classList.add('d-none');
+  batchCard.classList.add('d-none');
+  removeBtn.disabled = true;
+});
+</script>

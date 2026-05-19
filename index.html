@@ -49,6 +49,16 @@ description: "A collection of utilities that help users make the most of Navi+ |
             usageBase: 14000, usageFactor: 8
         },
         {
+            titleKey: "tool_hash_title",
+            titleEn: "Hash Generator & Verifier",
+            descKey: "tool_hash_desc",
+            descEn: "Generate SHA-256, SHA-512, SHA-1, MD5 hashes. Verify file checksums and HMAC. All in-browser.",
+            groupKey: "group_security",
+            icon: "ri-fingerprint-line",
+            linkto: "toolset/security/hash-generator.html",
+            usageBase: 31000, usageFactor: 6
+        },
+        {
             titleKey: "tool_palette_title",
             titleEn: "Color Palette Generator",
             descKey: "tool_palette_desc",
@@ -57,6 +67,56 @@ description: "A collection of utilities that help users make the most of Navi+ |
             icon: "ri-palette-line",
             linkto: "toolset/design/color-palette.html",
             usageBase: 151900, usageFactor: 9
+        },
+        {
+            titleKey: "tool_collage_title",
+            titleEn: "Photo Collage Maker",
+            descKey: "tool_collage_desc",
+            descEn: "Upload photos, pick a layout, drag & drop to arrange, then export as JPEG or PNG — all in your browser",
+            groupKey: "group_images",
+            icon: "ri-layout-grid-line",
+            linkto: "toolset/images/photo-collage.html",
+            usageBase: 98400, usageFactor: 7
+        },
+        {
+            titleKey: "tool_cp_title",
+            titleEn: "Image Color Picker",
+            descKey: "tool_cp_desc",
+            descEn: "Pick exact pixel colors from any image — HEX, RGB, HSL, CMYK. Magnifier zoom + dominant palette extraction",
+            groupKey: "group_images",
+            icon: "ri-contrast-drop-2-line",
+            linkto: "toolset/images/color-picker.html",
+            usageBase: 87500, usageFactor: 4
+        },
+        {
+            titleKey: "tool_rmbg_title",
+            titleEn: "AI Background Remover",
+            descKey: "tool_rmbg_desc",
+            descEn: "Remove backgrounds from photos instantly — AI runs 100% in your browser, no upload, no API key",
+            groupKey: "group_images",
+            icon: "ri-scissors-cut-line",
+            linkto: "toolset/images/remove-background.html",
+            usageBase: 98500, usageFactor: 4
+        },
+        {
+            titleKey: "tool_watermark_title",
+            titleEn: "Image Watermark",
+            descKey: "tool_watermark_desc",
+            descEn: "Add text or logo watermarks to images — position, opacity, rotation. 100% client-side.",
+            groupKey: "group_images",
+            icon: "ri-copyright-line",
+            linkto: "toolset/images/watermark.html",
+            usageBase: 72000, usageFactor: 3
+        },
+        {
+            titleKey: "tool_jwt_title",
+            titleEn: "JWT Decoder & Inspector",
+            descKey: "tool_jwt_desc",
+            descEn: "Decode, inspect and verify JWT tokens entirely in your browser — safe for corporate environments that block jwt.io",
+            groupKey: "group_security",
+            icon: "ri-shield-keyhole-line",
+            linkto: "toolset/security/jwt-decoder.html",
+            usageBase: 31000, usageFactor: 4
         }
     ];
 
@@ -99,22 +159,31 @@ description: "A collection of utilities that help users make the most of Navi+ |
             var row = document.createElement("div");
             row.className = "row g-3";
 
+            var cardIndex = 0;
             toolsArray
                 .filter(function (tool) { return tool.groupKey === 'group_' + groupKey; })
                 .forEach(function (tool) {
                     var col = document.createElement("div");
-                    col.className = "col-sm-6 col-lg-4";
+                    col.className = "col-sm-6 col-lg-3 card-enter";
+                    col.style.animationDelay = (cardIndex * 60) + 'ms';
+                    cardIndex++;
                     var usageLine = tool.usageBase
                         ? '<div class="card-tool-usage"><i class="ri-user-3-line"></i>' + fmtNum(calcUsage(tool.usageBase, tool.usageFactor)) + ' ' + tr('usage_label', 'uses') + '</div>'
                         : '';
                     col.innerHTML =
                         '<a href="' + base + tool.linkto + '" class="card-tool">' +
                         '<div class="card-tool-icon"><i class="' + tool.icon + '"></i></div>' +
-                        '<div class="card-tool-title">' + tr(tool.titleKey, tool.titleEn) + '</div>' +
+                        '<div class="card-tool-title"><span>' + tr(tool.titleKey, tool.titleEn) + '</span><span class="tool-free-tag">Free</span></div>' +
                         '<p class="card-tool-desc">' + tr(tool.descKey, tool.descEn) + '</p>' +
                         usageLine +
-                        '<div class="card-tool-arrow">Open tool <i class="ri-arrow-right-line"></i></div>' +
+                        '<div class="card-tool-arrow">' + tr('open_tool', 'Open tool') + ' <i class="ri-arrow-right-line"></i></div>' +
                         '</a>';
+                    var card = col.querySelector('.card-tool');
+                    card.addEventListener('mousemove', function (e) {
+                        var r = card.getBoundingClientRect();
+                        card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+                        card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+                    });
                     row.appendChild(col);
                 });
 
@@ -135,6 +204,29 @@ description: "A collection of utilities that help users make the most of Navi+ |
 </div>
 
 <div class="container">
-  <div id="tools-list"></div>
+  <div id="tools-list">
+    <div class="tools-section">
+      <div class="tools-section-label"><span class="skel" style="width:80px;height:11px;border-radius:4px;display:inline-block;"></span></div>
+      <div class="row g-3">
+        <div class="col-sm-6 col-lg-3"><div class="skel-card"><span class="skel" style="width:44px;height:44px;border-radius:11px;margin-bottom:16px;"></span><span class="skel" style="height:15px;width:68%;margin-bottom:10px;"></span><span class="skel" style="height:12px;width:90%;margin-bottom:5px;"></span><span class="skel" style="height:12px;width:74%;margin-bottom:12px;"></span><span class="skel" style="height:11px;width:48%;"></span></div></div>
+        <div class="col-sm-6 col-lg-3"><div class="skel-card"><span class="skel" style="width:44px;height:44px;border-radius:11px;margin-bottom:16px;"></span><span class="skel" style="height:15px;width:55%;margin-bottom:10px;"></span><span class="skel" style="height:12px;width:88%;margin-bottom:5px;"></span><span class="skel" style="height:12px;width:70%;margin-bottom:12px;"></span><span class="skel" style="height:11px;width:52%;"></span></div></div>
+        <div class="col-sm-6 col-lg-3"><div class="skel-card"><span class="skel" style="width:44px;height:44px;border-radius:11px;margin-bottom:16px;"></span><span class="skel" style="height:15px;width:72%;margin-bottom:10px;"></span><span class="skel" style="height:12px;width:85%;margin-bottom:5px;"></span><span class="skel" style="height:12px;width:65%;margin-bottom:12px;"></span><span class="skel" style="height:11px;width:45%;"></span></div></div>
+        <div class="col-sm-6 col-lg-3"><div class="skel-card"><span class="skel" style="width:44px;height:44px;border-radius:11px;margin-bottom:16px;"></span><span class="skel" style="height:15px;width:60%;margin-bottom:10px;"></span><span class="skel" style="height:12px;width:92%;margin-bottom:5px;"></span><span class="skel" style="height:12px;width:78%;margin-bottom:12px;"></span><span class="skel" style="height:11px;width:50%;"></span></div></div>
+        <div class="col-sm-6 col-lg-3"><div class="skel-card"><span class="skel" style="width:44px;height:44px;border-radius:11px;margin-bottom:16px;"></span><span class="skel" style="height:15px;width:65%;margin-bottom:10px;"></span><span class="skel" style="height:12px;width:87%;margin-bottom:5px;"></span><span class="skel" style="height:12px;width:72%;margin-bottom:12px;"></span><span class="skel" style="height:11px;width:46%;"></span></div></div>
+        <div class="col-sm-6 col-lg-3"><div class="skel-card"><span class="skel" style="width:44px;height:44px;border-radius:11px;margin-bottom:16px;"></span><span class="skel" style="height:15px;width:58%;margin-bottom:10px;"></span><span class="skel" style="height:12px;width:83%;margin-bottom:5px;"></span><span class="skel" style="height:12px;width:69%;margin-bottom:12px;"></span><span class="skel" style="height:11px;width:53%;"></span></div></div>
+        <div class="col-sm-6 col-lg-3"><div class="skel-card"><span class="skel" style="width:44px;height:44px;border-radius:11px;margin-bottom:16px;"></span><span class="skel" style="height:15px;width:75%;margin-bottom:10px;"></span><span class="skel" style="height:12px;width:89%;margin-bottom:5px;"></span><span class="skel" style="height:12px;width:66%;margin-bottom:12px;"></span><span class="skel" style="height:11px;width:49%;"></span></div></div>
+        <div class="col-sm-6 col-lg-3"><div class="skel-card"><span class="skel" style="width:44px;height:44px;border-radius:11px;margin-bottom:16px;"></span><span class="skel" style="height:15px;width:63%;margin-bottom:10px;"></span><span class="skel" style="height:12px;width:86%;margin-bottom:5px;"></span><span class="skel" style="height:12px;width:71%;margin-bottom:12px;"></span><span class="skel" style="height:11px;width:44%;"></span></div></div>
+      </div>
+    </div>
+    <div class="tools-section">
+      <div class="tools-section-label"><span class="skel" style="width:60px;height:11px;border-radius:4px;display:inline-block;"></span></div>
+      <div class="row g-3">
+        <div class="col-sm-6 col-lg-3"><div class="skel-card"><span class="skel" style="width:44px;height:44px;border-radius:11px;margin-bottom:16px;"></span><span class="skel" style="height:15px;width:70%;margin-bottom:10px;"></span><span class="skel" style="height:12px;width:86%;margin-bottom:5px;"></span><span class="skel" style="height:12px;width:73%;margin-bottom:12px;"></span><span class="skel" style="height:11px;width:47%;"></span></div></div>
+        <div class="col-sm-6 col-lg-3"><div class="skel-card"><span class="skel" style="width:44px;height:44px;border-radius:11px;margin-bottom:16px;"></span><span class="skel" style="height:15px;width:62%;margin-bottom:10px;"></span><span class="skel" style="height:12px;width:91%;margin-bottom:5px;"></span><span class="skel" style="height:12px;width:76%;margin-bottom:12px;"></span><span class="skel" style="height:11px;width:51%;"></span></div></div>
+        <div class="col-sm-6 col-lg-3"><div class="skel-card"><span class="skel" style="width:44px;height:44px;border-radius:11px;margin-bottom:16px;"></span><span class="skel" style="height:15px;width:67%;margin-bottom:10px;"></span><span class="skel" style="height:12px;width:84%;margin-bottom:5px;"></span><span class="skel" style="height:12px;width:79%;margin-bottom:12px;"></span><span class="skel" style="height:11px;width:43%;"></span></div></div>
+        <div class="col-sm-6 col-lg-3"><div class="skel-card"><span class="skel" style="width:44px;height:44px;border-radius:11px;margin-bottom:16px;"></span><span class="skel" style="height:15px;width:59%;margin-bottom:10px;"></span><span class="skel" style="height:12px;width:88%;margin-bottom:5px;"></span><span class="skel" style="height:12px;width:74%;margin-bottom:12px;"></span><span class="skel" style="height:11px;width:55%;"></span></div></div>
+      </div>
+    </div>
+  </div>
   <div style="padding-bottom: 48px;"></div>
 </div>

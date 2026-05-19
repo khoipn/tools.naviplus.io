@@ -140,6 +140,14 @@ description: "Free online image converter by Navi+. Batch convert images to WebP
       <div class="d-flex flex-column align-items-end gap-2">
         <progress max="100" value="0" style="width:160px;height:10px;"></progress>
         <a class="btn btn-sm btn-outline-success d-none" target="_blank">${tr('download_label')}</a>
+        <button class="btn btn-sm btn-outline-info d-none share-row-btn">${tr('get_link')}</button>
+        <div class="share-row-result d-none" style="max-width:220px;">
+          <div class="input-group input-group-sm">
+            <input type="text" class="form-control form-control-sm font-monospace share-row-input" readonly style="font-size:11px;">
+            <button type="button" class="btn btn-sm btn-outline-secondary share-row-copy">${tr('copy_link')}</button>
+          </div>
+        </div>
+        <div class="share-row-error form-text text-danger d-none" style="font-size:11px;"></div>
       </div>`;
     item.el = row;
     return row;
@@ -242,6 +250,39 @@ description: "Free online image converter by Navi+. Batch convert images to WebP
       link.classList.remove('d-none'); link.download = outName; link.href = url;
       link.textContent = tr('download_label') + ' ' + outName;
       item.status = 'done'; item.blob = blob; item.url = url;
+
+      const shareBtn  = row.querySelector('.share-row-btn');
+      const shareRes  = row.querySelector('.share-row-result');
+      const shareErr  = row.querySelector('.share-row-error');
+      const shareInp  = row.querySelector('.share-row-input');
+      const shareCopy = row.querySelector('.share-row-copy');
+      shareBtn.classList.remove('d-none');
+      shareBtn.addEventListener('click', async function() {
+        const origHtml = shareBtn.innerHTML;
+        shareBtn.disabled = true;
+        shareBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+        shareRes.classList.add('d-none');
+        shareErr.classList.add('d-none');
+        try {
+          if (!navigator.onLine) { const e = new Error(); e.code = 'offline'; throw e; }
+          const uploadUrl = await window.uploadToFreeImageHost(item.blob);
+          shareInp.value = uploadUrl;
+          shareRes.classList.remove('d-none');
+          window.copyToClipboard(uploadUrl).then(function() { window.showSnackbar(tr('copied_snack')); });
+        } catch (err) {
+          console.error('[share-link] upload error:', err);
+          shareErr.textContent = err.code === 'timeout' ? tr('upload_timeout') : err.code === 'offline' ? tr('no_network') : tr('upload_failed') + ' (' + (err.message || err) + ')';
+          shareErr.classList.remove('d-none');
+        } finally {
+          shareBtn.disabled = false;
+          shareBtn.innerHTML = origHtml;
+        }
+      });
+      shareCopy.addEventListener('click', function() {
+        if (!shareInp.value) return;
+        window.copyToClipboard(shareInp.value).then(function() { window.showSnackbar(tr('copied_snack')); });
+      });
+      shareInp.addEventListener('click', function() { this.select(); });
       statusEl.textContent = `${bytes(item.file.size)} → ${bytes(blob.size)} (${((blob.size/item.file.size)*100).toFixed(0)}%)`;
       progress.value = 100;
     } catch(err){

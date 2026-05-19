@@ -1,0 +1,709 @@
+---
+layout: default
+title: "Free Image Watermark Tool — Text & Logo"
+description: "Free online image watermark tool by Navi+. Add text or logo watermarks to images with position, opacity, rotation, and tile controls. 100% client-side, no upload required."
+---
+
+<style>
+/* ── Watermark tool layout ───────────────────────────────── */
+.wm-layout {
+  display: grid;
+  grid-template-columns: 390px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .wm-layout { grid-template-columns: 1fr; }
+  .wm-preview-col { order: -1; }
+}
+
+.wm-preview-sticky { position: sticky; top: 16px; }
+
+/* Checkerboard bg to show transparency */
+.wm-canvas-wrap {
+  background-color: #d8d8d8;
+  background-image:
+    linear-gradient(45deg, #c0c0c0 25%, transparent 25%),
+    linear-gradient(-45deg, #c0c0c0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #c0c0c0 75%),
+    linear-gradient(-45deg, transparent 75%, #c0c0c0 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  min-height: 200px; overflow: hidden;
+}
+.wm-canvas-wrap canvas {
+  max-width: 100%; max-height: 66vh; display: block;
+  border-radius: calc(var(--radius-md) - 1px);
+}
+
+.wm-placeholder-inner {
+  text-align: center; padding: 44px 24px; color: var(--c-muted);
+}
+.wm-placeholder-inner i { font-size: 46px; opacity: .32; display: block; margin-bottom: 10px; }
+.wm-placeholder-inner span { font-size: 13.5px; }
+
+/* Mode tabs */
+.wm-tabs {
+  display: flex; border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 20px;
+}
+.wm-tab-btn {
+  flex: 1; border: none; background: #fff; padding: 9px 12px;
+  font-size: 13.5px; font-weight: 500; color: var(--c-muted); cursor: pointer; transition: all .15s;
+}
+.wm-tab-btn + .wm-tab-btn { border-left: 1px solid var(--c-border); }
+.wm-tab-btn.active { background: var(--c-text); color: #fff; font-weight: 600; }
+
+/* 3×3 position grid */
+.wm-pos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 36px);
+  grid-template-rows: repeat(3, 36px);
+  gap: 4px;
+}
+.wm-pos-btn {
+  border: 1.5px solid var(--c-border); border-radius: 6px; background: var(--c-surface);
+  cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9.5px; font-weight: 700; color: var(--c-muted); letter-spacing: .2px; padding: 0;
+}
+.wm-pos-btn:hover { border-color: #999; background: #f0f0f0; }
+.wm-pos-btn.active { border-color: var(--c-text); background: var(--c-text); color: #fff; }
+
+/* Bold / Italic toggles */
+.wm-style-btn {
+  min-width: 38px; border: 1.5px solid var(--c-border); border-radius: 6px;
+  background: var(--c-surface); padding: 5px 11px; font-size: 14px;
+  cursor: pointer; color: var(--c-muted); transition: all .15s;
+}
+.wm-style-btn.active { border-color: var(--c-text); background: var(--c-text); color: #fff; }
+
+/* Dragover feedback */
+.tool-dropzone.wm-drag { border-color: var(--c-accent) !important; background: #f0f7f4 !important; }
+
+.wm-img-meta { font-size: 12px; color: var(--c-muted); }
+</style>
+
+<div class="container py-4">
+  <div class="tool-page-header">
+    <h1 data-i18n="wm_h1">Image Watermark Tool</h1>
+    <p data-i18n="wm_desc">Add text or logo watermarks to your images. All processing runs locally in your browser.</p>
+  </div>
+
+  <div class="wm-layout">
+
+    <!-- ── LEFT: Controls ──────────────────────────────────── -->
+    <div>
+
+      <!-- Upload -->
+      <div class="card mb-3">
+        <div class="card-header"><strong data-i18n="wm_upload">Upload Image</strong></div>
+        <div class="card-body">
+          <div id="origDropzone" class="tool-dropzone p-4 text-center">
+            <p class="mb-2">
+              <strong data-i18n="drop_here">Drop image here</strong>
+              <span class="text-muted fw-normal"> <span data-i18n="wm_or">or</span></span>
+            </p>
+            <button id="origSelectBtn" class="btn btn-primary" type="button" data-i18n="choose_files">Choose file</button>
+            <input id="origFileInput" type="file" accept="image/jpeg,image/png,image/webp" class="d-none" />
+            <p class="small text-muted mb-0 mt-2" data-i18n="wm_supports">JPEG, PNG, WebP — max 20 MB — processed locally</p>
+          </div>
+          <div id="origMeta" class="wm-img-meta d-none mt-2 d-flex align-items-center flex-wrap gap-2">
+            <i class="ri-image-2-line"></i>
+            <span id="origName" class="text-truncate" style="max-width:200px;"></span>
+            <span id="origDims"></span>
+            <span class="text-muted">·</span>
+            <span id="origFileSize" class="text-muted"></span>
+            <button id="changeImgBtn" class="btn btn-sm btn-outline-secondary ms-auto" data-i18n="wm_change">Change</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Watermark settings -->
+      <div class="card mb-3">
+        <div class="card-header"><strong data-i18n="wm_settings">Watermark Settings</strong></div>
+        <div class="card-body">
+
+          <div class="wm-tabs">
+            <button class="wm-tab-btn active" id="tabText" data-i18n="wm_tab_text">Text</button>
+            <button class="wm-tab-btn" id="tabLogo" data-i18n="wm_tab_logo">Logo</button>
+          </div>
+
+          <!-- Text panel -->
+          <div id="panelText">
+            <div class="mb-3">
+              <label class="form-label" data-i18n="wm_text_content">Watermark Text</label>
+              <input type="text" id="wmText" class="form-control" value="© My Brand" />
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-7">
+                <label class="form-label d-flex justify-content-between">
+                  <span data-i18n="wm_font_size">Font Size</span>
+                  <span id="fontSizeVal" class="text-muted fw-normal">48px</span>
+                </label>
+                <input type="range" id="fontSize" class="form-range" min="10" max="120" value="48" />
+              </div>
+              <div class="col-5">
+                <label class="form-label" data-i18n="wm_font_family">Font</label>
+                <select id="fontFamily" class="form-select form-select-sm">
+                  <option value="Arial">Arial</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="'Courier New'">Courier New</option>
+                  <option value="Impact">Impact</option>
+                  <option value="Verdana">Verdana</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-6">
+                <label class="form-label" data-i18n="wm_color">Color</label>
+                <div class="d-flex gap-2 align-items-center">
+                  <input type="color" id="wmColor" value="#ffffff"
+                    style="width:38px;height:36px;padding:2px;border:1px solid var(--c-border);border-radius:6px;cursor:pointer;background:none;flex-shrink:0;" />
+                  <input type="text" id="wmColorHex" class="form-control"
+                    value="#ffffff" maxlength="7" style="font-family:monospace;font-size:13px;" />
+                </div>
+              </div>
+              <div class="col-6">
+                <label class="form-label d-flex justify-content-between">
+                  <span data-i18n="wm_opacity">Opacity</span>
+                  <span id="textOpacityVal" class="text-muted fw-normal">60%</span>
+                </label>
+                <input type="range" id="textOpacity" class="form-range" min="0" max="100" value="60" />
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label d-flex justify-content-between">
+                <span data-i18n="wm_rotation">Rotation</span>
+                <span id="rotationVal" class="text-muted fw-normal">0°</span>
+              </label>
+              <input type="range" id="wmRotation" class="form-range" min="-180" max="180" value="0" />
+            </div>
+
+            <div class="d-flex gap-2">
+              <button id="boldBtn" class="wm-style-btn" style="font-weight:700;" data-i18n="wm_bold">B</button>
+              <button id="italicBtn" class="wm-style-btn fst-italic" data-i18n="wm_italic">I</button>
+            </div>
+          </div>
+
+          <!-- Logo panel -->
+          <div id="panelLogo" class="d-none">
+            <div class="mb-3">
+              <label class="form-label" data-i18n="wm_logo_upload">Logo (PNG with transparency recommended)</label>
+              <div id="logoDropzone" class="tool-dropzone p-3 text-center">
+                <input id="logoFileInput" type="file" accept="image/*" class="d-none" />
+                <p class="small mb-2" data-i18n="wm_logo_hint">Drop logo here or</p>
+                <button id="logoSelectBtn" class="btn btn-sm btn-outline-secondary" type="button" data-i18n="choose_files">Choose</button>
+              </div>
+              <div id="logoMeta" class="d-none mt-2" style="display:flex!important;align-items:center;gap:10px;">
+                <img id="logoThumb" alt="logo"
+                  style="max-height:52px;max-width:104px;border:1px solid var(--c-border);border-radius:6px;object-fit:contain;" />
+                <button id="clearLogoBtn" class="btn btn-sm btn-outline-secondary" data-i18n="clear">✕ Remove</button>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label d-flex justify-content-between">
+                <span data-i18n="wm_logo_size">Logo width (% of image)</span>
+                <span id="logoSizeVal" class="text-muted fw-normal">30%</span>
+              </label>
+              <input type="range" id="logoSize" class="form-range" min="5" max="80" value="30" />
+            </div>
+
+            <div class="mb-1">
+              <label class="form-label d-flex justify-content-between">
+                <span data-i18n="wm_opacity">Opacity</span>
+                <span id="logoOpacityVal" class="text-muted fw-normal">80%</span>
+              </label>
+              <input type="range" id="logoOpacity" class="form-range" min="0" max="100" value="80" />
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Position -->
+      <div class="card mb-3">
+        <div class="card-header"><strong data-i18n="wm_position">Position</strong></div>
+        <div class="card-body">
+          <div class="d-flex gap-4 flex-wrap align-items-start">
+
+            <div>
+              <div class="wm-pos-grid" id="posGrid">
+                <button class="wm-pos-btn" data-pos="TL">TL</button>
+                <button class="wm-pos-btn" data-pos="TC">TC</button>
+                <button class="wm-pos-btn" data-pos="TR">TR</button>
+                <button class="wm-pos-btn" data-pos="ML">ML</button>
+                <button class="wm-pos-btn active" data-pos="MC">MC</button>
+                <button class="wm-pos-btn" data-pos="MR">MR</button>
+                <button class="wm-pos-btn" data-pos="BL">BL</button>
+                <button class="wm-pos-btn" data-pos="BC">BC</button>
+                <button class="wm-pos-btn" data-pos="BR">BR</button>
+              </div>
+            </div>
+
+            <div class="flex-fill">
+              <div class="mb-3">
+                <label class="form-label d-flex justify-content-between">
+                  <span data-i18n="wm_offset_x">Offset X</span>
+                  <span id="offsetXVal" class="text-muted fw-normal">0px</span>
+                </label>
+                <input type="range" id="offsetX" class="form-range" min="-300" max="300" value="0" />
+              </div>
+              <div>
+                <label class="form-label d-flex justify-content-between">
+                  <span data-i18n="wm_offset_y">Offset Y</span>
+                  <span id="offsetYVal" class="text-muted fw-normal">0px</span>
+                </label>
+                <input type="range" id="offsetY" class="form-range" min="-300" max="300" value="0" />
+              </div>
+            </div>
+          </div>
+
+          <div id="tileRow" class="form-check mt-3 pt-3 border-top">
+            <input class="form-check-input" type="checkbox" id="tileMode" />
+            <label class="form-check-label" for="tileMode" data-i18n="wm_tile">Tile — repeat watermark diagonally across entire image</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export -->
+      <div class="card mb-3">
+        <div class="card-header"><strong data-i18n="wm_export">Export</strong></div>
+        <div class="card-body">
+          <div id="qualityRow" class="mb-3">
+            <label class="form-label d-flex justify-content-between">
+              <span data-i18n="wm_quality">Output Quality (JPEG / WebP)</span>
+              <span id="qualityVal" class="text-muted fw-normal">92%</span>
+            </label>
+            <input type="range" id="exportQuality" class="form-range" min="60" max="100" value="92" />
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            <button id="downloadBtn" class="btn btn-success" disabled data-i18n="wm_download">Download</button>
+            <button id="copyImgBtn" class="btn btn-outline-primary" disabled data-i18n="wm_copy">Copy Image</button>
+            <button id="shareLinkBtn" class="btn btn-outline-info" disabled data-i18n="get_link">Get Link</button>
+          </div>
+          <div id="exportFeedback" class="form-text mt-2"></div>
+          <div id="shareLinkResult" class="mt-2 d-none">
+            <div class="input-group input-group-sm">
+              <input type="text" id="shareLinkInput" class="form-control font-monospace" readonly>
+              <button type="button" id="copyLinkBtn" class="btn btn-outline-secondary" data-i18n="copy_link">Copy</button>
+            </div>
+          </div>
+          <div id="shareLinkError" class="form-text text-danger d-none mt-1"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── RIGHT: Preview ──────────────────────────────────── -->
+    <div class="wm-preview-col">
+      <div class="wm-preview-sticky">
+        <div class="card">
+          <div class="card-header"><strong data-i18n="wm_preview">Preview</strong></div>
+          <div class="card-body p-2">
+            <div class="wm-canvas-wrap">
+              <div id="wmPlaceholder" class="wm-placeholder-inner">
+                <i class="ri-image-add-line"></i>
+                <span data-i18n="wm_placeholder">Upload an image to begin</span>
+              </div>
+              <canvas id="wmCanvas" class="d-none"></canvas>
+            </div>
+            <p id="wmDims" class="text-center text-muted d-none mb-0 mt-2" style="font-size:12px;"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="alert alert-secondary small mt-1 mb-4">
+    <strong data-i18n="tip">Tip:</strong>
+    <span data-i18n="wm_tip"> Use a PNG logo with a transparent background for best results. Tile mode repeats the watermark diagonally — ideal for copyright protection. PNG exports are always lossless.</span>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const tr = k => (window.t && window.t(k)) || k;
+
+  // ── State ─────────────────────────────────────────────────
+  let origImg   = null;
+  let origFile  = null;
+  let logoImg   = null;
+  let wmMode    = 'text';
+  let position  = 'MC';
+  let isBold    = false;
+  let isItalic  = false;
+  let rafPending = false;
+
+  const canvas = $('#wmCanvas');
+  const ctx    = canvas.getContext('2d');
+
+  // ── Dropzone helper ────────────────────────────────────────
+  function makeDropzone(zone, input, onFile) {
+    zone.addEventListener('dragover', e => {
+      e.preventDefault(); zone.classList.add('wm-drag');
+    });
+    zone.addEventListener('dragleave', () => zone.classList.remove('wm-drag'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.classList.remove('wm-drag');
+      const f = e.dataTransfer.files[0];
+      if (f) onFile(f);
+    });
+    zone.addEventListener('click', e => {
+      if (['BUTTON', 'INPUT'].includes(e.target.tagName)) return;
+      input.click();
+    });
+    input.addEventListener('change', e => {
+      if (e.target.files[0]) onFile(e.target.files[0]);
+      input.value = '';
+    });
+  }
+
+  // ── Original image ─────────────────────────────────────────
+  function loadOriginal(file) {
+    if (!file.type.startsWith('image/')) {
+      alert((window.t && window.t('wm_err_type')) || 'Please upload a JPEG, PNG or WebP image.');
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      alert((window.t && window.t('wm_err_size')) || 'Image must be under 20 MB.');
+      return;
+    }
+    origFile = file;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      origImg = img;
+      const meta = $('#origMeta');
+      meta.classList.remove('d-none');
+      meta.style.display = 'flex';
+      $('#origName').textContent = file.name;
+      $('#origDims').textContent = `${img.naturalWidth} × ${img.naturalHeight} px`;
+      const kb = file.size / 1024;
+      $('#origFileSize').textContent = kb >= 1024
+        ? `${(kb / 1024).toFixed(1)} MB`
+        : `${Math.round(kb)} KB`;
+      $('#wmPlaceholder').classList.add('d-none');
+      canvas.classList.remove('d-none');
+      $('#wmDims').classList.remove('d-none');
+      $('#downloadBtn').disabled  = false;
+      $('#copyImgBtn').disabled   = false;
+      $('#shareLinkBtn').disabled = false;
+      updateQualityRow();
+      scheduleRender();
+    };
+    img.onerror = () => alert((window.t && window.t('wm_err_load')) || 'Failed to load image.');
+    img.src = url;
+  }
+
+  makeDropzone($('#origDropzone'), $('#origFileInput'), loadOriginal);
+  $('#origSelectBtn').addEventListener('click', () => $('#origFileInput').click());
+  $('#changeImgBtn').addEventListener('click', () => $('#origFileInput').click());
+
+  // ── Logo ───────────────────────────────────────────────────
+  function loadLogo(file) {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      logoImg = img;
+      $('#logoThumb').src = url;
+      const m = $('#logoMeta');
+      m.classList.remove('d-none');
+      m.style.display = 'flex';
+      scheduleRender();
+    };
+    img.src = url;
+  }
+
+  makeDropzone($('#logoDropzone'), $('#logoFileInput'), loadLogo);
+  $('#logoSelectBtn').addEventListener('click', () => $('#logoFileInput').click());
+  $('#clearLogoBtn').addEventListener('click', () => {
+    logoImg = null;
+    $('#logoMeta').style.display = 'none';
+    $('#logoThumb').src = '';
+    scheduleRender();
+  });
+
+  // ── Mode tabs ──────────────────────────────────────────────
+  $('#tabText').addEventListener('click', () => setMode('text'));
+  $('#tabLogo').addEventListener('click', () => setMode('logo'));
+
+  function setMode(m) {
+    wmMode = m;
+    $('#tabText').classList.toggle('active', m === 'text');
+    $('#tabLogo').classList.toggle('active', m === 'logo');
+    $('#panelText').classList.toggle('d-none', m !== 'text');
+    $('#panelLogo').classList.toggle('d-none', m === 'text');
+    $('#tileRow').style.display = m === 'text' ? '' : 'none';
+    scheduleRender();
+  }
+
+  function updateQualityRow() {
+    if (!origFile) return;
+    $('#qualityRow').style.display = origFile.type === 'image/png' ? 'none' : '';
+  }
+
+  // ── Position grid ──────────────────────────────────────────
+  document.querySelectorAll('.wm-pos-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.wm-pos-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      position = btn.dataset.pos;
+      scheduleRender();
+    });
+  });
+
+  // ── Bold / Italic ──────────────────────────────────────────
+  $('#boldBtn').addEventListener('click', () => {
+    isBold = !isBold;
+    $('#boldBtn').classList.toggle('active', isBold);
+    scheduleRender();
+  });
+  $('#italicBtn').addEventListener('click', () => {
+    isItalic = !isItalic;
+    $('#italicBtn').classList.toggle('active', isItalic);
+    scheduleRender();
+  });
+
+  // ── Color sync ─────────────────────────────────────────────
+  $('#wmColor').addEventListener('input', () => {
+    $('#wmColorHex').value = $('#wmColor').value;
+    scheduleRender();
+  });
+  $('#wmColorHex').addEventListener('input', () => {
+    const v = $('#wmColorHex').value;
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) { $('#wmColor').value = v; scheduleRender(); }
+  });
+
+  // ── Slider bindings ────────────────────────────────────────
+  function bindSlider(id, dispId, fmt) {
+    const el   = $('#' + id);
+    const disp = $('#' + dispId);
+    el.addEventListener('input', () => { disp.textContent = fmt(el.value); scheduleRender(); });
+  }
+
+  bindSlider('fontSize',      'fontSizeVal',    v => `${v}px`);
+  bindSlider('textOpacity',   'textOpacityVal', v => `${v}%`);
+  bindSlider('wmRotation',    'rotationVal',    v => `${v}°`);
+  bindSlider('logoSize',      'logoSizeVal',    v => `${v}%`);
+  bindSlider('logoOpacity',   'logoOpacityVal', v => `${v}%`);
+  bindSlider('offsetX',       'offsetXVal',     v => `${v}px`);
+  bindSlider('offsetY',       'offsetYVal',     v => `${v}px`);
+  bindSlider('exportQuality', 'qualityVal',     v => `${v}%`);
+
+  $('#wmText').addEventListener('input', scheduleRender);
+  $('#fontFamily').addEventListener('change', scheduleRender);
+  $('#tileMode').addEventListener('change', scheduleRender);
+
+  // ── Render ─────────────────────────────────────────────────
+  function scheduleRender() {
+    if (rafPending || !origImg) return;
+    rafPending = true;
+    requestAnimationFrame(() => { rafPending = false; doRender(); });
+  }
+
+  function posCoords(pos, W, H) {
+    const pad = Math.max(20, Math.round(Math.min(W, H) * 0.025));
+    const m = {
+      TL: [pad,     pad,     'left',   'top'],
+      TC: [W / 2,   pad,     'center', 'top'],
+      TR: [W - pad, pad,     'right',  'top'],
+      ML: [pad,     H / 2,   'left',   'middle'],
+      MC: [W / 2,   H / 2,   'center', 'middle'],
+      MR: [W - pad, H / 2,   'right',  'middle'],
+      BL: [pad,     H - pad, 'left',   'bottom'],
+      BC: [W / 2,   H - pad, 'center', 'bottom'],
+      BR: [W - pad, H - pad, 'right',  'bottom'],
+    };
+    return m[pos] || m.MC;
+  }
+
+  function doRender() {
+    const W = origImg.naturalWidth;
+    const H = origImg.naturalHeight;
+    canvas.width  = W;
+    canvas.height = H;
+    ctx.clearRect(0, 0, W, H);
+    ctx.drawImage(origImg, 0, 0, W, H);
+    $('#wmDims').textContent = `${W} × ${H} px`;
+
+    if (wmMode === 'text') renderText(W, H);
+    else                   renderLogo(W, H);
+  }
+
+  function renderText(W, H) {
+    const text  = $('#wmText').value.trim();
+    if (!text) return;
+
+    const fSize   = parseInt($('#fontSize').value);
+    const fFamily = $('#fontFamily').value;
+    const color   = $('#wmColor').value;
+    const opacity = parseInt($('#textOpacity').value) / 100;
+    const deg     = parseInt($('#wmRotation').value);
+    const offX    = parseInt($('#offsetX').value);
+    const offY    = parseInt($('#offsetY').value);
+    const tile    = $('#tileMode').checked;
+
+    const fontStr = `${isItalic ? 'italic ' : ''}${isBold ? 'bold ' : ''}${fSize}px ${fFamily}`;
+
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.fillStyle   = color;
+    ctx.font        = fontStr;
+
+    if (tile) {
+      const angle = deg * Math.PI / 180;
+      const m     = ctx.measureText(text);
+      const tw    = m.width;
+      const th    = fSize * 1.4;
+      const xGap  = tw + fSize * 2;
+      const yGap  = th * 3;
+      const diag  = Math.sqrt(W * W + H * H);
+
+      ctx.translate(W / 2, H / 2);
+      ctx.rotate(angle);
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+
+      for (let y = -diag; y < diag; y += yGap) {
+        for (let x = -diag; x < diag; x += xGap) {
+          ctx.fillText(text, x, y);
+        }
+      }
+    } else {
+      const [bx, by, ta, tb] = posCoords(position, W, H);
+      ctx.translate(bx + offX, by + offY);
+      ctx.rotate(deg * Math.PI / 180);
+      ctx.textAlign    = ta;
+      ctx.textBaseline = tb;
+      ctx.fillText(text, 0, 0);
+    }
+
+    ctx.restore();
+  }
+
+  function renderLogo(W, H) {
+    if (!logoImg) return;
+
+    const pct  = parseInt($('#logoSize').value) / 100;
+    const opa  = parseInt($('#logoOpacity').value) / 100;
+    const offX = parseInt($('#offsetX').value);
+    const offY = parseInt($('#offsetY').value);
+
+    const lw = W * pct;
+    const lh = (logoImg.naturalHeight / logoImg.naturalWidth) * lw;
+
+    const [bx, by, ta, tb] = posCoords(position, W, H);
+    let x = bx + offX;
+    let y = by + offY;
+
+    if (ta === 'center') x -= lw / 2;
+    else if (ta === 'right')  x -= lw;
+    if (tb === 'middle') y -= lh / 2;
+    else if (tb === 'bottom') y -= lh;
+
+    ctx.save();
+    ctx.globalAlpha = opa;
+    ctx.drawImage(logoImg, x, y, lw, lh);
+    ctx.restore();
+  }
+
+  // ── Export ─────────────────────────────────────────────────
+  function getMimeExt() {
+    if (!origFile) return ['image/png', 'png'];
+    if (origFile.type === 'image/jpeg') return ['image/jpeg', 'jpg'];
+    if (origFile.type === 'image/webp') return ['image/webp', 'webp'];
+    return ['image/png', 'png'];
+  }
+
+  function getOutputName(ext) {
+    const base = origFile ? origFile.name.replace(/\.[^.]+$/, '') : 'image';
+    return `${base}-watermarked.${ext}`;
+  }
+
+  $('#downloadBtn').addEventListener('click', () => {
+    if (!origImg) return;
+    doRender();
+    const [mime, ext] = getMimeExt();
+    const q = mime === 'image/png' ? undefined : parseInt($('#exportQuality').value) / 100;
+    canvas.toBlob(blob => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement('a'), { href: url, download: getOutputName(ext) });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }, mime, q);
+  });
+
+  $('#copyImgBtn').addEventListener('click', async () => {
+    if (!origImg) return;
+    const fb = $('#exportFeedback');
+
+    if (typeof ClipboardItem === 'undefined' || !navigator.clipboard?.write) {
+      fb.textContent = (window.t && window.t('wm_no_clipboard')) || 'Clipboard API not supported — use Download instead.';
+      return;
+    }
+
+    doRender();
+    canvas.toBlob(async blob => {
+      if (!blob) return;
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        fb.textContent = (window.t && window.t('a_copied')) || 'Copied!';
+        setTimeout(() => { fb.textContent = ''; }, 2500);
+      } catch {
+        fb.textContent = (window.t && window.t('wm_copy_failed')) || 'Copy failed — try downloading instead.';
+      }
+    }, 'image/png');
+  });
+
+  // ── Share link ──────────────────────────────────────────────
+  $('#shareLinkBtn').addEventListener('click', async () => {
+    if (!origImg) return;
+    const btn       = $('#shareLinkBtn');
+    const resultDiv = $('#shareLinkResult');
+    const errDiv    = $('#shareLinkError');
+    const input     = $('#shareLinkInput');
+    const origHtml  = btn.innerHTML;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>' + tr('uploading_img');
+    resultDiv.classList.add('d-none');
+    errDiv.classList.add('d-none');
+
+    try {
+      if (!navigator.onLine) { const e = new Error(); e.code = 'offline'; throw e; }
+      doRender();
+      const url = await window.uploadToFreeImageHost(canvas, { type: 'jpeg', quality: 0.92 });
+      input.value = url;
+      resultDiv.classList.remove('d-none');
+      window.copyToClipboard(url).then(() => window.showSnackbar(tr('copied_snack')));
+    } catch (err) {
+      console.error('[share-link] upload error:', err);
+      errDiv.textContent = err.code === 'timeout' ? tr('upload_timeout') : err.code === 'offline' ? tr('no_network') : tr('upload_failed') + ' (' + (err.message || err) + ')';
+      errDiv.classList.remove('d-none');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  });
+
+  $('#copyLinkBtn').addEventListener('click', () => {
+    const input = $('#shareLinkInput');
+    if (!input.value) return;
+    window.copyToClipboard(input.value).then(() => window.showSnackbar(tr('copied_snack')));
+  });
+
+  $('#shareLinkInput').addEventListener('click', function() { this.select(); });
+
+})();
+</script>
