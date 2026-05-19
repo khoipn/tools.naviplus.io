@@ -1,13 +1,13 @@
 ---
 layout: default
-title: "Navi+ WebP Converter"
-description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processing in your browser."
+title: "Free Image Converter — WebP, PNG, JPG"
+description: "Free online image converter by Navi+. Batch convert images to WebP, PNG, JPG, or AVIF instantly in your browser — no upload, no account, lightning fast."
 ---
 
 <div class="container py-4">
   <div class="tool-page-header">
-    <h1 data-i18n="webp_h1">Batch WebP Converter</h1>
-    <p data-i18n="webp_desc">Drag & drop JPG/PNG → export .webp. All processing runs locally in your browser.</p>
+    <h1 data-i18n="webp_h1">Batch Image Converter</h1>
+    <p data-i18n="webp_desc">Drop images here → choose output format → export. All processing runs locally in your browser.</p>
   </div>
 
   <div class="card mb-3">
@@ -16,22 +16,32 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
       <div id="dropzone" class="tool-dropzone p-4 text-center mb-3">
         <p class="mb-2"><strong data-i18n="drop_here">Drop images here</strong> or</p>
         <label for="fileInput" class="btn btn-primary" data-i18n="choose_files">Choose files</label>
-        <input id="fileInput" type="file" accept="image/jpeg,image/png" multiple class="d-none" />
-        <p class="small text-muted mb-0" data-i18n="supports_jpeg_png">Supports JPEG/JPG & PNG. Files are processed locally on your device.</p>
+        <input id="fileInput" type="file" accept="image/*" multiple class="d-none" />
+        <p class="small text-muted mb-0" data-i18n="supports_jpeg_png">Supports JPEG, PNG, WebP, GIF, BMP. Files are processed locally on your device.</p>
       </div>
 
       <div class="row g-3 align-items-end">
-        <div class="col-12 col-md-4">
-          <label for="quality" class="form-label" data-i18n="webp_quality">WebP Quality (0.1–1.0)</label>
+        <div class="col-12 col-md-3">
+          <label for="formatSelect" class="form-label" data-i18n="output_format">Output Format</label>
+          <select id="formatSelect" class="form-select">
+            <option value="image/webp">WebP</option>
+            <option value="image/jpeg">JPG / JPEG</option>
+            <option value="image/png">PNG</option>
+            <option value="image/avif">AVIF</option>
+            <option value="image/bmp">BMP</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-3" id="qualityCol">
+          <label for="quality" class="form-label" data-i18n="webp_quality">Output Quality (0.1–1.0)</label>
           <input type="range" id="quality" min="0.1" max="1" step="0.01" value="0.8" class="form-range" />
           <div class="form-text"><span data-i18n="current_val">Current value:</span> <span id="qualityVal">0.80</span></div>
         </div>
-        <div class="col-6 col-md-4">
+        <div class="col-6 col-md-3">
           <label for="maxDim" class="form-label" data-i18n="max_dim">Max dimension (px)</label>
           <input type="number" id="maxDim" min="0" step="1" value="0" class="form-control" />
           <div class="form-text" data-i18n="zero_keep">0 = keep original size</div>
         </div>
-        <div class="col-6 col-md-4">
+        <div class="col-6 col-md-3">
           <label for="concurrency" class="form-label" data-i18n="concurrency">Concurrent tasks</label>
           <input type="number" id="concurrency" min="1" max="8" step="1" value="3" class="form-control" />
           <div class="form-text" data-i18n="concurrency_tip">Increase if your machine is powerful</div>
@@ -41,7 +51,7 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
       <div class="d-flex gap-2 flex-wrap mt-3">
         <button id="startBtn" class="btn btn-success" disabled data-i18n="start_conv">Start Conversion</button>
         <button id="clearBtn" class="btn btn-outline-secondary" data-i18n="clear">Clear List</button>
-        <button id="zipBtn" class="btn btn-outline-primary" disabled data-i18n="dl_zip">Download ZIP (.webp)</button>
+        <button id="zipBtn" class="btn btn-outline-primary" disabled>Download ZIP</button>
       </div>
     </div>
   </div>
@@ -58,7 +68,7 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
 
   <div class="alert alert-secondary small">
     <strong data-i18n="tip">Tip:</strong>
-    <span data-i18n="webp_tip"> Use quality ~0.7–0.85 for a good balance. Set max dimension if you need lighter images for the web.</span>
+    <span data-i18n="webp_tip"> Use quality ~0.7–0.85 for a good balance. PNG is lossless (quality ignored). Set max dimension if you need lighter images for the web.</span>
   </div>
 </div>
 
@@ -75,9 +85,20 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
   const list = $('#list');
   const quality = $('#quality');
   const qualityVal = $('#qualityVal');
+  const qualityCol = $('#qualityCol');
   const maxDim = $('#maxDim');
   const concurrencyInput = $('#concurrency');
+  const formatSelect = $('#formatSelect');
   const summary = $('#summary');
+
+  const FORMAT_EXT = {
+    'image/webp': 'webp',
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/avif': 'avif',
+    'image/bmp': 'bmp',
+  };
+  const LOSSLESS = new Set(['image/png']);
 
   let queue = [];
   let processing = false;
@@ -89,6 +110,18 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
     if(n < 1048576) return (n/1024).toFixed(1) + ' KB';
     return (n/1048576).toFixed(2) + ' MB';
   }
+
+  function updateZipBtn(){
+    const ext = FORMAT_EXT[formatSelect.value] || 'webp';
+    zipBtn.textContent = tr('dl_zip') + ' (.' + ext + ')';
+  }
+
+  formatSelect.addEventListener('change', () => {
+    const isLossless = LOSSLESS.has(formatSelect.value);
+    quality.disabled = isLossless;
+    qualityCol.style.opacity = isLossless ? '0.4' : '1';
+    updateZipBtn();
+  });
 
   function makeRow(item){
     const url = URL.createObjectURL(item.file);
@@ -106,7 +139,7 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
       </div>
       <div class="d-flex flex-column align-items-end gap-2">
         <progress max="100" value="0" style="width:160px;height:10px;"></progress>
-        <a class="btn btn-sm btn-outline-success d-none" target="_blank">${tr('download_label')} .webp</a>
+        <a class="btn btn-sm btn-outline-success d-none" target="_blank">${tr('download_label')}</a>
       </div>`;
     item.el = row;
     return row;
@@ -121,7 +154,7 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
   }
 
   function addFiles(files){
-    const arr = Array.from(files).filter(f => /image\/(jpeg|png)/.test(f.type) || /\.(jpg|jpeg|png)$/i.test(f.name));
+    const arr = Array.from(files).filter(f => f.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|bmp|avif|tiff?)$/i.test(f.name));
     if(!arr.length) return;
     arr.forEach(file => {
       const item = { file, status: 'pending', blob: null, url: null, el: null };
@@ -169,22 +202,22 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
     const s = max / longer; return { W: Math.round(w * s), H: Math.round(h * s) };
   }
 
-  async function rasterizeToWebP(bitmap, W, H, q){
+  async function rasterizeToFormat(bitmap, W, H, q, mime){
     const useOffscreen = 'OffscreenCanvas' in window;
     const canvas = useOffscreen ? new OffscreenCanvas(W, H) : Object.assign(document.createElement('canvas'), { width: W, height: H });
     if(useOffscreen){ canvas.width = W; canvas.height = H; }
     const ctx = canvas.getContext('2d');
     ctx.drawImage(bitmap, 0, 0, W, H);
     const blob = await new Promise((res, rej) => {
-      if(canvas.convertToBlob){ canvas.convertToBlob({ type: 'image/webp', quality: q }).then(res).catch(rej); }
-      else if(canvas.toBlob){ canvas.toBlob(b => b ? res(b) : rej(new Error('toBlob null')), 'image/webp', q); }
+      if(canvas.convertToBlob){ canvas.convertToBlob({ type: mime, quality: q }).then(res).catch(rej); }
+      else if(canvas.toBlob){ canvas.toBlob(b => b ? res(b) : rej(new Error('toBlob null')), mime, q); }
       else {
         try {
-          const dataURL = canvas.toDataURL('image/webp', q);
+          const dataURL = canvas.toDataURL(mime, q);
           const bstr = atob(dataURL.split(',')[1]);
           const u8 = new Uint8Array(bstr.length);
           for(let i=0;i<bstr.length;i++) u8[i] = bstr.charCodeAt(i);
-          res(new Blob([u8], { type: 'image/webp' }));
+          res(new Blob([u8], { type: mime }));
         } catch(err){ rej(err); }
       }
     });
@@ -201,11 +234,13 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
     try {
       const { bmp, w, h } = await decodeToBitmap(item.file); progress.value = 40;
       const { W, H } = getTargetSize(w, h, +maxDim.value || 0);
-      const blob = await rasterizeToWebP(bmp, W, H, +quality.value); progress.value = 90;
-      const webpName = item.file.name.replace(/\.(jpe?g|png)$/i, '') + '.webp';
+      const mime = formatSelect.value || 'image/webp';
+      const ext = FORMAT_EXT[mime] || 'webp';
+      const blob = await rasterizeToFormat(bmp, W, H, +quality.value, mime); progress.value = 90;
+      const outName = item.file.name.replace(/\.[^.]+$/, '') + '.' + ext;
       const url = URL.createObjectURL(blob);
-      link.classList.remove('d-none'); link.download = webpName; link.href = url;
-      link.textContent = tr('download_label') + ' ' + webpName;
+      link.classList.remove('d-none'); link.download = outName; link.href = url;
+      link.textContent = tr('download_label') + ' ' + outName;
       item.status = 'done'; item.blob = blob; item.url = url;
       statusEl.textContent = `${bytes(item.file.size)} → ${bytes(blob.size)} (${((blob.size/item.file.size)*100).toFixed(0)}%)`;
       progress.value = 100;
@@ -234,32 +269,39 @@ description: "Drag & drop JPG/PNG → export .webp. 100% client‑side processin
   zipBtn.addEventListener('click', async () => {
     const doneItems = queue.filter(x => x.status === 'done');
     if(doneItems.length === 0) return;
-    zipBtn.disabled = true; zipBtn.textContent = tr('zipping');
+    zipBtn.disabled = true;
+    const prevText = zipBtn.textContent;
+    zipBtn.textContent = tr('zipping');
     const zip = new JSZip();
     doneItems.forEach(it => {
-      const name = (it.el.querySelector('a').download) || (it.file.name.replace(/\.(jpe?g|png)$/i, '') + '.webp');
+      const name = it.el.querySelector('a').download || it.file.name;
       zip.file(name, it.blob);
     });
     const blob = await zip.generateAsync({ type: 'blob' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'webp_batch.zip';
+    const ext = FORMAT_EXT[formatSelect.value] || 'webp';
+    const a = document.createElement('a'); a.href = url; a.download = `images_batch_${ext}.zip`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
-    zipBtn.disabled = false; zipBtn.textContent = tr('dl_zip');
+    zipBtn.disabled = false; zipBtn.textContent = prevText;
   });
 
   const obs = new MutationObserver(updateSummary);
   obs.observe(list, { childList: true, subtree: false });
 
+  // Detect format support and disable unsupported options, then init ZIP label
   (async () => {
-    let supported = true;
-    try { const c = document.createElement('canvas'); supported = c.toDataURL('image/webp').startsWith('data:image/webp'); } catch { supported = false; }
-    if(!supported){
-      const warn = document.createElement('div');
-      warn.className = 'alert alert-warning';
-      warn.innerHTML = '<strong>Your browser may not support WebP.</strong> Please use Chrome, Edge, Firefox, or Safari.';
-      document.querySelector('.container').prepend(warn);
+    for (const mime of ['image/avif', 'image/bmp']) {
+      const supported = await new Promise(res => {
+        const c = document.createElement('canvas'); c.width = 1; c.height = 1;
+        c.toBlob(b => res(b !== null && b.type === mime), mime, 0.8);
+      });
+      if (!supported) {
+        const opt = formatSelect.querySelector(`option[value="${mime}"]`);
+        if (opt) { opt.disabled = true; opt.textContent += ' (N/A)'; }
+      }
     }
+    updateZipBtn();
   })();
 })();
 </script>

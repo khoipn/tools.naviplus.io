@@ -1,7 +1,7 @@
 ---
 layout: default
-title: "Batch Image Resizer"
-description: "Resize images with center crop, preview thumbnails, and download individually or as ZIP."
+title: "Free Batch Image Resizer & Compressor"
+description: "Free bulk image resizer and compressor by Navi+. Resize, crop, and compress multiple images at once with live previews and ZIP download — 100% in your browser, no sign-up."
 ---
 
 <div class="container py-4">
@@ -13,6 +13,7 @@ description: "Resize images with center crop, preview thumbnails, and download i
   <div class="card mb-3">
     <div class="card-header"><strong data-i18n="upload_imgs">Upload Images</strong></div>
     <div class="card-body">
+
       <div id="dropzone" class="tool-dropzone p-4 text-center mb-3">
         <p class="mb-2"><strong data-i18n="drop_here_img">Drop images here</strong> or</p>
         <button id="selectBtn" class="btn btn-primary" type="button" data-i18n="select_files">Select files</button>
@@ -25,28 +26,61 @@ description: "Resize images with center crop, preview thumbnails, and download i
         <div id="fileList" class="row row-cols-2 row-cols-md-6 g-2 small"></div>
       </div>
 
-      <fieldset class="mb-3 border rounded-3 p-3">
-        <legend class="float-none w-auto px-2" data-i18n="common_sizes">Common Sizes</legend>
-        <div class="d-flex flex-wrap gap-2 mb-2" id="sizeOptionsCommon">
-          <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1024x768" checked><span class="form-check-label">1024×768</span></label>
-          <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1280x720"><span class="form-check-label">1280×720</span></label>
-          <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1440x960"><span class="form-check-label">1440×960</span></label>
-          <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1200x1200"><span class="form-check-label">1200×1200</span></label>
-          <label class="form-check"><input class="form-check-input" type="radio" name="size" value="720x720"><span class="form-check-label">720×720</span></label>
+      <!-- Mode selector -->
+      <div class="mb-3">
+        <div class="d-flex gap-3 flex-wrap">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="mode" id="modeResize" value="resize" checked>
+            <label class="form-check-label fw-semibold" for="modeResize" data-i18n="mode_resize">Resize & Optimize</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="mode" id="modeOptimize" value="optimize">
+            <label class="form-check-label fw-semibold" for="modeOptimize" data-i18n="mode_optimize">Optimize only</label>
+          </div>
         </div>
-      </fieldset>
+      </div>
 
-      <fieldset class="mb-3 border rounded-3 p-3">
-        <legend class="float-none w-auto px-2" data-i18n="social_sizes">Social Sizes</legend>
-        <div class="d-flex flex-wrap gap-2" id="sizeOptionsSocial">
-          <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1200x628"><span class="form-check-label">Facebook Link (1200×628)</span></label>
-          <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1080x1080"><span class="form-check-label">Instagram Post (1080×1080)</span></label>
-          <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1080x1920"><span class="form-check-label">Instagram Story (1080×1920)</span></label>
-          <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1500x500"><span class="form-check-label">X/Twitter Header (1500×500)</span></label>
-          <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1584x396"><span class="form-check-label">LinkedIn Cover (1584×396)</span></label>
-          <label class="form-check"><input class="form-check-input" type="radio" name="size" value="2560x1440"><span class="form-check-label">YouTube Cover (2560×1440)</span></label>
-        </div>
-      </fieldset>
+      <!-- Size options (hidden in optimize-only mode) -->
+      <div id="sizeSection">
+        <fieldset class="mb-3 border rounded-3 p-3">
+          <legend class="float-none w-auto px-2" data-i18n="common_sizes">Common Sizes</legend>
+          <div class="d-flex flex-wrap gap-2" id="sizeOptionsCommon">
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1024x768" checked><span class="form-check-label">1024×768</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1280x720"><span class="form-check-label">1280×720</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1440x960"><span class="form-check-label">1440×960</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="768x1024"><span class="form-check-label">768×1024</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="720x1280"><span class="form-check-label">720×1280</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="960x1440"><span class="form-check-label">960×1440</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1200x1200"><span class="form-check-label">1200×1200</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="720x720"><span class="form-check-label">720×720</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="200x200"><span class="form-check-label">200×200</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="32x32"><span class="form-check-label">32×32</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="mb-3 border rounded-3 p-3">
+          <legend class="float-none w-auto px-2" data-i18n="social_sizes">Social Sizes</legend>
+          <div class="d-flex flex-wrap gap-2" id="sizeOptionsSocial">
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1200x628"><span class="form-check-label">Facebook Link (1200×628)</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1080x1080"><span class="form-check-label">Instagram Post (1080×1080)</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1080x1920"><span class="form-check-label">Instagram Story (1080×1920)</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1500x500"><span class="form-check-label">X/Twitter Header (1500×500)</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="1584x396"><span class="form-check-label">LinkedIn Cover (1584×396)</span></label>
+            <label class="form-check"><input class="form-check-input" type="radio" name="size" value="2560x1440"><span class="form-check-label">YouTube Cover (2560×1440)</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="mb-3 border rounded-3 p-3">
+          <legend class="float-none w-auto px-2" data-i18n="custom_size">Custom Size</legend>
+          <div class="d-flex gap-2 align-items-center flex-wrap mb-2">
+            <input type="number" id="customW" placeholder="W" min="1" max="9999" class="form-control" style="width:88px">
+            <span class="text-muted fw-bold">×</span>
+            <input type="number" id="customH" placeholder="H" min="1" max="9999" class="form-control" style="width:88px">
+            <button id="addSizeBtn" class="btn btn-outline-secondary btn-sm" type="button" data-i18n="add_size">Add</button>
+          </div>
+          <div id="customSizeOptions" class="d-flex flex-wrap gap-2"></div>
+        </fieldset>
+      </div>
 
       <div class="mb-3">
         <label for="quality" class="form-label" data-i18n="comp_quality">Compression Quality</label>
@@ -60,7 +94,7 @@ description: "Resize images with center crop, preview thumbnails, and download i
       </div>
 
       <div class="d-flex gap-2 flex-wrap">
-        <button id="processBtn" class="btn btn-success" disabled data-i18n="resize_btn">Resize Images</button>
+        <button id="processBtn" class="btn btn-success" disabled>Resize Images</button>
         <button id="clearBtn" class="btn btn-outline-secondary" data-i18n="clear">Clear</button>
         <button id="zipBtn" class="btn btn-outline-primary" disabled data-i18n="dl_zip">Download ZIP</button>
       </div>
@@ -76,7 +110,7 @@ description: "Resize images with center crop, preview thumbnails, and download i
 
   <div class="alert alert-secondary small">
     <strong data-i18n="tip">Tip:</strong>
-    <span data-i18n="res_tip"> Images are resized with center crop into the chosen size. You can adjust compression quality; filenames will keep original name + random suffix. Use WebP for smaller size if supported.</span>
+    <span data-i18n="res_tip"> Images are resized with center crop into the chosen size. Adjust compression quality; filenames keep original name + random suffix. Use WebP for smaller size if supported.</span>
   </div>
 </div>
 
@@ -84,93 +118,183 @@ description: "Resize images with center crop, preview thumbnails, and download i
 
 <script>
 (() => {
-  const $ = (s,r=document) => r.querySelector(s);
-  const dropzone=$('#dropzone'), selectBtn=$('#selectBtn'), fileInput=$('#fileInput');
-  const processBtn=$('#processBtn'), clearBtn=$('#clearBtn'), zipBtn=$('#zipBtn');
-  const gallery=$('#gallery'), fileList=$('#fileList'), resultsCard=$('#resultsCard');
-  const quality=$('#quality'), qualityVal=$('#qualityVal'), toWebp=$('#toWebp');
+  const $ = (s, r=document) => r.querySelector(s);
+  const dropzone   = $('#dropzone'),  selectBtn = $('#selectBtn'), fileInput = $('#fileInput');
+  const processBtn = $('#processBtn'), clearBtn = $('#clearBtn'),  zipBtn    = $('#zipBtn');
+  const gallery    = $('#gallery'),   fileList  = $('#fileList'),  resultsCard = $('#resultsCard');
+  const quality    = $('#quality'),   qualityVal = $('#qualityVal'), toWebp  = $('#toWebp');
+  const modeResize = $('#modeResize'), modeOptimize = $('#modeOptimize'), sizeSection = $('#sizeSection');
+  const customW    = $('#customW'),   customH   = $('#customH'),   addSizeBtn = $('#addSizeBtn');
+  const customSizeOptions = $('#customSizeOptions');
 
-  function tr(key) { return (window.t && window.t(key)) || key; }
+  const CUSTOM_KEY = 'np_resizer_custom';
+  const tr = key => (window.t && window.t(key)) || key;
 
-  let files=[], results=[];
+  let files = [], results = [];
 
-  function renderFileList(){
-    fileList.innerHTML='';
+  /* ── Custom sizes ──────────────────────────────────────────── */
+  function loadCustom()  { try { return JSON.parse(localStorage.getItem(CUSTOM_KEY) || '[]'); } catch { return []; } }
+  function saveCustom(a) { localStorage.setItem(CUSTOM_KEY, JSON.stringify(a)); }
+
+  function addCustomOption(val, save) {
+    if (save) {
+      const a = loadCustom();
+      if (!a.includes(val)) { a.push(val); saveCustom(a); }
+    }
+    const [w, h] = val.split('x').map(Number);
+    const lbl = document.createElement('label');
+    lbl.className = 'form-check d-inline-flex align-items-center gap-1 border rounded px-2 py-1';
+    lbl.style.cssText = 'cursor:pointer;background:#fafafa;font-size:13px;';
+    lbl.innerHTML =
+      `<input class="form-check-input m-0" type="radio" name="size" value="${val}">` +
+      `<span class="ms-1">${w}×${h}</span>` +
+      `<button class="btn p-0 border-0 ms-1 text-muted lh-1" type="button" style="font-size:11px;line-height:1;" data-rm="${val}" title="Remove">✕</button>`;
+    lbl.querySelector('[data-rm]').addEventListener('click', e => {
+      e.preventDefault(); e.stopPropagation();
+      saveCustom(loadCustom().filter(s => s !== e.currentTarget.dataset.rm));
+      lbl.remove();
+    });
+    customSizeOptions.appendChild(lbl);
+  }
+
+  function initCustom() { loadCustom().forEach(v => addCustomOption(v, false)); }
+
+  addSizeBtn.addEventListener('click', () => {
+    const w = parseInt(customW.value), h = parseInt(customH.value);
+    if (!w || !h || w < 1 || h < 1 || w > 9999 || h > 9999) return;
+    const val = `${w}x${h}`;
+    const existing = customSizeOptions.querySelector(`input[value="${val}"]`);
+    if (existing) { existing.checked = true; return; }
+    addCustomOption(val, true);
+    customSizeOptions.querySelector(`input[value="${val}"]`).checked = true;
+    customW.value = ''; customH.value = '';
+  });
+
+  [customW, customH].forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') addSizeBtn.click(); }));
+
+  /* ── Mode ──────────────────────────────────────────────────── */
+  function updateMode() {
+    const isOpt = modeOptimize.checked;
+    sizeSection.style.display = isOpt ? 'none' : '';
+    processBtn.textContent = isOpt ? tr('optimize_btn') : tr('resize_btn');
+  }
+
+  modeResize.addEventListener('change', updateMode);
+  modeOptimize.addEventListener('change', updateMode);
+  window.onI18nApply = updateMode;
+
+  /* ── Files ─────────────────────────────────────────────────── */
+  function renderFileList() {
+    fileList.innerHTML = '';
     files.forEach(f => {
-      const col=document.createElement('div'); col.className='col';
-      const url=URL.createObjectURL(f);
-      col.innerHTML=`<div class="border rounded-3 p-1 text-center"><img src="${url}" class="img-fluid mb-1" alt="thumb"><div class="text-truncate">${f.name}</div></div>`;
+      const col = document.createElement('div'); col.className = 'col';
+      const url = URL.createObjectURL(f);
+      col.innerHTML = `<div class="border rounded-3 p-1 text-center"><img src="${url}" class="img-fluid mb-1" alt="thumb"><div class="text-truncate">${f.name}</div></div>`;
       fileList.appendChild(col);
     });
   }
 
-  function addFiles(newFiles){ files=files.concat(Array.from(newFiles)); renderFileList(); processBtn.disabled=files.length===0; }
-
-  clearBtn.addEventListener('click',()=>{
-    files=[]; results=[]; gallery.innerHTML=''; fileList.innerHTML='';
-    processBtn.disabled=true; zipBtn.disabled=true; resultsCard.classList.add('d-none');
-  });
-
-  ['dragenter','dragover','dragleave','drop'].forEach(evt=>{
-    document.addEventListener(evt,e=>{e.preventDefault();e.stopPropagation();},false);
-  });
-  dropzone.addEventListener('drop',e=>addFiles(e.dataTransfer.files));
-  selectBtn.addEventListener('click',()=>fileInput.click());
-  fileInput.addEventListener('change',e=>{addFiles(e.target.files);fileInput.value='';});
-  quality.addEventListener('input',()=>{qualityVal.textContent=quality.value;});
-
-  function getSelectedSize(){
-    const checked=document.querySelector('input[name="size"]:checked');
-    return checked?checked.value.split('x').map(Number):null;
+  function addFiles(newFiles) {
+    files = files.concat(Array.from(newFiles));
+    renderFileList();
+    processBtn.disabled = files.length === 0;
   }
 
-  function cropFit(img,W,H){
-    const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
-    const ctx=canvas.getContext('2d');
-    const r=Math.max(W/img.width,H/img.height);
-    const nw=img.width*r,nh=img.height*r,ox=(W-nw)/2,oy=(H-nh)/2;
-    ctx.drawImage(img,ox,oy,nw,nh); return canvas;
+  clearBtn.addEventListener('click', () => {
+    files = []; results = []; gallery.innerHTML = ''; fileList.innerHTML = '';
+    processBtn.disabled = true; zipBtn.disabled = true; resultsCard.classList.add('d-none');
+  });
+
+  ['dragenter','dragover','dragleave','drop'].forEach(evt =>
+    document.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); }, false));
+
+  dropzone.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+  selectBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', e => { addFiles(e.target.files); fileInput.value = ''; });
+  quality.addEventListener('input', () => { qualityVal.textContent = quality.value; });
+
+  /* ── Processing ────────────────────────────────────────────── */
+  function getSelectedSize() {
+    const checked = document.querySelector('input[name="size"]:checked');
+    return checked ? checked.value.split('x').map(Number) : null;
   }
 
-  async function process(){
-    gallery.innerHTML=''; results=[];
-    const size=getSelectedSize(); if(!size) return;
-    const [W,H]=size, q=parseFloat(quality.value), useWebp=toWebp.checked;
-    for(const file of files){
-      const img=await loadImage(file);
-      const canvas=cropFit(img,W,H);
-      const blob=await new Promise(r=>canvas.toBlob(r,useWebp?'image/webp':'image/jpeg',q));
-      const url=URL.createObjectURL(blob);
-      const rand=Math.floor(Math.random()*10000);
-      const base=file.name.replace(/\.[^.]+$/,'');
-      const ext=useWebp?'webp':'jpg';
-      const filename=`${base}_${rand}.${ext}`;
-      results.push({name:filename,blob});
-      const col=document.createElement('div'); col.className='col-6 col-md-3';
-      col.innerHTML=`<div class="border rounded-3 p-1 text-center"><img src="${url}" class="img-fluid mb-1" alt="thumb"><a class="btn btn-sm btn-outline-success" href="${url}" download="${filename}">${tr('download_label')}</a></div>`;
+  function cropFit(img, W, H) {
+    const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    const r = Math.max(W / img.width, H / img.height);
+    const nw = img.width * r, nh = img.height * r;
+    ctx.drawImage(img, (W - nw) / 2, (H - nh) / 2, nw, nh);
+    return canvas;
+  }
+
+  function imgToCanvas(img) {
+    const canvas = document.createElement('canvas');
+    canvas.width  = img.naturalWidth  || img.width;
+    canvas.height = img.naturalHeight || img.height;
+    canvas.getContext('2d').drawImage(img, 0, 0);
+    return canvas;
+  }
+
+  function loadImage(file) {
+    return new Promise((res, rej) => {
+      const img = new Image();
+      img.onload = () => res(img); img.onerror = rej;
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
+  async function process() {
+    gallery.innerHTML = ''; results = [];
+    const isOpt  = modeOptimize.checked;
+    const q      = parseFloat(quality.value);
+    const useWebp = toWebp.checked;
+    let W = null, H = null;
+    if (!isOpt) {
+      const size = getSelectedSize();
+      if (!size) return;
+      [W, H] = size;
+    }
+    for (const file of files) {
+      const img    = await loadImage(file);
+      const canvas = (W && H) ? cropFit(img, W, H) : imgToCanvas(img);
+      const blob   = await new Promise(r => canvas.toBlob(r, useWebp ? 'image/webp' : 'image/jpeg', q));
+      const url    = URL.createObjectURL(blob);
+      const rand   = Math.floor(Math.random() * 10000);
+      const base   = file.name.replace(/\.[^.]+$/, '');
+      const ext    = useWebp ? 'webp' : 'jpg';
+      const filename = `${base}_${rand}.${ext}`;
+      results.push({ name: filename, blob });
+      const col = document.createElement('div'); col.className = 'col-6 col-md-3';
+      col.innerHTML =
+        `<div class="border rounded-3 p-1 text-center">` +
+        `<img src="${url}" class="img-fluid mb-1" alt="thumb">` +
+        `<div class="small text-muted mb-1">${canvas.width}×${canvas.height}</div>` +
+        `<a class="btn btn-sm btn-outline-success" href="${url}" download="${filename}">${tr('download_label')}</a>` +
+        `</div>`;
       gallery.appendChild(col);
     }
-    zipBtn.disabled=results.length===0;
-    if(results.length) resultsCard.classList.remove('d-none');
+    zipBtn.disabled = results.length === 0;
+    if (results.length) resultsCard.classList.remove('d-none');
   }
 
-  function loadImage(file){
-    return new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>res(img); img.onerror=rej; img.src=URL.createObjectURL(file); });
-  }
+  processBtn.addEventListener('click', process);
 
-  processBtn.addEventListener('click',process);
-
-  zipBtn.addEventListener('click',async()=>{
-    if(!results.length) return;
-    zipBtn.disabled=true; zipBtn.textContent=tr('zipping');
-    const zip=new JSZip();
-    results.forEach(r=>zip.file(r.name,r.blob));
-    const blob=await zip.generateAsync({type:'blob'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href=url; a.download='resized_images.zip';
+  zipBtn.addEventListener('click', async () => {
+    if (!results.length) return;
+    zipBtn.disabled = true; zipBtn.textContent = tr('zipping');
+    const zip = new JSZip();
+    results.forEach(r => zip.file(r.name, r.blob));
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url  = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'resized_images.zip';
     document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),4000);
-    zipBtn.disabled=false; zipBtn.textContent=tr('dl_zip');
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    zipBtn.disabled = false; zipBtn.textContent = tr('dl_zip');
   });
+
+  /* ── Init ──────────────────────────────────────────────────── */
+  initCustom();
+  updateMode();
 })();
 </script>

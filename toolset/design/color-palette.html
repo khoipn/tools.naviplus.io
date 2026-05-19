@@ -1,0 +1,794 @@
+---
+layout: default
+title: "Free Color Palette Generator — WCAG & CSS Tokens"
+description: "Free color palette generator by Navi+. Generate a full 10-stop color scale, semantic tokens, and WCAG 2.1 contrast ratios from any hex color — instant, free, no sign-up, exports CSS variables and JSON."
+---
+
+<style>
+/* ── Color Palette Tool ───────────────────────────────────────── */
+.pt-input-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.pt-color-native {
+  width: 56px;
+  height: 40px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 2px;
+  background: none;
+  flex-shrink: 0;
+}
+.pt-hex-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 130px;
+  max-width: 180px;
+}
+.pt-hex-input {
+  font-family: ui-monospace, 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.9375rem;
+  padding: 0.4375rem 0.75rem;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  color: var(--c-text);
+  width: 100%;
+  transition: border-color 0.15s;
+}
+.pt-hex-input:focus { outline: none; border-color: #999; box-shadow: 0 0 0 3px rgba(0,0,0,.06); }
+.pt-hex-input.invalid { border-color: #dc3545 !important; }
+.pt-error-msg { font-size: 11.5px; color: #dc3545; min-height: 1em; }
+
+/* Scale */
+.pt-scale-row {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.pt-stop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+  min-width: 48px;
+  cursor: pointer;
+}
+.pt-stop-swatch {
+  width: 100%;
+  min-width: 48px;
+  height: 52px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,.06);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.pt-stop:hover .pt-stop-swatch {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(0,0,0,.15);
+}
+.pt-stop-name { font-size: 10.5px; font-weight: 700; color: var(--c-muted); letter-spacing: .2px; }
+.pt-stop-hex  { font-size: 9.5px; color: var(--c-muted); font-family: monospace; }
+
+/* Roles */
+.pt-roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+}
+.pt-role-card {
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.pt-role-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.pt-role-swatch {
+  height: 44px;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+.pt-role-meta {
+  padding: 8px 10px;
+  background: #fafafa;
+}
+.pt-role-token {
+  font-size: 11px;
+  font-family: ui-monospace, monospace;
+  font-weight: 700;
+  color: var(--c-text);
+  margin-bottom: 2px;
+}
+.pt-role-hex {
+  font-size: 11px;
+  font-family: ui-monospace, monospace;
+  color: var(--c-muted);
+  margin-bottom: 5px;
+}
+.pt-role-usage {
+  font-size: 11px;
+  color: var(--c-muted);
+  line-height: 1.4;
+}
+
+/* WCAG */
+.pt-wcag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.pt-wcag-card {
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.pt-wcag-preview {
+  padding: 14px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: .01em;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+.pt-wcag-body {
+  padding: 8px 10px;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pt-wcag-name { font-size: 11px; font-weight: 700; color: var(--c-text); }
+.pt-wcag-ratio-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pt-wcag-ratio {
+  font-size: 13.5px;
+  font-weight: 700;
+  font-family: ui-monospace, monospace;
+  color: var(--c-text);
+}
+.pt-wcag-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: .06em;
+}
+.pt-badge-aaa     { background: #dcfce7; color: #14532d; }
+.pt-badge-aa      { background: #dbeafe; color: #1e3a8a; }
+.pt-badge-aalarge { background: #fef9c3; color: #713f12; }
+.pt-badge-fail    { background: #fee2e2; color: #7f1d1d; }
+.pt-wcag-ctx { font-size: 10.5px; color: var(--c-muted); line-height: 1.35; }
+
+/* Notes */
+.pt-notes { display: flex; flex-direction: column; gap: 8px; }
+.pt-note {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 11px 14px;
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+}
+.pt-note-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: var(--c-border);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  color: var(--c-muted);
+  flex-shrink: 0;
+}
+.pt-note-title { font-size: 12.5px; font-weight: 700; color: var(--c-text); margin-bottom: 3px; }
+.pt-note-text  { font-size: 12px; color: var(--c-muted); line-height: 1.5; }
+
+/* Export */
+.pt-export-bar { display: flex; gap: 10px; flex-wrap: wrap; }
+.pt-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pt-export-btn:hover { background: var(--c-bg); border-color: #aaa; }
+.pt-export-btn.primary {
+  background: var(--c-black);
+  color: #fff;
+  border-color: var(--c-black);
+}
+.pt-export-btn.primary:hover { background: var(--c-black-hover); border-color: var(--c-black-hover); }
+
+/* Complement chip */
+.pt-comp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px 1px 4px;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: middle;
+  font-family: ui-monospace, monospace;
+}
+.pt-comp-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(0,0,0,.08);
+}
+
+/* Toast */
+.pt-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  background: var(--c-black);
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 9999;
+  white-space: nowrap;
+}
+.pt-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .pt-role-meta, .pt-wcag-body { background: #2a2b2f; }
+  .pt-note { background: #1a1b1e; }
+  .pt-badge-aaa     { background: #064e3b; color: #6ee7b7; }
+  .pt-badge-aa      { background: #1e3a8a; color: #93c5fd; }
+  .pt-badge-aalarge { background: #78350f; color: #fcd34d; }
+  .pt-badge-fail    { background: #7f1d1d; color: #fca5a5; }
+}
+</style>
+
+<div class="container py-4">
+  <div class="tool-page-header">
+    <h1 data-i18n="palette_h1">Color Palette Generator</h1>
+    <p data-i18n="palette_desc">Generate a complete color scale, semantic tokens, and WCAG contrast checks from a single primary color — all in your browser.</p>
+  </div>
+
+  <!-- Input -->
+  <div class="card mb-3">
+    <div class="card-header"><strong data-i18n="palette_input_label">Primary Color</strong></div>
+    <div class="card-body">
+      <div class="pt-input-row">
+        <input type="color" id="pt-picker" class="pt-color-native" value="#639922"
+               aria-label="Color picker" title="Pick a color" />
+        <div class="pt-hex-group">
+          <input type="text" id="pt-hex" class="pt-hex-input" value="#639922"
+                 maxlength="7" spellcheck="false" autocomplete="off"
+                 aria-label="HEX color code" placeholder="#RRGGBB" />
+          <div class="pt-error-msg" id="pt-err" role="alert"></div>
+        </div>
+        <button class="btn btn-primary" id="pt-gen-btn" type="button"
+                data-i18n="palette_generate">Generate Palette</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Color Scale -->
+  <div class="card mb-3">
+    <div class="card-header"><strong data-i18n="palette_scale_title">Color Scale</strong></div>
+    <div class="card-body">
+      <div class="pt-scale-row" id="pt-scale" role="list" aria-label="Color scale swatches"></div>
+      <div class="form-text mt-2" data-i18n="palette_scale_tip">Click any swatch to copy its HEX value.</div>
+    </div>
+  </div>
+
+  <!-- Semantic Roles -->
+  <div class="card mb-3">
+    <div class="card-header"><strong data-i18n="palette_roles_title">Semantic Roles</strong></div>
+    <div class="card-body">
+      <div class="pt-roles-grid" id="pt-roles"></div>
+    </div>
+  </div>
+
+  <!-- WCAG Contrast -->
+  <div class="card mb-3">
+    <div class="card-header"><strong data-i18n="palette_wcag_title">WCAG 2.1 Contrast Check</strong></div>
+    <div class="card-body">
+      <div class="pt-wcag-grid" id="pt-wcag"></div>
+    </div>
+  </div>
+
+  <!-- Strategy Notes -->
+  <div class="card mb-3">
+    <div class="card-header"><strong data-i18n="palette_notes_title">Color Strategy Notes</strong></div>
+    <div class="card-body">
+      <div class="pt-notes" id="pt-notes"></div>
+    </div>
+  </div>
+
+  <!-- Export -->
+  <div class="card mb-3">
+    <div class="card-header"><strong data-i18n="palette_export_title">Export</strong></div>
+    <div class="card-body">
+      <div class="pt-export-bar">
+        <button class="pt-export-btn primary" id="pt-copy-css" type="button"
+                aria-label="Copy CSS Variables">
+          <i class="ri-code-line"></i>
+          <span data-i18n="palette_copy_css">Copy CSS Variables</span>
+        </button>
+        <button class="pt-export-btn" id="pt-export-json" type="button"
+                aria-label="Export JSON palette file">
+          <i class="ri-download-2-line"></i>
+          <span data-i18n="palette_export_json">Export JSON</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-secondary small">
+    <strong data-i18n="tip">Tip:</strong>
+    <span data-i18n="palette_tip"> Colors are computed in HSL space — hue is preserved, only lightness shifts. Stop 600 is the closest to your input color.</span>
+  </div>
+</div>
+
+<div class="pt-toast" id="pt-toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  function tr(key, def) {
+    if (!window.t) return def || key;
+    const val = window.t(key);
+    return (val && val !== key) ? val : (def || key);
+  }
+
+  // ── Color conversion ──────────────────────────────────────────
+  function hexToRgb(hex) {
+    return {
+      r: parseInt(hex.slice(1, 3), 16),
+      g: parseInt(hex.slice(3, 5), 16),
+      b: parseInt(hex.slice(5, 7), 16)
+    };
+  }
+
+  function rgbToHex(r, g, b) {
+    return '#' + [r, g, b]
+      .map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const l = (max + min) / 2;
+    if (max === min) return { h: 0, s: 0, l: l * 100 };
+    const d = max - min;
+    const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    let h;
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      default: h = ((r - g) / d + 4) / 6;
+    }
+    return { h: h * 360, s: s * 100, l: l * 100 };
+  }
+
+  function hslToRgb(h, s, l) {
+    h /= 360; s /= 100; l /= 100;
+    if (s === 0) {
+      const v = Math.round(l * 255);
+      return { r: v, g: v, b: v };
+    }
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    const hue2rgb = (t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 0.5) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    };
+    return {
+      r: Math.round(hue2rgb(h + 1 / 3) * 255),
+      g: Math.round(hue2rgb(h) * 255),
+      b: Math.round(hue2rgb(h - 1 / 3) * 255)
+    };
+  }
+
+  // ── WCAG luminance ────────────────────────────────────────────
+  function luminance(r, g, b) {
+    return [r, g, b].reduce((sum, v, i) => {
+      const lin = v / 255 <= 0.03928 ? v / 255 / 12.92 : Math.pow((v / 255 + 0.055) / 1.055, 2.4);
+      return sum + lin * [0.2126, 0.7152, 0.0722][i];
+    }, 0);
+  }
+
+  function contrastRatio(hex1, hex2) {
+    const c1 = hexToRgb(hex1), c2 = hexToRgb(hex2);
+    const L1 = luminance(c1.r, c1.g, c1.b);
+    const L2 = luminance(c2.r, c2.g, c2.b);
+    const hi = Math.max(L1, L2), lo = Math.min(L1, L2);
+    return (hi + 0.05) / (lo + 0.05);
+  }
+
+  function wcagLevel(ratio) {
+    if (ratio >= 7)   return 'AAA';
+    if (ratio >= 4.5) return 'AA';
+    if (ratio >= 3)   return 'AA Large';
+    return 'Fail';
+  }
+
+  function badgeClass(level) {
+    return { 'AAA': 'pt-badge-aaa', 'AA': 'pt-badge-aa', 'AA Large': 'pt-badge-aalarge', 'Fail': 'pt-badge-fail' }[level];
+  }
+
+  function isValidHex(v) { return /^#[0-9a-fA-F]{6}$/.test(v); }
+
+  // ── Scale definition ──────────────────────────────────────────
+  const STOPS = [
+    { name: '100',  l: 96 },
+    { name: '200',  l: 91 },
+    { name: '300',  l: 82 },
+    { name: '400',  l: 70 },
+    { name: '500',  l: 58 },
+    { name: '600',  l: 46 },
+    { name: '700',  l: 36 },
+    { name: '800',  l: 27 },
+    { name: '900',  l: 18 },
+    { name: '1000', l: 10 },
+  ];
+
+  function generateScale(hex) {
+    const { r, g, b } = hexToRgb(hex);
+    const { h, s } = rgbToHsl(r, g, b);
+    return STOPS.map(({ name, l }, i) => {
+      const satFactor = (i <= 1 || i >= 8) ? 0.85 : 1;
+      const sat = Math.min(100, s * satFactor);
+      const rgb = hslToRgb(h, sat, l);
+      return { name, hex: rgbToHex(rgb.r, rgb.g, rgb.b) };
+    });
+  }
+
+  // ── State ─────────────────────────────────────────────────────
+  const STORAGE_KEY = 'np_palette_color';
+  let currentHex = localStorage.getItem(STORAGE_KEY) || '#639922';
+  let currentScale = generateScale(currentHex);
+
+  // ── Toast ─────────────────────────────────────────────────────
+  const toastEl = document.getElementById('pt-toast');
+  let toastTimer;
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2000);
+  }
+
+  // ── Clipboard ─────────────────────────────────────────────────
+  async function copyText(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+    } catch (e) { /* silent fallback */ }
+  }
+
+  // ── Render: Scale ─────────────────────────────────────────────
+  function renderScale() {
+    const el = document.getElementById('pt-scale');
+    el.innerHTML = '';
+    currentScale.forEach(({ name, hex }) => {
+      const stop = document.createElement('div');
+      stop.className = 'pt-stop';
+      stop.setAttribute('role', 'listitem');
+      stop.setAttribute('aria-label', `Stop ${name}: ${hex}`);
+      stop.title = `${name} · ${hex}`;
+      stop.innerHTML =
+        `<div class="pt-stop-swatch" style="background:${hex}"></div>` +
+        `<div class="pt-stop-name">${name}</div>` +
+        `<div class="pt-stop-hex">${hex}</div>`;
+      stop.addEventListener('click', async () => {
+        await copyText(hex);
+        showToast(`${hex} — ${tr('a_copied', 'Copied')}`);
+      });
+      el.appendChild(stop);
+    });
+  }
+
+  // ── Render: Roles ─────────────────────────────────────────────
+  function getRoleDefs() {
+    return [
+      { token: '--color-bg-subtle',     idx: 0, usage: tr('palette_role_bg_subtle',    'Page background, section stripes, table rows') },
+      { token: '--color-bg-muted',      idx: 1, usage: tr('palette_role_bg_muted',     'Card background, tag background, sidebar') },
+      { token: '--color-border-light',  idx: 2, usage: tr('palette_role_border_light', 'Dividers, idle input borders') },
+      { token: '--color-border',        idx: 3, usage: tr('palette_role_border',       'Card border, focused outline') },
+      { token: '--color-primary',       idx: 5, usage: tr('palette_role_primary',      'CTA button, links, primary icon') },
+      { token: '--color-primary-hover', idx: 6, usage: tr('palette_role_primary_hover','Hover / active state of buttons') },
+      { token: '--color-text-subtle',   idx: 7, usage: tr('palette_role_text_subtle',  'Labels, captions, placeholders') },
+      { token: '--color-text',          idx: 8, usage: tr('palette_role_text',         'Headings, important body text') },
+    ];
+  }
+
+  function renderRoles() {
+    const el = document.getElementById('pt-roles');
+    el.innerHTML = '';
+    getRoleDefs().forEach(({ token, idx, usage }) => {
+      const hex = currentScale[idx].hex;
+      const card = document.createElement('div');
+      card.className = 'pt-role-card';
+      card.setAttribute('aria-label', `${token}: ${hex}`);
+      card.title = `Click to copy ${hex}`;
+      card.innerHTML =
+        `<div class="pt-role-swatch" style="background:${hex}"></div>` +
+        `<div class="pt-role-meta">` +
+          `<div class="pt-role-token">${token}</div>` +
+          `<div class="pt-role-hex">${hex}</div>` +
+          `<div class="pt-role-usage">${usage}</div>` +
+        `</div>`;
+      card.addEventListener('click', async () => {
+        await copyText(hex);
+        showToast(`${hex} — ${tr('a_copied', 'Copied')}`);
+      });
+      el.appendChild(card);
+    });
+  }
+
+  // ── Render: WCAG ──────────────────────────────────────────────
+  function renderWcag() {
+    const primary  = currentScale[5].hex;
+    const bgSubtle = currentScale[0].hex;
+    const text     = currentScale[8].hex;
+
+    const pairs = [
+      { fg: primary,   bg: '#ffffff', name: tr('palette_wcag_p1', 'Primary on White'),    ctx: tr('palette_wcag_c1', 'Text link / icon on white background') },
+      { fg: '#ffffff', bg: primary,   name: tr('palette_wcag_p2', 'White on Primary'),    ctx: tr('palette_wcag_c2', 'Label text inside a button') },
+      { fg: text,      bg: '#ffffff', name: tr('palette_wcag_p3', 'Text on White'),       ctx: tr('palette_wcag_c3', 'Regular body text on white') },
+      { fg: text,      bg: bgSubtle,  name: tr('palette_wcag_p4', 'Text on Bg Subtle'),   ctx: tr('palette_wcag_c4', 'Text in colored cards or sections') },
+      { fg: primary,   bg: bgSubtle,  name: tr('palette_wcag_p5', 'Primary on Bg Subtle'),ctx: tr('palette_wcag_c5', 'Links / icons in light-tinted areas') },
+    ];
+
+    const el = document.getElementById('pt-wcag');
+    el.innerHTML = '';
+    pairs.forEach(({ fg, bg, name, ctx }) => {
+      const ratio = contrastRatio(fg, bg);
+      const level = wcagLevel(ratio);
+      const card = document.createElement('div');
+      card.className = 'pt-wcag-card';
+      card.innerHTML =
+        `<div class="pt-wcag-preview" style="color:${fg};background:${bg}">Aa Bb Cc 12</div>` +
+        `<div class="pt-wcag-body">` +
+          `<div class="pt-wcag-name">${name}</div>` +
+          `<div class="pt-wcag-ratio-row">` +
+            `<span class="pt-wcag-ratio">${ratio.toFixed(2)} : 1</span>` +
+            `<span class="pt-wcag-badge ${badgeClass(level)}">${level}</span>` +
+          `</div>` +
+          `<div class="pt-wcag-ctx">${ctx}</div>` +
+        `</div>`;
+      el.appendChild(card);
+    });
+  }
+
+  // ── Render: Notes ─────────────────────────────────────────────
+  function renderNotes(hex) {
+    const { r, g, b } = hexToRgb(hex);
+    const { h, s } = rgbToHsl(r, g, b);
+
+    let tempNote;
+    if (s < 10) {
+      tempNote = tr('palette_note_achromatic', 'Near-achromatic color — works as a neutral. Pair with a vivid accent for branded highlights.');
+    } else if ((h >= 0 && h <= 30) || h >= 300) {
+      tempNote = tr('palette_note_warm', 'Warm hue (red / orange / pink range). Balance with cool neutrals like blue-gray or slate for professional layouts.');
+    } else if (h >= 150 && h <= 270) {
+      tempNote = tr('palette_note_cool', 'Cool hue (green / teal / blue range). Pair with warm neutrals — cream, sand, or warm gray — to avoid a sterile feel.');
+    } else {
+      tempNote = tr('palette_note_mid', 'Mid-range hue (yellow-green or red-purple). Flexible pairing; test with both warm and cool neutrals.');
+    }
+
+    const compH = Math.round((h + 180) % 360);
+    const compRgb = hslToRgb(compH, Math.min(s, 70), 46);
+    const compHex = rgbToHex(compRgb.r, compRgb.g, compRgb.b);
+
+    const compChip =
+      `<span class="pt-comp-chip">` +
+        `<span class="pt-comp-dot" style="background:${compHex}"></span>` +
+        `${compHex}` +
+      `</span>`;
+
+    const notes = [
+      {
+        icon: 'ri-cursor-line',
+        title: tr('palette_note1_t', 'CTA & Actions'),
+        text: tr('palette_note1_b', 'Use stop 600 (primary) for main buttons and links. Stop 700 for hover/active. Disabled states: stop 300 background with stop 500 text.'),
+      },
+      {
+        icon: 'ri-layout-3-line',
+        title: tr('palette_note2_t', 'Backgrounds & Surfaces'),
+        text: tr('palette_note2_b', 'Stops 100–200 for section backgrounds and cards. Keep colored surfaces under 30 % of screen area to prevent visual overload.'),
+      },
+      {
+        icon: 'ri-shield-check-line',
+        title: tr('palette_note3_t', 'WCAG 2.1 Standards'),
+        text: tr('palette_note3_b', 'Normal text ≥ 4.5 : 1. Large text (≥ 18 px or ≥ 14 px bold) ≥ 3 : 1. Target AAA (≥ 7 : 1) for critical body copy.'),
+      },
+      {
+        icon: 'ri-palette-line',
+        title: tr('palette_note4_t', 'Temperature & Pairings'),
+        text: tempNote,
+      },
+      {
+        icon: 'ri-contrast-drop-line',
+        title: tr('palette_note5_t', 'Complementary Accent'),
+        text: `${tr('palette_note5_pre', 'Consider')} ${compChip} (${compH}°) ${tr('palette_note5_post', 'as a secondary accent for complementary CTAs or highlights.')}`,
+      },
+    ];
+
+    const el = document.getElementById('pt-notes');
+    el.innerHTML = '';
+    notes.forEach(({ icon, title, text }) => {
+      const div = document.createElement('div');
+      div.className = 'pt-note';
+      div.innerHTML =
+        `<div class="pt-note-icon"><i class="${icon}"></i></div>` +
+        `<div>` +
+          `<div class="pt-note-title">${title}</div>` +
+          `<div class="pt-note-text">${text}</div>` +
+        `</div>`;
+      el.appendChild(div);
+    });
+  }
+
+  // ── Full render ───────────────────────────────────────────────
+  function render(hex) {
+    currentHex = hex;
+    localStorage.setItem(STORAGE_KEY, hex);
+    currentScale = generateScale(hex);
+    renderScale();
+    renderRoles();
+    renderWcag();
+    renderNotes(hex);
+  }
+
+  // ── Export: CSS ───────────────────────────────────────────────
+  function buildCss() {
+    const roleVars = [
+      ['--color-bg-subtle',     currentScale[0].hex],
+      ['--color-bg-muted',      currentScale[1].hex],
+      ['--color-border-light',  currentScale[2].hex],
+      ['--color-border',        currentScale[3].hex],
+      ['--color-primary',       currentScale[5].hex],
+      ['--color-primary-hover', currentScale[6].hex],
+      ['--color-text-subtle',   currentScale[7].hex],
+      ['--color-text',          currentScale[8].hex],
+    ].map(([k, v]) => `  ${k}: ${v};`).join('\n');
+
+    const scaleVars = currentScale
+      .map(({ name, hex }) => `  --color-${name}: ${hex};`)
+      .join('\n');
+
+    return `:root {\n${roleVars}\n\n  /* Full scale */\n${scaleVars}\n}`;
+  }
+
+  // ── Export: JSON ──────────────────────────────────────────────
+  function buildJson() {
+    const scale = {};
+    currentScale.forEach(({ name, hex }) => { scale[name] = hex; });
+
+    const roles = {
+      'bg-subtle':     currentScale[0].hex,
+      'bg-muted':      currentScale[1].hex,
+      'border-light':  currentScale[2].hex,
+      'border':        currentScale[3].hex,
+      'primary':       currentScale[5].hex,
+      'primary-hover': currentScale[6].hex,
+      'text-subtle':   currentScale[7].hex,
+      'text':          currentScale[8].hex,
+    };
+
+    const wcag = {};
+    [
+      ['primary-on-white',     currentScale[5].hex, '#ffffff'],
+      ['white-on-primary',     '#ffffff',            currentScale[5].hex],
+      ['text-on-white',        currentScale[8].hex,  '#ffffff'],
+      ['text-on-bg-subtle',    currentScale[8].hex,  currentScale[0].hex],
+      ['primary-on-bg-subtle', currentScale[5].hex,  currentScale[0].hex],
+    ].forEach(([name, fg, bg]) => {
+      const ratio = contrastRatio(fg, bg);
+      wcag[name] = { ratio: +ratio.toFixed(2), level: wcagLevel(ratio) };
+    });
+
+    return JSON.stringify({ primary: currentHex, scale, roles, wcag }, null, 2);
+  }
+
+  document.getElementById('pt-copy-css').addEventListener('click', async () => {
+    await copyText(buildCss());
+    showToast(tr('palette_copied_css', 'CSS Variables copied!'));
+  });
+
+  document.getElementById('pt-export-json').addEventListener('click', () => {
+    const blob = new Blob([buildJson()], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'palette.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    showToast(tr('palette_json_saved', 'palette.json downloaded!'));
+  });
+
+  // ── Input sync ────────────────────────────────────────────────
+  const picker = document.getElementById('pt-picker');
+  const hexIn  = document.getElementById('pt-hex');
+  const errEl  = document.getElementById('pt-err');
+
+  picker.addEventListener('input', () => {
+    hexIn.value = picker.value;
+    hexIn.classList.remove('invalid');
+    errEl.textContent = '';
+    render(picker.value);
+  });
+
+  hexIn.addEventListener('input', () => {
+    const v = hexIn.value.trim();
+    if (isValidHex(v)) {
+      hexIn.classList.remove('invalid');
+      errEl.textContent = '';
+      picker.value = v;
+      render(v);
+    } else {
+      hexIn.classList.add('invalid');
+      errEl.textContent = tr('palette_invalid_hex', 'Enter a valid 6-digit HEX color (e.g. #639922)');
+    }
+  });
+
+  document.getElementById('pt-gen-btn').addEventListener('click', () => {
+    const v = hexIn.value.trim();
+    if (isValidHex(v)) {
+      render(v);
+      showToast(tr('palette_generated', 'Palette generated!'));
+    } else {
+      hexIn.classList.add('invalid');
+      errEl.textContent = tr('palette_invalid_hex', 'Enter a valid 6-digit HEX color (e.g. #639922)');
+    }
+  });
+
+  // ── Re-render when language changes ──────────────────────────
+  window.onI18nApply = () => render(currentHex);
+
+  // ── Init ──────────────────────────────────────────────────────
+  picker.value = currentHex;
+  hexIn.value = currentHex;
+  render(currentHex);
+})();
+</script>

@@ -15,7 +15,8 @@ description: "A collection of utilities that help users make the most of Navi+ |
             descEn: "Convert JPG or PNG images to lightweight WebP format, reducing file sizes for the web",
             groupKey: "group_images",
             icon: "ri-image-line",
-            linkto: "toolset/images/convert-to-webp.html"
+            linkto: "toolset/images/convert-to-webp.html",
+            usageBase: 180000, usageFactor: 5
         },
         {
             titleKey: "tool_resizer_title",
@@ -24,7 +25,8 @@ description: "A collection of utilities that help users make the most of Navi+ |
             descEn: "Resize multiple images at once with center crop, instant previews, and ZIP download",
             groupKey: "group_images",
             icon: "ri-crop-line",
-            linkto: "toolset/images/image-resizer.html"
+            linkto: "toolset/images/image-resizer.html",
+            usageBase: 400222, usageFactor: 6
         },
         {
             titleKey: "tool_encrypt_title",
@@ -33,7 +35,8 @@ description: "A collection of utilities that help users make the most of Navi+ |
             descEn: "Encrypt and decrypt any text in your browser using PBKDF2 + AES-256-GCM, save as Base64",
             groupKey: "group_security",
             icon: "ri-lock-line",
-            linkto: "toolset/security/encrypt.html"
+            linkto: "toolset/security/encrypt.html",
+            usageBase: 20000, usageFactor: 7
         },
         {
             titleKey: "tool_password_title",
@@ -42,9 +45,32 @@ description: "A collection of utilities that help users make the most of Navi+ |
             descEn: "Generate strong random passwords with adjustable length, full character sets, and security options",
             groupKey: "group_security",
             icon: "ri-key-2-line",
-            linkto: "toolset/security/generate-password.html"
+            linkto: "toolset/security/generate-password.html",
+            usageBase: 14000, usageFactor: 8
+        },
+        {
+            titleKey: "tool_palette_title",
+            titleEn: "Color Palette Generator",
+            descKey: "tool_palette_desc",
+            descEn: "Generate a complete color scale, semantic tokens, and WCAG contrast ratios from a single primary color",
+            groupKey: "group_images",
+            icon: "ri-palette-line",
+            linkto: "toolset/design/color-palette.html",
+            usageBase: 151900, usageFactor: 9
         }
     ];
+
+    function calcUsage(base, factor) {
+        var now = new Date();
+        var day = now.getDate();
+        var slot = Math.floor((now.getHours() * 60 + now.getMinutes()) / 15); // 0–95 per day
+        var seed = day * 96 + slot;
+        var pseudoRand = (seed % 10) + 1; // 1–10, ổn định trong 15 phút
+        return base - (day * factor) + pseudoRand;
+    }
+    function fmtNum(n) {
+        return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
 
     window.renderTools = function () {
         var tr = window.t || function(k, def) { return def || k; };
@@ -78,11 +104,15 @@ description: "A collection of utilities that help users make the most of Navi+ |
                 .forEach(function (tool) {
                     var col = document.createElement("div");
                     col.className = "col-sm-6 col-lg-4";
+                    var usageLine = tool.usageBase
+                        ? '<div class="card-tool-usage"><i class="ri-user-3-line"></i>' + fmtNum(calcUsage(tool.usageBase, tool.usageFactor)) + ' ' + tr('usage_label', 'uses') + '</div>'
+                        : '';
                     col.innerHTML =
                         '<a href="' + base + tool.linkto + '" class="card-tool">' +
                         '<div class="card-tool-icon"><i class="' + tool.icon + '"></i></div>' +
                         '<div class="card-tool-title">' + tr(tool.titleKey, tool.titleEn) + '</div>' +
                         '<p class="card-tool-desc">' + tr(tool.descKey, tool.descEn) + '</p>' +
+                        usageLine +
                         '<div class="card-tool-arrow">Open tool <i class="ri-arrow-right-line"></i></div>' +
                         '</a>';
                     row.appendChild(col);

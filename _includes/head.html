@@ -131,6 +131,9 @@
   .np-mega-title { font-size: 13.5px; font-weight: 600; color: #0f1117; margin-bottom: 2px; line-height: 1.2; }
   .np-mega-desc { font-size: 12px; color: #6b7280; line-height: 1.4; }
 
+  /* ── Toolbox mega (right-aligned) ────────────────────────── */
+  .np-toolbox-mega { left: auto; right: 0; transform: none; }
+
   /* ── CTA Buttons ──────────────────────────────────────────── */
   .np-header-cta { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
 
@@ -435,9 +438,67 @@
         </div>
       </li>
 
-      <!-- Tools (active) -->
+      <!-- Toolbox dropdown -->
       <li class="np-nav-item">
-        <a href="https://tools.naviplus.io/" class="np-nav-link active" aria-current="page">Tools</a>
+        <span class="np-nav-link active" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false" aria-current="page">
+          Toolbox
+          <svg class="np-nav-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <div class="np-mega np-toolbox-mega" role="region" aria-label="Toolbox">
+          <div class="np-mega-inner">
+
+            <div class="np-mega-header">Design &amp; Images</div>
+            <div class="np-mega-grid">
+              <a href="https://tools.naviplus.io/toolset/images/convert-to-webp.html" class="np-mega-item">
+                <div class="np-mega-icon" aria-hidden="true"><i class="ri-image-line"></i></div>
+                <div class="np-mega-text">
+                  <div class="np-mega-title">Batch Image Converter</div>
+                  <div class="np-mega-desc">Convert to WebP, PNG, JPG, AVIF and more</div>
+                </div>
+              </a>
+              <a href="https://tools.naviplus.io/toolset/images/image-resizer.html" class="np-mega-item">
+                <div class="np-mega-icon" aria-hidden="true"><i class="ri-crop-line"></i></div>
+                <div class="np-mega-text">
+                  <div class="np-mega-title">Image Resizer</div>
+                  <div class="np-mega-desc">Batch resize with center crop &amp; ZIP export</div>
+                </div>
+              </a>
+              <a href="https://tools.naviplus.io/toolset/design/color-palette.html" class="np-mega-item">
+                <div class="np-mega-icon" aria-hidden="true"><i class="ri-palette-line"></i></div>
+                <div class="np-mega-text">
+                  <div class="np-mega-title">Color Palette Generator</div>
+                  <div class="np-mega-desc">Color scale, tokens &amp; WCAG contrast ratios</div>
+                </div>
+              </a>
+            </div>
+
+            <div class="np-mega-header" style="margin-top:16px;">Security</div>
+            <div class="np-mega-grid">
+              <a href="https://tools.naviplus.io/toolset/security/encrypt.html" class="np-mega-item">
+                <div class="np-mega-icon" aria-hidden="true"><i class="ri-lock-line"></i></div>
+                <div class="np-mega-text">
+                  <div class="np-mega-title">AES-GCM Encryption</div>
+                  <div class="np-mega-desc">Client-side text encryption &amp; decryption</div>
+                </div>
+              </a>
+              <a href="https://tools.naviplus.io/toolset/security/generate-password.html" class="np-mega-item">
+                <div class="np-mega-icon" aria-hidden="true"><i class="ri-key-2-line"></i></div>
+                <div class="np-mega-text">
+                  <div class="np-mega-title">Password Generator</div>
+                  <div class="np-mega-desc">Strong random passwords, fully offline</div>
+                </div>
+              </a>
+            </div>
+
+            <div class="np-dropdown-divider" style="margin-top:12px;"></div>
+            <a href="https://tools.naviplus.io/" class="np-dropdown-item" style="justify-content:center;color:#377e62;">
+              View all tools <i class="ri-arrow-right-line" style="font-size:12px;margin-left:2px;" aria-hidden="true"></i>
+            </a>
+
+          </div>
+        </div>
       </li>
 
     </ul>
@@ -602,9 +663,71 @@
         </ul>
       </li>
 
-      <!-- Tools (active) -->
+      <!-- Toolbox accordion -->
       <li>
-        <a href="https://tools.naviplus.io/" class="np-mob-link active" aria-current="page">Tools</a>
+        <button class="np-mob-link active" aria-expanded="false" aria-controls="np-mob-toolbox" id="np-mob-toolbox-btn" aria-current="page">
+          Toolbox
+          <svg class="np-mob-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <ul class="np-mob-sub" id="np-mob-toolbox" role="list" aria-labelledby="np-mob-toolbox-btn">
+          <li><div style="padding:8px 20px 2px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ba3b5;">Design &amp; Images</div></li>
+          <li>
+            <a href="https://tools.naviplus.io/toolset/images/convert-to-webp.html" class="np-mob-sub-item">
+              <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-image-line"></i></span>
+              <span>
+                <div class="np-mob-sub-title">Batch Image Converter</div>
+                <div class="np-mob-sub-desc">WebP, PNG, JPG, AVIF and more</div>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a href="https://tools.naviplus.io/toolset/images/image-resizer.html" class="np-mob-sub-item">
+              <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-crop-line"></i></span>
+              <span>
+                <div class="np-mob-sub-title">Image Resizer</div>
+                <div class="np-mob-sub-desc">Batch resize with center crop</div>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a href="https://tools.naviplus.io/toolset/design/color-palette.html" class="np-mob-sub-item">
+              <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-palette-line"></i></span>
+              <span>
+                <div class="np-mob-sub-title">Color Palette Generator</div>
+                <div class="np-mob-sub-desc">Color scale &amp; WCAG contrast checks</div>
+              </span>
+            </a>
+          </li>
+          <li><div class="np-mob-divider"></div></li>
+          <li><div style="padding:8px 20px 2px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ba3b5;">Security</div></li>
+          <li>
+            <a href="https://tools.naviplus.io/toolset/security/encrypt.html" class="np-mob-sub-item">
+              <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-lock-line"></i></span>
+              <span>
+                <div class="np-mob-sub-title">AES-GCM Encryption</div>
+                <div class="np-mob-sub-desc">Client-side text encryption</div>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a href="https://tools.naviplus.io/toolset/security/generate-password.html" class="np-mob-sub-item">
+              <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-key-2-line"></i></span>
+              <span>
+                <div class="np-mob-sub-title">Password Generator</div>
+                <div class="np-mob-sub-desc">Strong random passwords, offline</div>
+              </span>
+            </a>
+          </li>
+          <li><div class="np-mob-divider"></div></li>
+          <li>
+            <a href="https://tools.naviplus.io/" class="np-mob-sub-item">
+              <span class="np-mob-sub-icon" style="background:#f0faf6;color:#377e62;" aria-hidden="true"><i class="ri-apps-line"></i></span>
+              <span><div class="np-mob-sub-title" style="color:#377e62;">View all tools</div></span>
+            </a>
+          </li>
+        </ul>
       </li>
 
     </ul>
