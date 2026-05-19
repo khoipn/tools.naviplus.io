@@ -598,7 +598,7 @@ description: "Free color picker by Navi+. Upload images, hover to magnify, click
 
   addBtn.addEventListener('click',()=>{ addInst(); saveState(); });
 
-  /* ── Init ─────────────────────────────────────────────────────── */
-  restoreState();
+  /* ── Init — defer until DOMContentLoaded so i18n.js has loaded ── */
+  document.addEventListener('DOMContentLoaded', restoreState);
 })();
 </script>

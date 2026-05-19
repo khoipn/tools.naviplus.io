@@ -115,6 +115,7 @@ description: "Free image converter by Navi+. Convert images to WebP, PNG, JPG, o
     const ext = FORMAT_EXT[formatSelect.value] || 'webp';
     zipBtn.textContent = tr('dl_zip') + ' (.' + ext + ')';
   }
+  window.onI18nApply = updateZipBtn;
 
   formatSelect.addEventListener('change', () => {
     const isLossless = LOSSLESS.has(formatSelect.value);
