@@ -2262,6 +2262,9 @@
     document.querySelectorAll('[data-np-showcase]').forEach(function(el) {
       el.href = 'https://showcase.naviplus.io' + (_sl ? '/' + _sl : '');
     });
+    document.querySelectorAll('[data-np-self]').forEach(function(el) {
+      el.href = (currentLang === 'en' ? '' : '/' + currentLang) + el.getAttribute('data-np-self');
+    });
     if (typeof window.renderTools === 'function') window.renderTools();
     if (typeof window.renderToolTabs === 'function') window.renderToolTabs();
     if (typeof window.onI18nApply === 'function') window.onI18nApply();
