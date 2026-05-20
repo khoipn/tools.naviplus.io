@@ -82,13 +82,12 @@
   }
   .np-dropdown-item:hover { background: #f0f1f5; color: #0f1117; }
   .np-dropdown-divider { height: 1px; background: #eceef2; margin: 6px 0; }
+  .np-dropdown-label { padding: 8px 12px 4px; font-size: 11px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; color: #9ba3b5; }
 
-  /* ── Mega dropdown (Features) ─────────────────────────────── */
+  /* ── Mega dropdown ─────────────────────────────────────────── */
   .np-mega {
-    position: absolute; top: 100%; left: 50%;
-    transform: translateX(-50%);
+    position: absolute; top: 100%; left: 0;
     padding-top: 8px;
-    width: 560px;
     opacity: 0; visibility: hidden;
     transition: opacity .18s ease, visibility .18s;
     pointer-events: none;
@@ -114,6 +113,10 @@
     margin-bottom: 12px;
   }
   .np-mega-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .np-mega-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .np-mega-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; }
+  .np-mega-col-sep { padding-left: 16px; border-left: 1px solid #eceef2; margin-left: 8px; }
+
   .np-mega-item {
     display: flex; align-items: flex-start; gap: 12px;
     padding: 10px 12px; border-radius: 10px;
@@ -131,14 +134,47 @@
   .np-mega-title { font-size: 13.5px; font-weight: 600; color: #0f1117; margin-bottom: 2px; line-height: 1.2; }
   .np-mega-desc { font-size: 12px; color: #6b7280; line-height: 1.4; }
 
-  /* ── Toolbox simple dropdown (right-aligned) ─────────────── */
-  .np-toolbox-dd { left: auto; right: 0; }
-  .np-toolbox-dd .np-dropdown-inner { min-width: 230px; }
-  .np-dropdown-section {
-    font-size: 10.5px; font-weight: 700; letter-spacing: 1px;
-    text-transform: uppercase; color: #9ba3b5;
-    padding: 8px 12px 4px;
+  /* Brand block */
+  .np-mega-brand { padding: 6px 10px 14px; border-bottom: 1px solid #eceef2; margin-bottom: 8px; }
+  .np-mega-brand-name { font-size: 13px; font-weight: 700; color: #0f1117; margin-bottom: 4px; }
+  .np-mega-brand-desc { font-size: 12px; color: #6b7280; line-height: 1.4; }
+
+  /* Ideas cards */
+  .np-mega-idea { display: flex; align-items: flex-start; gap: 10px; padding: 7px 10px; border-radius: 8px; text-decoration: none; transition: background .12s; }
+  .np-mega-idea:hover { background: #f7f8fa; }
+  .np-mega-idea-img { width: 64px; height: 40px; border-radius: 5px; object-fit: cover; flex-shrink: 0; background: #eceef2; }
+  .np-mega-idea-title { font-size: 12px; font-weight: 400; color: #6b7280; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  /* CTA install buttons */
+  .np-mega-cta-group { display: flex; flex-direction: column; gap: 5px; padding: 10px 4px 2px; border-top: 1px solid #eceef2; margin-top: 8px; }
+  .np-mega-cta-btn { display: flex; align-items: center; gap: 7px; padding: 7px 10px; border-radius: 7px; font-size: 12.5px; font-weight: 600; text-decoration: none; transition: background .12s; white-space: nowrap; }
+  .np-mega-cta-shopify { background: #eaf2ec; color: #1c5f3b; }
+  .np-mega-cta-shopify:hover { background: #d4e8da; }
+  .np-mega-cta-wp { background: #e8f0f7; color: #1a4f7a; }
+  .np-mega-cta-wp:hover { background: #d1e4f0; }
+  .np-mega-cta-web { background: #f5f6fa; color: #3d4352; }
+  .np-mega-cta-web:hover { background: #eceef2; }
+
+  /* Tools intro */
+  .np-tools-intro { padding: 8px 10px 14px; border-bottom: 1px solid #eceef2; margin-bottom: 8px; }
+  .np-tools-intro-head { font-size: 13px; font-weight: 700; color: #0f1117; margin-bottom: 5px; }
+  .np-tools-intro-desc { font-size: 12px; color: #6b7280; line-height: 1.5; }
+
+  /* Plain guide links */
+  .np-guide-link {
+    display: block; padding: 5px 10px; border-radius: 6px;
+    font-size: 12.5px; font-weight: 400; color: #6b7280;
+    text-decoration: none; transition: background .12s, color .12s;
+    white-space: nowrap;
   }
+  .np-guide-link:hover { background: #f7f8fa; color: #0f1117; }
+  .np-guide-link-footer {
+    display: block; padding: 5px 10px; margin-top: 6px;
+    border-top: 1px solid #eceef2; padding-top: 10px;
+    font-size: 12px; color: #9ba3b5; text-decoration: none;
+    transition: color .12s;
+  }
+  .np-guide-link-footer:hover { color: #377e62; }
 
   /* ── CTA Buttons ──────────────────────────────────────────── */
   .np-header-cta { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
@@ -238,7 +274,7 @@
     overflow: hidden;
     max-height: 0; transition: max-height .3s cubic-bezier(.4,0,.2,1);
   }
-  .np-mob-sub.is-open { max-height: 600px; }
+  .np-mob-sub.is-open { max-height: 900px; }
 
   .np-mob-sub-item {
     display: flex; align-items: center; gap: 12px;
@@ -257,6 +293,9 @@
   .np-mob-sub-title { font-size: 13.5px; font-weight: 600; color: #0f1117; line-height: 1.2; }
   .np-mob-sub-desc { font-size: 12px; color: #9ba3b5; line-height: 1.3; margin-top: 1px; }
   .np-mob-divider { height: 1px; background: #f0f1f5; margin: 4px 20px; }
+  .np-mob-sub-label { padding: 8px 20px 2px; font-size: 11px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; color: #9ba3b5; }
+  .np-mob-sub-plain { display: block; padding: 9px 20px; font-size: 14px; color: #3d4352; text-decoration: none; transition: background .12s; }
+  .np-mob-sub-plain:hover, .np-mob-sub-plain:active { background: #f7f8fa; color: #0f1117; }
 
   .np-mob-cta {
     padding: 16px 20px 20px;
@@ -282,6 +321,25 @@
   }
   .np-mob-btn-secondary:hover { background: #377e62; color: white; }
 
+  /* Mobile lang strip */
+  .np-mob-lang {
+    padding: 4px 20px 16px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .np-mob-lang-item {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 12px; border-radius: 20px;
+    text-decoration: none; color: #3d4352;
+    font-size: 13px; font-weight: 500;
+    border: 1px solid #e4e6ec;
+    transition: background .12s, color .12s, border-color .12s;
+    cursor: pointer; background: none;
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+  }
+  .np-mob-lang-item:hover { background: #f0f1f5; }
+  .np-mob-lang-item.active { background: #377e62; color: white; border-color: #377e62; }
+
   @media (max-width: 960px) {
     .np-nav-links { display: none; }
     .np-header-cta { display: flex; margin-left: auto; gap: 6px; }
@@ -297,7 +355,7 @@
     .np-hbtn-secondary { padding: 7px 10px; }
   }
 
-  /* ── Lang switcher items ─────────────────────────────────── */
+  /* ── Lang switcher (desktop) ──────────────────────────────── */
   .np-lang { position: relative; }
   .np-lang-btn {
     display: inline-flex; align-items: center; gap: 5px;
@@ -331,6 +389,7 @@
     text-decoration: none; color: #3d4352;
     font-size: 13px; font-weight: 500;
     transition: background .12s; white-space: nowrap;
+    cursor: pointer;
   }
   .np-lang-item:hover { background: #f0f1f5; color: #0f1117; }
   .np-lang-item.active { color: #377e62; font-weight: 600; }
@@ -341,7 +400,7 @@
   <nav class="np-nav" aria-label="Main navigation">
 
     <!-- Logo -->
-    <a href="https://naviplus.io/" class="np-nav-logo" aria-label="Navi+ Menu Builder – Home">
+    <a href="https://naviplus.io/" class="np-nav-logo" data-np-main="/" aria-label="Navi+ Menu Builder – Home">
       <picture>
         <source srcset="https://pub-b8f5722253704f58a14ff3de9b68927a.r2.dev/static/logo/webp/logo-navi-dark.webp" media="(prefers-color-scheme: dark)">
         <img src="https://pub-b8f5722253704f58a14ff3de9b68927a.r2.dev/static/logo/webp/logo-navi-light.webp" alt="Navi+ Menu Builder" height="28" width="auto" />
@@ -351,53 +410,195 @@
     <!-- Desktop nav links -->
     <ul class="np-nav-links" role="list">
 
-      <!-- Features -->
+      <!-- Services -->
       <li class="np-nav-item">
-        <span class="np-nav-link" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
-          <span data-i18n="nav_features">Features</span>
+        <button class="np-nav-link" aria-haspopup="true">
+          <span data-i18n="nav_services">Services</span>
           <svg class="np-nav-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-        </span>
-        <div class="np-mega" role="region" aria-label="Features">
+        </button>
+        <div class="np-mega" style="width:780px;left:0;" role="region" aria-label="Services">
           <div class="np-mega-inner">
-            <div class="np-mega-header" data-i18n="feat_navigation_types">Navigation types</div>
-            <div class="np-mega-grid">
-              <a href="https://naviplus.io/features/tab-bar/" class="np-mega-item">
-                <div class="np-mega-icon" aria-hidden="true"><i class="ri-layout-bottom-2-line"></i></div>
-                <div class="np-mega-text">
-                  <div class="np-mega-title" data-i18n="feat_tab_bar">Tab Bar</div>
-                  <div class="np-mega-desc" data-i18n="feat_tab_bar_desc">Fixed bottom nav for mobile, like a native app</div>
+            <div class="np-mega-2col">
+
+              <!-- Col 1: Navi+ Menu Builder -->
+              <div>
+                <div class="np-mega-brand">
+                  <div class="np-mega-brand-name">Navi+ Menu Builder</div>
+                  <div class="np-mega-brand-desc" data-i18n="nav_services_brand_desc">The navigation builder for ecommerce — no code, no conflicts.</div>
                 </div>
-              </a>
-              <a href="https://naviplus.io/features/mega-menu/" class="np-mega-item">
-                <div class="np-mega-icon" aria-hidden="true"><i class="ri-layout-masonry-line"></i></div>
-                <div class="np-mega-text">
-                  <div class="np-mega-title" data-i18n="feat_mega_menu">Mega Menu</div>
-                  <div class="np-mega-desc" data-i18n="feat_mega_menu_desc">Rich dropdown with columns, images & links</div>
+
+                <a href="https://naviplus.io/why-navi/" class="np-mega-item" data-np-main="/why-navi/">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-question-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_guide_what_is">Why Navi+?</div>
+                    <div class="np-mega-desc" data-i18n="nav_guide_what_is_desc">Why default menus fall short — and how Navi+ fixes that.</div>
+                  </div>
+                </a>
+                <a href="https://help.naviplus.io/docs/how-to-install-navi/" class="np-mega-item" data-np-help="/docs/how-to-install-navi/">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-download-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_guide_how_to">How to install Navi+</div>
+                    <div class="np-mega-desc" data-i18n="nav_guide_how_to_desc">Install in minutes on Shopify, WordPress, or any website.</div>
+                  </div>
+                </a>
+                <a href="https://naviplus.io/features/" class="np-mega-item" data-np-main="/features/">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-star-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_services_why_navi">Why Navi+ is a great choice?</div>
+                    <div class="np-mega-desc">Tab Bar · Mega Menu · Slide Menu · FAB · Grid Menu</div>
+                  </div>
+                </a>
+                <a href="https://help.naviplus.io/docs/common-first-questions/" class="np-mega-item" data-np-help="/docs/common-first-questions/">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-chat-check-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_guide_questions">Common first questions</div>
+                    <div class="np-mega-desc" data-i18n="nav_guide_questions_desc">The most common questions from new users, answered.</div>
+                  </div>
+                </a>
+
+                <div class="np-mega-cta-group">
+                  <a href="https://apps.shopify.com/pronavi-navigation-design" class="np-mega-cta-btn np-mega-cta-shopify" target="_blank" rel="noopener">
+                    <i class="ri-store-2-line" aria-hidden="true"></i>
+                    <span data-i18n="home_hero_cta_shopify">Install on Shopify</span>
+                  </a>
+                  <a href="https://wordpress.org/plugins/naviplus-menu-builder/" class="np-mega-cta-btn np-mega-cta-wp" target="_blank" rel="noopener">
+                    <i class="ri-wordpress-fill" aria-hidden="true"></i>
+                    <span data-i18n="home_hero_cta_wordpress">Install on WordPress</span>
+                  </a>
+                  <a href="https://dash.naviplus.app" class="np-mega-cta-btn np-mega-cta-web" target="_blank" rel="noopener">
+                    <i class="ri-global-line" aria-hidden="true"></i>
+                    <span data-i18n="home_hero_cta_web">Install for websites</span>
+                  </a>
                 </div>
-              </a>
-              <a href="https://naviplus.io/features/slide-menu/" class="np-mega-item">
-                <div class="np-mega-icon" aria-hidden="true"><i class="ri-side-bar-line"></i></div>
-                <div class="np-mega-text">
-                  <div class="np-mega-title" data-i18n="feat_slide_menu">Slide Menu</div>
-                  <div class="np-mega-desc" data-i18n="feat_slide_menu_desc">Smooth slide-in panel, multi-level navigation</div>
+              </div>
+
+              <!-- Col 2: Ideas -->
+              <div class="np-mega-col-sep">
+                <div class="np-mega-header" data-i18n="nav_services_ideas_col">Ideas</div>
+
+                <a href="https://naviplus.io/ideas/flat-menu-too-basic" class="np-mega-idea" data-np-main="/ideas/flat-menu-too-basic">
+                  <img src="https://naviplus.io/images/ideas/flat-menu-too-basic.jpg" alt="" class="np-mega-idea-img" width="64" height="40" loading="lazy">
+                  <span class="np-mega-idea-title" data-i18n="nav_services_idea1">Default menu is too basic — customers can't find what they want</span>
+                </a>
+                <a href="https://naviplus.io/ideas/improve-mobile-menu-ux" class="np-mega-idea" data-np-main="/ideas/improve-mobile-menu-ux">
+                  <img src="https://naviplus.io/images/ideas/improve-mobile-menu-ux.jpg" alt="" class="np-mega-idea-img" width="64" height="40" loading="lazy">
+                  <span class="np-mega-idea-title" data-i18n="nav_services_idea2">70% of visitors are on mobile — but your menu is driving them away</span>
+                </a>
+                <a href="https://naviplus.io/ideas/fix-navigation-lower-bounce-rate" class="np-mega-idea" data-np-main="/ideas/fix-navigation-lower-bounce-rate">
+                  <img src="https://naviplus.io/images/ideas/fix-navigation-lower-bounce-rate.jpg" alt="" class="np-mega-idea-img" width="64" height="40" loading="lazy">
+                  <span class="np-mega-idea-title" data-i18n="nav_services_idea3">Spending on ads but visitors bounce — poor navigation kills your funnel</span>
+                </a>
+                <a href="https://naviplus.io/ideas/customize-menu-without-coding" class="np-mega-idea" data-np-main="/ideas/customize-menu-without-coding">
+                  <img src="https://naviplus.io/images/ideas/customize-menu-without-coding.jpg" alt="" class="np-mega-idea-img" width="64" height="40" loading="lazy">
+                  <span class="np-mega-idea-title" data-i18n="nav_services_idea4">Making the menu look better means hiring a developer</span>
+                </a>
+                <a href="https://naviplus.io/ideas/menu-independent-from-theme" class="np-mega-idea" data-np-main="/ideas/menu-independent-from-theme">
+                  <img src="https://naviplus.io/images/ideas/menu-independent-from-theme.jpg" alt="" class="np-mega-idea-img" width="64" height="40" loading="lazy">
+                  <span class="np-mega-idea-title" data-i18n="nav_services_idea5">Every theme switch wipes your menu config — start from scratch</span>
+                </a>
+                <a href="https://naviplus.io/ideas/app-like-bottom-navigation" class="np-mega-idea" data-np-main="/ideas/app-like-bottom-navigation">
+                  <img src="https://naviplus.io/images/ideas/app-like-bottom-navigation.jpg" alt="" class="np-mega-idea-img" width="64" height="40" loading="lazy">
+                  <span class="np-mega-idea-title" data-i18n="nav_services_idea6">No bottom navigation — mobile customers feel like using an old website</span>
+                </a>
+
+                <div style="padding: 10px 10px 2px;">
+                  <a href="https://naviplus.io/ideas" class="np-guide-link-footer" style="color:#377e62;border:none;" data-np-main="/ideas" data-i18n="nav_services_ideas_see_all">See all ideas →</a>
                 </div>
-              </a>
-              <a href="https://naviplus.io/features/fab-menu/" class="np-mega-item">
-                <div class="np-mega-icon" aria-hidden="true"><i class="ri-flashlight-line"></i></div>
-                <div class="np-mega-text">
-                  <div class="np-mega-title" data-i18n="feat_fab_menu">FAB / Floating Menu</div>
-                  <div class="np-mega-desc" data-i18n="feat_fab_menu_desc">Quick-access floating button for key actions</div>
-                </div>
-              </a>
-              <a href="https://naviplus.io/features/grid-menu/" class="np-mega-item">
-                <div class="np-mega-icon" aria-hidden="true"><i class="ri-grid-line"></i></div>
-                <div class="np-mega-text">
-                  <div class="np-mega-title" data-i18n="feat_grid_menu">Grid Menu</div>
-                  <div class="np-mega-desc" data-i18n="feat_grid_menu_desc">Visual image grid for product categories</div>
-                </div>
-              </a>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <!-- User Guide -->
+      <li class="np-nav-item">
+        <button class="np-nav-link" aria-haspopup="true">
+          <span data-i18n="nav_user_guide">User Guide</span>
+          <svg class="np-nav-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="np-mega" style="width:840px;" role="region" aria-label="User Guide">
+          <div class="np-mega-inner">
+            <div class="np-mega-3col">
+
+              <!-- Col 1: Menu types -->
+              <div>
+                <div class="np-mega-header" data-i18n="nav_guide_menu_types">Menu types & items</div>
+                <a href="https://help.naviplus.io/docs/usage/tabbar-bottom-navigation/how-to-use/" class="np-mega-item" data-np-help="/docs/usage/tabbar-bottom-navigation/how-to-use/">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-layout-bottom-2-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title">Tab Bar</div>
+                    <div class="np-mega-desc" data-i18n="nav_features_tab_bar_desc">Fixed bottom nav for mobile, like a native app</div>
+                  </div>
+                </a>
+                <a href="https://help.naviplus.io/docs/usage/mega-menu-desktop/how-to-use/" class="np-mega-item" data-np-help="/docs/usage/mega-menu-desktop/how-to-use/">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-layout-masonry-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title">Mega Menu</div>
+                    <div class="np-mega-desc" data-i18n="nav_features_mega_menu_desc">Rich dropdown with columns, images & links</div>
+                  </div>
+                </a>
+                <a href="https://help.naviplus.io/docs/usage/slide-menu-hamburger-menu/how-to-use/" class="np-mega-item" data-np-help="/docs/usage/slide-menu-hamburger-menu/how-to-use/">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-side-bar-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title">Slide Menu</div>
+                    <div class="np-mega-desc" data-i18n="nav_features_slide_menu_desc">Smooth slide-in panel, multi-level navigation</div>
+                  </div>
+                </a>
+                <a href="https://help.naviplus.io/docs/usage/fab-floating-menu-quick-access/how-to-use/" class="np-mega-item" data-np-help="/docs/usage/fab-floating-menu-quick-access/how-to-use/">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-flashlight-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title">FAB / Floating</div>
+                    <div class="np-mega-desc" data-i18n="nav_features_fab_menu_desc">Quick-access floating button for key actions</div>
+                  </div>
+                </a>
+                <a href="https://help.naviplus.io/docs/usage/grid-menu/how-to-use/" class="np-mega-item" data-np-help="/docs/usage/grid-menu/how-to-use/">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-grid-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title">Grid Menu</div>
+                    <div class="np-mega-desc" data-i18n="nav_features_grid_menu_desc">Visual image grid for product categories</div>
+                  </div>
+                </a>
+                <a href="https://help.naviplus.io/docs/usage/explore-common-menus/" class="np-guide-link-footer" data-np-help="/docs/usage/explore-common-menus/" data-i18n="nav_guide_choose_right">Explore common menus →</a>
+              </div>
+
+              <!-- Col 2: Design + Publish -->
+              <div class="np-mega-col-sep">
+                <div class="np-mega-header" data-i18n="nav_guide_design">Design</div>
+                <a href="https://help.naviplus.io/docs/design/design-overview/" class="np-guide-link" data-np-help="/docs/design/design-overview/" data-i18n="nav_guide_design_overview">Design overview</a>
+                <a href="https://help.naviplus.io/docs/design/design-level1/" class="np-guide-link" data-np-help="/docs/design/design-level1/" data-i18n="nav_guide_design_level1">How to style main menu items</a>
+                <a href="https://help.naviplus.io/docs/design/design-level2/" class="np-guide-link" data-np-help="/docs/design/design-level2/" data-i18n="nav_guide_design_level2">How to style submenu items</a>
+                <a href="https://help.naviplus.io/docs/design/design-divider/" class="np-guide-link" data-np-help="/docs/design/design-divider/" data-i18n="nav_guide_design_divider">How to add dividers</a>
+
+                <div class="np-mega-header" style="margin-top:12px;" data-i18n="nav_guide_publish">Publish</div>
+                <a href="https://help.naviplus.io/docs/publish/publish-overview/" class="np-guide-link" data-np-help="/docs/publish/publish-overview/" data-i18n="nav_guide_publish_overview">Publish overview</a>
+                <a href="https://help.naviplus.io/docs/publish/publish-filter/" class="np-guide-link" data-np-help="/docs/publish/publish-filter/" data-i18n="nav_guide_publish_filter">How to filter by device or URL</a>
+                <a href="https://help.naviplus.io/docs/publish/publish-section/" class="np-guide-link" data-np-help="/docs/publish/publish-section/" data-i18n="nav_guide_publish_section">How to configure mega menu sections</a>
+                <a href="https://help.naviplus.io/docs/publish/publish-slide/" class="np-guide-link" data-np-help="/docs/publish/publish-slide/" data-i18n="nav_guide_publish_slide">How to set up slide menu</a>
+                <a href="https://help.naviplus.io/docs/publish/publish-sticky/" class="np-guide-link" data-np-help="/docs/publish/publish-sticky/" data-i18n="nav_guide_publish_sticky">How to set up sticky & FAB</a>
+              </div>
+
+              <!-- Col 3: Developer Docs + Partnership -->
+              <div class="np-mega-col-sep">
+                <div class="np-mega-header" data-i18n="nav_guide_developers">Developer docs</div>
+                <a href="https://help.naviplus.io/docs/development/" class="np-guide-link" data-np-help="/docs/development/" data-i18n="nav_guide_dev_custom_css">Custom CSS & development</a>
+                <a href="https://help.naviplus.io/docs/development/how-to-write-a-correct-css-code-in-navi/" class="np-guide-link" data-np-help="/docs/development/how-to-write-a-correct-css-code-in-navi/" data-i18n="nav_guide_dev_write_css">How to write correct CSS in Navi+</a>
+                <a href="https://help.naviplus.io/docs/integrations/" class="np-guide-link" data-np-help="/docs/integrations/" data-i18n="nav_guide_dev_integrations">Integrations overview</a>
+                <a href="https://help.naviplus.io/docs/integrations/wordpress-woocommerce/" class="np-guide-link" data-np-help="/docs/integrations/wordpress-woocommerce/" data-i18n="nav_guide_dev_woocommerce">WordPress & WooCommerce</a>
+                <a href="https://help.naviplus.io/docs/integrations/themes/" class="np-guide-link" data-np-help="/docs/integrations/themes/" data-i18n="nav_guide_dev_themes">Theme integrations</a>
+
+                <div class="np-mega-header" style="margin-top:12px;" data-i18n="nav_guide_partnership">Partnership & resources</div>
+                <a href="https://help.naviplus.io/docs/partership/navi-care-or-design-your-menus-like-an-expert/" class="np-guide-link" data-np-help="/docs/partership/navi-care-or-design-your-menus-like-an-expert/" data-i18n="nav_guide_care">Navi+ Care — Design service</a>
+                <a href="https://help.naviplus.io/docs/partership/earn-up-to-225-revshare-with-navi/" class="np-guide-link" data-np-help="/docs/partership/earn-up-to-225-revshare-with-navi/" data-i18n="nav_guide_revshare">Earn rev share</a>
+                <a href="https://help.naviplus.io/docs/latest-update/" class="np-guide-link" data-np-help="/docs/latest-update/" data-i18n="nav_guide_changelog">Changelog</a>
+
+                <a href="https://help.naviplus.io/home/" class="np-guide-link-footer" data-np-help="/home/" style="color:#377e62;border-color:#d4e8da;" data-i18n="nav_guide_all_help">All help →</a>
+              </div>
+
             </div>
           </div>
         </div>
@@ -405,74 +606,127 @@
 
       <!-- Pricing -->
       <li class="np-nav-item">
-        <a href="https://naviplus.io/pricing" class="np-nav-link" data-i18n="nav_pricing">Pricing</a>
+        <a href="https://naviplus.io/pricing" class="np-nav-link" data-np-main="/pricing">
+          <span data-i18n="nav_pricing">Pricing</span>
+        </a>
       </li>
 
-      <!-- Ideas -->
+      <!-- Support Tools (current site) -->
       <li class="np-nav-item">
-        <a href="https://naviplus.io/ideas" class="np-nav-link" data-i18n="nav_ideas">Ideas</a>
-      </li>
-
-      <!-- User Guide -->
-      <li class="np-nav-item">
-        <span class="np-nav-link" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
-          <span data-i18n="nav_user_guide">User Guide</span>
+        <button class="np-nav-link active" aria-haspopup="true" aria-current="page">
+          <span data-i18n="nav_support_tools">Support Tools</span>
           <svg class="np-nav-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-        </span>
-        <div class="np-dropdown" role="region" aria-label="User Guide">
-          <div class="np-dropdown-inner">
-            <a href="https://naviplus.io/guides/shopify-menu-builder/" class="np-dropdown-item">
-              <i class="ri-store-2-line" style="font-size:15px;color:#5e8e3e;" aria-hidden="true"></i>
-              <span data-i18n="guide_shopify">Navi+ on Shopify</span>
-            </a>
-            <a href="https://naviplus.io/guides/wordpress-menu-builder/" class="np-dropdown-item">
-              <i class="ri-wordpress-fill" style="font-size:15px;color:#21759b;" aria-hidden="true"></i>
-              <span data-i18n="guide_wordpress">Navi+ on WordPress</span>
-            </a>
-            <div class="np-dropdown-divider" role="separator"></div>
-            <a href="https://help.naviplus.io/" class="np-dropdown-item">
-              <i class="ri-book-2-line" style="font-size:15px;color:#377e62;" aria-hidden="true"></i>
-              <span data-i18n="guide_help_center">Help Center</span>
-            </a>
-            <a href="https://help.naviplus.io/docs/getting-started/" class="np-dropdown-item">
-              <i class="ri-rocket-line" style="font-size:15px;color:#6b7280;" aria-hidden="true"></i>
-              <span data-i18n="guide_getting_started">Getting Started</span>
-            </a>
-          </div>
-        </div>
-      </li>
+        </button>
+        <div class="np-mega" style="width:860px;" role="region" aria-label="Support Tools">
+          <div class="np-mega-inner">
+            <div class="np-mega-3col">
 
-      <!-- Toolbox dropdown -->
-      <li class="np-nav-item">
-        <span class="np-nav-link active" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false" aria-current="page">
-          <span data-i18n="nav_toolbox">Toolbox</span>
-          <svg class="np-nav-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </span>
-        <div class="np-dropdown np-toolbox-dd" role="region" aria-label="Toolbox">
-          <div class="np-dropdown-inner">
-            <div class="np-dropdown-section" data-i18n="group_images">Design &amp; Images</div>
-            <a href="https://tools.naviplus.io/toolset/images/convert-to-webp.html" class="np-dropdown-item"><i class="ri-swap-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_webp_title">Batch Image Converter</span></a>
-            <a href="https://tools.naviplus.io/toolset/images/image-resizer.html" class="np-dropdown-item"><i class="ri-crop-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_resizer_title">Image Resizer</span></a>
-            <a href="https://tools.naviplus.io/toolset/design/color-palette.html" class="np-dropdown-item"><i class="ri-palette-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_palette_title">Color Palette Generator</span></a>
-            <a href="https://tools.naviplus.io/toolset/images/photo-collage.html" class="np-dropdown-item"><i class="ri-layout-grid-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_collage_title">Photo Collage Maker</span></a>
-            <a href="https://tools.naviplus.io/toolset/images/color-picker.html" class="np-dropdown-item"><i class="ri-contrast-drop-2-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_cp_title">Color Picker</span></a>
-            <a href="https://tools.naviplus.io/toolset/images/remove-background.html" class="np-dropdown-item"><i class="ri-scissors-cut-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_rmbg_title">AI Background Remover</span></a>
-            <a href="https://tools.naviplus.io/toolset/images/watermark.html" class="np-dropdown-item"><i class="ri-copyright-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_watermark_title">Watermark</span></a>
-            <a href="https://tools.naviplus.io/toolset/images/upload-image.html" class="np-dropdown-item"><i class="ri-links-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_imgup_title">Temp Image Upload</span></a>
-            <div class="np-dropdown-divider"></div>
-            <div class="np-dropdown-section" data-i18n="group_security">Security</div>
-            <a href="https://tools.naviplus.io/toolset/security/encrypt.html" class="np-dropdown-item"><i class="ri-lock-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_encrypt_title">AES-GCM Encryption</span></a>
-            <a href="https://tools.naviplus.io/toolset/security/generate-password.html" class="np-dropdown-item"><i class="ri-key-2-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_password_title">Password Generator</span></a>
-            <a href="https://tools.naviplus.io/toolset/security/jwt-decoder.html" class="np-dropdown-item"><i class="ri-shield-keyhole-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_jwt_title">JWT Decoder &amp; Inspector</span></a>
-            <a href="https://tools.naviplus.io/toolset/security/hash-generator.html" class="np-dropdown-item"><i class="ri-fingerprint-line" style="font-size:15px;color:#6b7280;"></i> <span data-i18n="tool_hash_title">Hash Generator &amp; Verifier</span></a>
-            <div class="np-dropdown-divider"></div>
-            <a href="https://tools.naviplus.io/" class="np-dropdown-item" style="color:#377e62;">
-              <i class="ri-apps-line" style="font-size:15px;"></i> <span data-i18n="nav_view_all_tools">View all tools</span>
-            </a>
+              <!-- Col 1: Intro -->
+              <div>
+                <div class="np-tools-intro">
+                  <div class="np-tools-intro-head" data-i18n="nav_toolbox_section_title">Free support tools</div>
+                  <div class="np-tools-intro-desc" data-i18n="nav_toolbox_section_desc">Tools to help you build a better, faster website. 100% free — no data stored.</div>
+                </div>
+              </div>
+
+              <!-- Col 2: Design & Images -->
+              <div class="np-mega-col-sep">
+                <div class="np-mega-header" data-i18n="nav_toolbox_label_design">Design & Images</div>
+                <a href="https://tools.naviplus.io/toolset/images/convert-to-webp.html" class="np-mega-item">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-image-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_toolbox_batch_converter">Batch Image Converter</div>
+                    <div class="np-mega-desc" data-i18n="nav_toolbox_batch_converter_desc">Convert PNG, JPG to WebP in bulk</div>
+                  </div>
+                </a>
+                <a href="https://tools.naviplus.io/toolset/images/image-resizer.html" class="np-mega-item">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-crop-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_toolbox_image_resizer">Image Resizer</div>
+                    <div class="np-mega-desc" data-i18n="nav_toolbox_image_resizer_desc">Resize to any dimension instantly</div>
+                  </div>
+                </a>
+                <a href="https://tools.naviplus.io/toolset/design/color-palette.html" class="np-mega-item">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-palette-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_toolbox_color_palette">Color Palette Generator</div>
+                    <div class="np-mega-desc" data-i18n="nav_toolbox_color_palette_desc">Generate brand color palettes</div>
+                  </div>
+                </a>
+                <a href="https://tools.naviplus.io/toolset/images/remove-background.html" class="np-mega-item">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-scissors-2-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_toolbox_bg_remover">AI Background Remover</div>
+                    <div class="np-mega-desc" data-i18n="nav_toolbox_bg_remover_desc">AI-powered background removal</div>
+                  </div>
+                </a>
+                <a href="https://tools.naviplus.io/toolset/images/photo-collage.html" class="np-mega-item">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-collage-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_toolbox_photo_collage">Photo Collage Maker</div>
+                    <div class="np-mega-desc" data-i18n="nav_toolbox_photo_collage_desc">Combine multiple photos into one</div>
+                  </div>
+                </a>
+                <a href="https://tools.naviplus.io/toolset/images/color-picker.html" class="np-mega-item">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-contrast-drop-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_toolbox_color_picker">Color Picker</div>
+                    <div class="np-mega-desc" data-i18n="nav_toolbox_color_picker_desc">Pick exact colors from any image</div>
+                  </div>
+                </a>
+                <a href="https://tools.naviplus.io/toolset/images/watermark.html" class="np-mega-item">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-quill-pen-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_toolbox_watermark">Watermark</div>
+                    <div class="np-mega-desc" data-i18n="nav_toolbox_watermark_desc">Add text or logo watermark to images</div>
+                  </div>
+                </a>
+                <a href="https://tools.naviplus.io/toolset/images/upload-image.html" class="np-mega-item">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-upload-cloud-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_toolbox_temp_upload">Temp Image Upload</div>
+                    <div class="np-mega-desc" data-i18n="nav_toolbox_temp_upload_desc">Share images with a temporary link</div>
+                  </div>
+                </a>
+              </div>
+
+              <!-- Col 3: Security -->
+              <div class="np-mega-col-sep">
+                <div class="np-mega-header" data-i18n="nav_toolbox_label_security">Security</div>
+                <a href="https://tools.naviplus.io/toolset/security/encrypt.html" class="np-mega-item">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-lock-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_toolbox_encryption">AES-GCM Encryption</div>
+                    <div class="np-mega-desc" data-i18n="nav_toolbox_encryption_desc">Encrypt & decrypt text with AES-GCM</div>
+                  </div>
+                </a>
+                <a href="https://tools.naviplus.io/toolset/security/generate-password.html" class="np-mega-item">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-key-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_toolbox_password_gen">Password Generator</div>
+                    <div class="np-mega-desc" data-i18n="nav_toolbox_password_gen_desc">Generate strong, secure passwords</div>
+                  </div>
+                </a>
+                <a href="https://tools.naviplus.io/toolset/security/jwt-decoder.html" class="np-mega-item">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-shield-check-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_toolbox_jwt_decoder">JWT Decoder & Inspector</div>
+                    <div class="np-mega-desc" data-i18n="nav_toolbox_jwt_decoder_desc">Decode and inspect JWT tokens</div>
+                  </div>
+                </a>
+                <a href="https://tools.naviplus.io/toolset/security/hash-generator.html" class="np-mega-item">
+                  <div class="np-mega-icon" aria-hidden="true"><i class="ri-fingerprint-line"></i></div>
+                  <div class="np-mega-text">
+                    <div class="np-mega-title" data-i18n="nav_toolbox_hash_gen">Hash Generator & Verifier</div>
+                    <div class="np-mega-desc" data-i18n="nav_toolbox_hash_gen_desc">Generate MD5, SHA-1, SHA-256 hashes</div>
+                  </div>
+                </a>
+                <a href="https://tools.naviplus.io/" class="np-guide-link-footer" style="color:#377e62;border-color:#d4e8da;" data-i18n="nav_toolbox_all_tools">All tools →</a>
+              </div>
+
+            </div>
           </div>
         </div>
       </li>
@@ -491,22 +745,22 @@
         </button>
         <div class="np-lang-dropdown" role="listbox" aria-label="Language">
           <div class="np-lang-dropdown-inner">
-            <a class="np-lang-item active" data-lang="en" href="#" onclick="setLang('en');return false;">🇺🇸 English</a>
-            <a class="np-lang-item" data-lang="vi" href="#" onclick="setLang('vi');return false;">🇻🇳 Tiếng Việt</a>
-            <a class="np-lang-item" data-lang="fr" href="#" onclick="setLang('fr');return false;">🇫🇷 Français</a>
-            <a class="np-lang-item" data-lang="de" href="#" onclick="setLang('de');return false;">🇩🇪 Deutsch</a>
-            <a class="np-lang-item" data-lang="zh" href="#" onclick="setLang('zh');return false;">🇨🇳 中文</a>
-            <a class="np-lang-item" data-lang="ja" href="#" onclick="setLang('ja');return false;">🇯🇵 日本語</a>
-            <a class="np-lang-item" data-lang="it" href="#" onclick="setLang('it');return false;">🇮🇹 Italiano</a>
-            <a class="np-lang-item" data-lang="pt" href="#" onclick="setLang('pt');return false;">🇧🇷 Português</a>
-            <a class="np-lang-item" data-lang="es" href="#" onclick="setLang('es');return false;">🇪🇸 Español</a>
+            <a class="np-lang-item" data-lang="en" onclick="setLang('en');return false;" href="#">🇺🇸 English</a>
+            <a class="np-lang-item" data-lang="vi" onclick="setLang('vi');return false;" href="#">🇻🇳 Tiếng Việt</a>
+            <a class="np-lang-item" data-lang="fr" onclick="setLang('fr');return false;" href="#">🇫🇷 Français</a>
+            <a class="np-lang-item" data-lang="de" onclick="setLang('de');return false;" href="#">🇩🇪 Deutsch</a>
+            <a class="np-lang-item" data-lang="zh-cn" onclick="setLang('zh-cn');return false;" href="#">🇨🇳 中文</a>
+            <a class="np-lang-item" data-lang="ja" onclick="setLang('ja');return false;" href="#">🇯🇵 日本語</a>
+            <a class="np-lang-item" data-lang="it" onclick="setLang('it');return false;" href="#">🇮🇹 Italiano</a>
+            <a class="np-lang-item" data-lang="pt" onclick="setLang('pt');return false;" href="#">🇧🇷 Português</a>
+            <a class="np-lang-item" data-lang="es" onclick="setLang('es');return false;" href="#">🇪🇸 Español</a>
           </div>
         </div>
       </div>
-      <a href="https://showcase.naviplus.io/" class="np-hbtn-secondary" target="_blank" rel="noopener">
-        <span class="np-hbtn-label" data-i18n="nav_see_demo">See demo</span>
+      <a href="https://showcase.naviplus.io/" class="np-hbtn-secondary" data-np-showcase>
+        <span class="np-hbtn-label" data-i18n="cta_see_demo">See demo</span>
       </a>
-      <a href="https://naviplus.io/#get-started-for-free" class="np-hbtn-primary" data-i18n="nav_get_started">
+      <a href="https://naviplus.io/#get-started-for-free" class="np-hbtn-primary" data-np-main="/#get-started-for-free" data-i18n="cta_get_started">
         Get started
       </a>
     </div>
@@ -535,71 +789,31 @@
   <nav aria-label="Main navigation">
     <ul class="np-mob-nav" role="list">
 
-      <!-- Features accordion -->
+      <!-- Services accordion -->
       <li>
-        <button class="np-mob-link" aria-expanded="false" aria-controls="np-mob-features" id="np-mob-features-btn">
-          <span data-i18n="nav_features">Features</span>
+        <button class="np-mob-link" aria-expanded="false" aria-controls="np-mob-services" id="np-mob-services-btn">
+          <span data-i18n="nav_services">Services</span>
           <svg class="np-mob-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <ul class="np-mob-sub" id="np-mob-features" role="list" aria-labelledby="np-mob-features-btn">
-          <li>
-            <a href="https://naviplus.io/features/tab-bar/" class="np-mob-sub-item">
-              <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-layout-bottom-2-line"></i></span>
-              <span>
-                <div class="np-mob-sub-title" data-i18n="feat_tab_bar">Tab Bar</div>
-                <div class="np-mob-sub-desc" data-i18n="feat_tab_bar_desc">Fixed bottom nav for mobile, like a native app</div>
-              </span>
+        <ul class="np-mob-sub" id="np-mob-services" role="list" aria-labelledby="np-mob-services-btn">
+          <li><a href="https://naviplus.io/why-navi/" class="np-mob-sub-plain" data-np-main="/why-navi/" data-i18n="nav_guide_what_is">Why Navi+?</a></li>
+          <li><a href="https://help.naviplus.io/docs/how-to-install-navi/" class="np-mob-sub-plain" data-np-help="/docs/how-to-install-navi/" data-i18n="nav_guide_how_to">How to install Navi+</a></li>
+          <li><a href="https://naviplus.io/features/" class="np-mob-sub-plain" data-np-main="/features/" data-i18n="nav_services_why_navi">Why Navi+ is a great choice?</a></li>
+          <li><a href="https://help.naviplus.io/docs/common-first-questions/" class="np-mob-sub-plain" data-np-help="/docs/common-first-questions/" data-i18n="nav_guide_questions">Common first questions</a></li>
+          <li style="padding: 8px 20px 4px; border-top: 1px solid #f0f1f5; margin-top: 4px;">
+            <a href="https://apps.shopify.com/pronavi-navigation-design" class="np-mega-cta-btn np-mega-cta-shopify" style="margin-bottom:4px;" target="_blank" rel="noopener">
+              <i class="ri-store-2-line" aria-hidden="true"></i> <span data-i18n="home_hero_cta_shopify">Install on Shopify</span>
             </a>
-          </li>
-          <li>
-            <a href="https://naviplus.io/features/mega-menu/" class="np-mob-sub-item">
-              <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-layout-masonry-line"></i></span>
-              <span>
-                <div class="np-mob-sub-title" data-i18n="feat_mega_menu">Mega Menu</div>
-                <div class="np-mob-sub-desc" data-i18n="feat_mega_menu_desc">Rich dropdown with columns, images & links</div>
-              </span>
+            <a href="https://wordpress.org/plugins/naviplus-menu-builder/" class="np-mega-cta-btn np-mega-cta-wp" style="margin-bottom:4px;" target="_blank" rel="noopener">
+              <i class="ri-wordpress-fill" aria-hidden="true"></i> <span data-i18n="home_hero_cta_wordpress">Install on WordPress</span>
             </a>
-          </li>
-          <li>
-            <a href="https://naviplus.io/features/slide-menu/" class="np-mob-sub-item">
-              <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-side-bar-line"></i></span>
-              <span>
-                <div class="np-mob-sub-title" data-i18n="feat_slide_menu">Slide Menu</div>
-                <div class="np-mob-sub-desc" data-i18n="feat_slide_menu_desc">Smooth slide-in panel, multi-level navigation</div>
-              </span>
-            </a>
-          </li>
-          <li>
-            <a href="https://naviplus.io/features/fab-menu/" class="np-mob-sub-item">
-              <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-flashlight-line"></i></span>
-              <span>
-                <div class="np-mob-sub-title" data-i18n="feat_fab_menu">FAB / Floating Menu</div>
-                <div class="np-mob-sub-desc" data-i18n="feat_fab_menu_desc">Quick-access floating button for key actions</div>
-              </span>
-            </a>
-          </li>
-          <li>
-            <a href="https://naviplus.io/features/grid-menu/" class="np-mob-sub-item">
-              <span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-grid-line"></i></span>
-              <span>
-                <div class="np-mob-sub-title" data-i18n="feat_grid_menu">Grid Menu</div>
-                <div class="np-mob-sub-desc" data-i18n="feat_grid_menu_desc">Visual image grid for product categories</div>
-              </span>
+            <a href="https://dash.naviplus.app" class="np-mega-cta-btn np-mega-cta-web" target="_blank" rel="noopener">
+              <i class="ri-global-line" aria-hidden="true"></i> <span data-i18n="home_hero_cta_web">Install for websites</span>
             </a>
           </li>
         </ul>
-      </li>
-
-      <!-- Pricing -->
-      <li>
-        <a href="https://naviplus.io/pricing" class="np-mob-link" data-i18n="nav_pricing">Pricing</a>
-      </li>
-
-      <!-- Ideas -->
-      <li>
-        <a href="https://naviplus.io/ideas" class="np-mob-link" data-i18n="nav_ideas">Ideas</a>
       </li>
 
       <!-- User Guide accordion -->
@@ -611,69 +825,82 @@
           </svg>
         </button>
         <ul class="np-mob-sub" id="np-mob-guide" role="list" aria-labelledby="np-mob-guide-btn">
-          <li>
-            <a href="https://naviplus.io/guides/shopify-menu-builder/" class="np-mob-sub-item">
-              <span class="np-mob-sub-icon" style="color:#5e8e3e;" aria-hidden="true"><i class="ri-store-2-line"></i></span>
-              <span><div class="np-mob-sub-title" data-i18n="guide_shopify">Navi+ on Shopify</div></span>
-            </a>
-          </li>
-          <li>
-            <a href="https://naviplus.io/guides/wordpress-menu-builder/" class="np-mob-sub-item">
-              <span class="np-mob-sub-icon" style="color:#21759b;" aria-hidden="true"><i class="ri-wordpress-fill"></i></span>
-              <span><div class="np-mob-sub-title" data-i18n="guide_wordpress">Navi+ on WordPress</div></span>
-            </a>
-          </li>
-          <li><div class="np-mob-divider"></div></li>
-          <li>
-            <a href="https://help.naviplus.io/" class="np-mob-sub-item">
-              <span class="np-mob-sub-icon" style="color:#377e62;" aria-hidden="true"><i class="ri-book-2-line"></i></span>
-              <span><div class="np-mob-sub-title" data-i18n="guide_help_center">Help Center</div></span>
-            </a>
-          </li>
-          <li>
-            <a href="https://help.naviplus.io/docs/getting-started/" class="np-mob-sub-item">
-              <span class="np-mob-sub-icon" style="color:#6b7280;" aria-hidden="true"><i class="ri-rocket-line"></i></span>
-              <span><div class="np-mob-sub-title" data-i18n="guide_getting_started">Getting Started</div></span>
-            </a>
-          </li>
+          <li class="np-mob-sub-label" data-i18n="nav_guide_menu_types">Menu types & items</li>
+          <li><a href="https://help.naviplus.io/docs/usage/explore-common-menus/" class="np-mob-sub-plain" data-np-help="/docs/usage/explore-common-menus/" data-i18n="nav_guide_choose_right">Explore common menus</a></li>
+          <li><a href="https://help.naviplus.io/docs/usage/tabbar-bottom-navigation/how-to-use/" class="np-mob-sub-plain" data-np-help="/docs/usage/tabbar-bottom-navigation/how-to-use/">Tab Bar</a></li>
+          <li><a href="https://help.naviplus.io/docs/usage/mega-menu/how-to-use/" class="np-mob-sub-plain" data-np-help="/docs/usage/mega-menu/how-to-use/">Mega Menu</a></li>
+          <li><a href="https://help.naviplus.io/docs/usage/slide-menu/how-to-use/" class="np-mob-sub-plain" data-np-help="/docs/usage/slide-menu/how-to-use/">Slide Menu</a></li>
+          <li><a href="https://help.naviplus.io/docs/usage/fab/how-to-use/" class="np-mob-sub-plain" data-np-help="/docs/usage/fab/how-to-use/">FAB</a></li>
+          <li><a href="https://help.naviplus.io/docs/usage/grid-menu/how-to-use/" class="np-mob-sub-plain" data-np-help="/docs/usage/grid-menu/how-to-use/">Grid Menu</a></li>
+          <li class="np-mob-sub-label" style="border-top:1px solid #f0f1f5;margin-top:4px;padding-top:10px;" data-i18n="nav_guide_design">Design</li>
+          <li><a href="https://help.naviplus.io/docs/design/design-overview/" class="np-mob-sub-plain" data-np-help="/docs/design/design-overview/" data-i18n="nav_guide_design_overview">Design overview</a></li>
+          <li><a href="https://help.naviplus.io/docs/design/design-level1/" class="np-mob-sub-plain" data-np-help="/docs/design/design-level1/" data-i18n="nav_guide_design_level1">How to style main menu items</a></li>
+          <li><a href="https://help.naviplus.io/docs/design/design-level2/" class="np-mob-sub-plain" data-np-help="/docs/design/design-level2/" data-i18n="nav_guide_design_level2">How to style submenu items</a></li>
+          <li><a href="https://help.naviplus.io/docs/publish/publish-overview/" class="np-mob-sub-plain" data-np-help="/docs/publish/publish-overview/" data-i18n="nav_guide_publish_overview">Publish overview</a></li>
+          <li><a href="https://help.naviplus.io/docs/publish/publish-filter/" class="np-mob-sub-plain" data-np-help="/docs/publish/publish-filter/" data-i18n="nav_guide_publish_filter">How to filter by device or URL</a></li>
+          <li><a href="https://help.naviplus.io/docs/publish/publish-sticky/" class="np-mob-sub-plain" data-np-help="/docs/publish/publish-sticky/" data-i18n="nav_guide_publish_sticky">Sticky & FAB setup</a></li>
+          <li class="np-mob-sub-label" style="border-top:1px solid #f0f1f5;margin-top:4px;padding-top:10px;" data-i18n="nav_guide_developers">Developer docs</li>
+          <li><a href="https://help.naviplus.io/docs/development/" class="np-mob-sub-plain" data-np-help="/docs/development/" data-i18n="nav_guide_dev_custom_css">Custom CSS & development</a></li>
+          <li><a href="https://help.naviplus.io/docs/integrations/" class="np-mob-sub-plain" data-np-help="/docs/integrations/" data-i18n="nav_guide_dev_integrations">Integrations overview</a></li>
+          <li><a href="https://help.naviplus.io/docs/partership/navi-care-or-design-your-menus-like-an-expert/" class="np-mob-sub-plain" data-np-help="/docs/partership/navi-care-or-design-your-menus-like-an-expert/" data-i18n="nav_guide_care">Navi+ Care</a></li>
+          <li><a href="https://help.naviplus.io/docs/latest-update/" class="np-mob-sub-plain" data-np-help="/docs/latest-update/" data-i18n="nav_guide_changelog">Changelog</a></li>
+          <li style="border-top:1px solid #f0f1f5;margin-top:4px;"><a href="https://help.naviplus.io/home/" class="np-mob-sub-plain" data-np-help="/home/" style="color:#377e62;font-weight:600;" data-i18n="nav_guide_all_help">All help →</a></li>
         </ul>
       </li>
 
-      <!-- Toolbox accordion -->
+      <!-- Pricing -->
+      <li>
+        <a href="https://naviplus.io/pricing" class="np-mob-link" data-np-main="/pricing">
+          <span data-i18n="nav_pricing">Pricing</span>
+        </a>
+      </li>
+
+      <!-- Support Tools accordion -->
       <li>
         <button class="np-mob-link active" aria-expanded="false" aria-controls="np-mob-toolbox" id="np-mob-toolbox-btn" aria-current="page">
-          <span data-i18n="nav_toolbox">Toolbox</span>
+          <span data-i18n="nav_support_tools">Support Tools</span>
           <svg class="np-mob-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
         <ul class="np-mob-sub" id="np-mob-toolbox" role="list" aria-labelledby="np-mob-toolbox-btn">
-          <li><div style="padding:8px 20px 2px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ba3b5;" data-i18n="group_images">Design &amp; Images</div></li>
-          <li><a href="https://tools.naviplus.io/toolset/images/convert-to-webp.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-swap-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_webp_title">Batch Image Converter</div></span></a></li>
-          <li><a href="https://tools.naviplus.io/toolset/images/image-resizer.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-crop-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_resizer_title">Image Resizer</div></span></a></li>
-          <li><a href="https://tools.naviplus.io/toolset/design/color-palette.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-palette-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_palette_title">Color Palette Generator</div></span></a></li>
-          <li><a href="https://tools.naviplus.io/toolset/images/photo-collage.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-layout-grid-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_collage_title">Photo Collage Maker</div></span></a></li>
-          <li><a href="https://tools.naviplus.io/toolset/images/color-picker.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-contrast-drop-2-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_cp_title">Color Picker</div></span></a></li>
-          <li><a href="https://tools.naviplus.io/toolset/images/remove-background.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-scissors-cut-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_rmbg_title">AI Background Remover</div></span></a></li>
-          <li><a href="https://tools.naviplus.io/toolset/images/watermark.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-copyright-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_watermark_title">Watermark</div></span></a></li>
-          <li><a href="https://tools.naviplus.io/toolset/images/upload-image.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-links-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_imgup_title">Temp Image Upload</div></span></a></li>
-          <li><div class="np-mob-divider"></div></li>
-          <li><div style="padding:8px 20px 2px;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ba3b5;" data-i18n="group_security">Security</div></li>
-          <li><a href="https://tools.naviplus.io/toolset/security/encrypt.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-lock-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_encrypt_title">AES-GCM Encryption</div></span></a></li>
-          <li><a href="https://tools.naviplus.io/toolset/security/generate-password.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-key-2-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_password_title">Password Generator</div></span></a></li>
-          <li><a href="https://tools.naviplus.io/toolset/security/jwt-decoder.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-shield-keyhole-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_jwt_title">JWT Decoder &amp; Inspector</div></span></a></li>
-          <li><a href="https://tools.naviplus.io/toolset/security/hash-generator.html" class="np-mob-sub-item"><span class="np-mob-sub-icon" aria-hidden="true"><i class="ri-fingerprint-line"></i></span><span><div class="np-mob-sub-title" data-i18n="tool_hash_title">Hash Generator &amp; Verifier</div></span></a></li>
-          <li><div class="np-mob-divider"></div></li>
-          <li><a href="https://tools.naviplus.io/" class="np-mob-sub-item"><span class="np-mob-sub-icon" style="background:#f0faf6;color:#377e62;" aria-hidden="true"><i class="ri-apps-line"></i></span><span><div class="np-mob-sub-title" data-i18n="nav_view_all_tools" style="color:#377e62;">View all tools</div></span></a></li>
+          <li class="np-mob-sub-label" data-i18n="nav_toolbox_label_design">Design & Images</li>
+          <li><a href="https://tools.naviplus.io/toolset/images/convert-to-webp.html" class="np-mob-sub-plain" data-i18n="nav_toolbox_batch_converter">Batch Image Converter</a></li>
+          <li><a href="https://tools.naviplus.io/toolset/images/image-resizer.html" class="np-mob-sub-plain" data-i18n="nav_toolbox_image_resizer">Image Resizer</a></li>
+          <li><a href="https://tools.naviplus.io/toolset/design/color-palette.html" class="np-mob-sub-plain" data-i18n="nav_toolbox_color_palette">Color Palette Generator</a></li>
+          <li><a href="https://tools.naviplus.io/toolset/images/remove-background.html" class="np-mob-sub-plain" data-i18n="nav_toolbox_bg_remover">AI Background Remover</a></li>
+          <li><a href="https://tools.naviplus.io/toolset/images/photo-collage.html" class="np-mob-sub-plain" data-i18n="nav_toolbox_photo_collage">Photo Collage Maker</a></li>
+          <li><a href="https://tools.naviplus.io/toolset/images/color-picker.html" class="np-mob-sub-plain" data-i18n="nav_toolbox_color_picker">Color Picker</a></li>
+          <li><a href="https://tools.naviplus.io/toolset/images/watermark.html" class="np-mob-sub-plain" data-i18n="nav_toolbox_watermark">Watermark</a></li>
+          <li><a href="https://tools.naviplus.io/toolset/images/upload-image.html" class="np-mob-sub-plain" data-i18n="nav_toolbox_temp_upload">Temp Image Upload</a></li>
+          <li class="np-mob-sub-label" style="border-top:1px solid #f0f1f5;margin-top:4px;padding-top:10px;" data-i18n="nav_toolbox_label_security">Security</li>
+          <li><a href="https://tools.naviplus.io/toolset/security/encrypt.html" class="np-mob-sub-plain" data-i18n="nav_toolbox_encryption">AES-GCM Encryption</a></li>
+          <li><a href="https://tools.naviplus.io/toolset/security/generate-password.html" class="np-mob-sub-plain" data-i18n="nav_toolbox_password_gen">Password Generator</a></li>
+          <li><a href="https://tools.naviplus.io/toolset/security/jwt-decoder.html" class="np-mob-sub-plain" data-i18n="nav_toolbox_jwt_decoder">JWT Decoder & Inspector</a></li>
+          <li><a href="https://tools.naviplus.io/toolset/security/hash-generator.html" class="np-mob-sub-plain" data-i18n="nav_toolbox_hash_gen">Hash Generator & Verifier</a></li>
+          <li style="border-top:1px solid #f0f1f5;margin-top:4px;"><a href="https://tools.naviplus.io/" class="np-mob-sub-plain" style="color:#377e62;font-weight:600;" data-i18n="nav_toolbox_all_tools">All tools →</a></li>
         </ul>
       </li>
 
     </ul>
 
+    <!-- Mobile lang strip -->
+    <div class="np-mob-lang" role="group" aria-label="Language">
+      <button class="np-mob-lang-item" data-lang="en" onclick="setLang('en')">🇺🇸 English</button>
+      <button class="np-mob-lang-item" data-lang="vi" onclick="setLang('vi')">🇻🇳 Tiếng Việt</button>
+      <button class="np-mob-lang-item" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
+      <button class="np-mob-lang-item" data-lang="de" onclick="setLang('de')">🇩🇪 Deutsch</button>
+      <button class="np-mob-lang-item" data-lang="zh-cn" onclick="setLang('zh-cn')">🇨🇳 中文</button>
+      <button class="np-mob-lang-item" data-lang="ja" onclick="setLang('ja')">🇯🇵 日本語</button>
+      <button class="np-mob-lang-item" data-lang="it" onclick="setLang('it')">🇮🇹 Italiano</button>
+      <button class="np-mob-lang-item" data-lang="pt" onclick="setLang('pt')">🇧🇷 Português</button>
+      <button class="np-mob-lang-item" data-lang="es" onclick="setLang('es')">🇪🇸 Español</button>
+    </div>
+
     <!-- Mobile CTA -->
     <div class="np-mob-cta">
-      <a href="https://naviplus.io/#get-started-for-free" class="np-mob-btn-primary" data-i18n="nav_get_started_free">Get started for free</a>
-      <a href="https://showcase.naviplus.io/" class="np-mob-btn-secondary" target="_blank" rel="noopener" data-i18n="nav_see_demo">See demo</a>
+      <a href="https://naviplus.io/#get-started-for-free" class="np-mob-btn-primary" data-np-main="/#get-started-for-free" data-i18n="cta_get_started_free">Get started for free</a>
+      <a href="https://showcase.naviplus.io/" class="np-mob-btn-secondary" data-np-showcase data-i18n="cta_see_demo">See demo</a>
     </div>
   </nav>
 </div>
