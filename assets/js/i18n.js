@@ -2228,12 +2228,8 @@
   function detectLang() {
     var fromUrl = urlLangSegment();
     if (fromUrl) return fromUrl;
-    var saved = localStorage.getItem(LANG_KEY);
-    if (saved && T[saved]) return saved;
-    var nav = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
-    var code = nav.split('-')[0];
-    if (code === 'zh') return 'zh-cn';
-    return T[code] ? code : 'en';
+    // No URL prefix = explicitly English; URL always wins over localStorage/navigator
+    return 'en';
   }
 
   function applyTranslations() {
