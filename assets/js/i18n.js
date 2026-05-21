@@ -2420,7 +2420,11 @@
   function detectLang() {
     var fromUrl = urlLangSegment();
     if (fromUrl) return fromUrl;
-    // No URL prefix = explicitly English; URL always wins over localStorage/navigator
+    // Check sessionStorage set by 404.html when redirecting from a language-prefixed URL
+    try {
+      var sl = sessionStorage.getItem(LANG_KEY);
+      if (sl && T[sl]) { sessionStorage.removeItem(LANG_KEY); return sl; }
+    } catch (e) {}
     return 'en';
   }
 

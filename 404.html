@@ -10,11 +10,13 @@ permalink: /404.html
   <title>Redirecting… – Navi+ Toolbox</title>
   <script>
     (function () {
-      var LANGS = ['en','vi','fr','de','zh','ja','it','pt','es'];
+      var LANGS = ['en','vi','fr','de','zh-cn','ja','it','pt','es'];
       var parts = window.location.pathname.replace(/^\//, '').split('/');
       var lang = parts[0];
       if (LANGS.indexOf(lang) >= 0) {
-        try { localStorage.setItem('np_tools_lang', lang); } catch (e) {}
+        if (lang !== 'en') {
+          try { sessionStorage.setItem('np_tools_lang', lang); } catch (e) {}
+        }
         var rest = '/' + parts.slice(1).join('/');
         if (rest === '/' || rest === '') rest = '/';
         window.location.replace(rest);
