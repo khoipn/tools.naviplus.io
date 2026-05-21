@@ -276,6 +276,14 @@ a.sfa-tag:hover { background: #e9ecef; color: #212529; }
 
   var PROXIES = [
     {
+      build: function (u) { return '/proxy?url=' + encodeURIComponent(u); },
+      parse: async function (r) {
+        var t = await r.text();
+        if (t.startsWith('{"error"')) throw new Error('proxy_error');
+        return t;
+      }
+    },
+    {
       build: function (u) { return 'https://api.allorigins.win/get?url=' + encodeURIComponent(u); },
       parse: async function (r) {
         var d = await r.json();
