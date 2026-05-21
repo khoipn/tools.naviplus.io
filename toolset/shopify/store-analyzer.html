@@ -327,7 +327,15 @@ a.sfa-tag:hover { background: #e9ecef; color: #212529; }
 
   function detectPlatform(html) {
     var h = html.toLowerCase();
-    if (h.includes('cdn.shopify.com') || h.includes('.myshopify.com') || h.includes('shopify-checkout') || h.includes('shopify_checkout')) return 'shopify';
+    // Only strong signals that exist ONLY on actual Shopify stores, not on sites that merely mention Shopify
+    if (h.includes('cdn.shopify.com/s/files/')      // store asset CDN (never on non-stores)
+        || h.includes('shopify-section')              // Shopify theme section class
+        || h.includes('shopify_checkout')
+        || h.includes('shopify-checkout')
+        || /window\.shopify\s*=/i.test(html)          // Shopify global JS object
+        || /shopify\.shop\s*=/i.test(html)            // Shopify.shop assignment
+        || /"shop_id"\s*:\s*\d+/.test(html)           // Shopify shop_id in JSON
+    ) return 'shopify';
     if (h.includes('woocommerce')) return 'woocommerce';
     if (h.includes('wp-content') || h.includes('wp-includes') || /generator.*wordpress/i.test(html)) return 'wordpress';
     if (h.includes('wix.com') || h.includes('wixsite.com') || h.includes('wix-code')) return 'wix';
@@ -354,7 +362,15 @@ a.sfa-tag:hover { background: #e9ecef; color: #212529; }
   /* ── Shopify data extraction ─────────────────────────────── */
 
   function extractShopifyDomain(html) {
-    var m = html.match(/["'`]([\w-]+\.myshopify\.com)["'`]/);
+    // Prefer domain in Shopify-specific JS contexts
+    var m = html.match(/Shopify\.shop\s*=\s*["']([\w-]+\.myshopify\.com)["']/i);
+    if (m) return m[1].toLowerCase();
+    m = html.match(/["']myshopify_domain["']\s*:\s*["']([\w-]+\.myshopify\.com)["']/i);
+    if (m) return m[1].toLowerCase();
+    m = html.match(/cdn\.shopify\.com\/s\/files\/\d+\/[\w-]+\/([\w-]+\.myshopify\.com)/i);
+    if (m) return m[1].toLowerCase();
+    // Generic match only as last resort (already confirmed isShopify at this point)
+    m = html.match(/["'`]([\w-]+\.myshopify\.com)["'`]/);
     return m ? m[1].toLowerCase() : null;
   }
   function extractShopifyDomainFromRobots(robots) {
