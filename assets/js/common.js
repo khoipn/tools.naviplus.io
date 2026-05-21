@@ -15,6 +15,9 @@
       { key: 'tool_password_title', en: 'Password Generator', path: '/toolset/security/generate-password.html', icon: 'ri-key-2-line'      },
       { key: 'tool_jwt_title',      en: 'JWT Decoder',        path: '/toolset/security/jwt-decoder.html',       icon: 'ri-shield-keyhole-line'  },
       { key: 'tool_hash_title',     en: 'Hash Generator',     path: '/toolset/security/hash-generator.html',    icon: 'ri-fingerprint-line'     }
+    ],
+    shopify: [
+      { key: 'tool_shopify_analyzer_title', en: 'Website Analyser', path: '/toolset/shopify/store-analyzer.html', icon: 'ri-bar-chart-line' }
     ]
   };
 

@@ -1,0 +1,678 @@
+---
+layout: default
+title: "Website Analyser — Detect Platform, Theme, Apps & More"
+description: "Enter any store URL to instantly detect if it runs on Shopify, find the myshopify domain, currency, theme, analytics, installed apps, social links, payment methods and more. Free, no account."
+---
+
+<div class="container py-4">
+  <div class="tool-page-header">
+    <h1 data-i18n="sfa_h1">Website Analyser</h1>
+    <p data-i18n="sfa_desc">Enter any website URL to detect platform, Shopify domain, currency, theme, installed apps and analytics.</p>
+  </div>
+
+  <!-- Input -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <label class="form-label fw-semibold mb-2" for="sfa-url" data-i18n="sfa_url_label">Website URL</label>
+      <div class="d-flex gap-2">
+        <input type="url" id="sfa-url" class="form-control font-monospace" placeholder="https://example.com" data-i18n-ph="sfa_url_ph" autocomplete="off" spellcheck="false">
+        <button id="sfa-btn" class="btn btn-primary text-nowrap px-4" type="button" data-i18n="sfa_analyze_btn">Analyze</button>
+      </div>
+      <div id="sfa-error" class="alert alert-danger mt-3 mb-0 small d-none"></div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="sfa-loading" class="d-none">
+    <div class="card mb-3">
+      <div class="card-body d-flex align-items-center gap-3 py-3">
+        <div class="spinner-border spinner-border-sm text-primary flex-shrink-0" role="status" aria-hidden="true"></div>
+        <span class="text-muted small" data-i18n="sfa_analyzing">Analyzing…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="sfa-results" class="d-none">
+
+    <!-- Header row -->
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <h2 class="h6 text-muted mb-0 font-monospace" id="sfa-result-url"></h2>
+      <span id="sfa-platform-badge" class="badge fs-6 px-3 py-2"></span>
+    </div>
+
+    <!-- Main info table -->
+    <div class="card mb-3">
+      <div class="table-responsive">
+        <table class="table table-bordered mb-0 sfa-table align-middle">
+          <tbody>
+            <tr>
+              <th data-i18n="sfa_platform">Platform</th>
+              <td id="sfa-platform-cell">—</td>
+            </tr>
+            <tr id="sfa-shopify-domain-row" class="d-none">
+              <th data-i18n="sfa_shopify_domain">Shopify Domain</th>
+              <td id="sfa-shopify-domain-cell">—</td>
+            </tr>
+            <tr>
+              <th data-i18n="sfa_store_name">Store Name</th>
+              <td id="sfa-store-name-cell">—</td>
+            </tr>
+            <tr id="sfa-currency-row" class="d-none">
+              <th data-i18n="sfa_currency">Currency</th>
+              <td id="sfa-currency-cell">—</td>
+            </tr>
+            <tr>
+              <th data-i18n="sfa_language">Language</th>
+              <td id="sfa-language-cell">—</td>
+            </tr>
+            <tr id="sfa-theme-row" class="d-none">
+              <th data-i18n="sfa_theme">Theme</th>
+              <td id="sfa-theme-cell">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Store size (from sitemap) -->
+    <div class="card mb-3 d-none" id="sfa-size-card">
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="ri-bar-chart-box-line"></i>
+        <strong data-i18n="sfa_store_size">Store Size</strong>
+      </div>
+      <div class="card-body py-3">
+        <div id="sfa-size-stats" class="d-flex flex-wrap gap-3"></div>
+      </div>
+    </div>
+
+    <!-- Sample products (Shopify only) -->
+    <div class="card mb-3 d-none" id="sfa-products-card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <i class="ri-shopping-bag-line"></i>
+          <strong data-i18n="sfa_products">Sample Products</strong>
+        </div>
+        <span id="sfa-products-meta" class="small text-muted"></span>
+      </div>
+      <div class="card-body pb-2">
+        <div id="sfa-products-grid" class="sfa-products-grid"></div>
+      </div>
+    </div>
+
+    <!-- Analytics -->
+    <div class="card mb-3" id="sfa-analytics-card">
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="ri-bar-chart-line"></i>
+        <strong data-i18n="sfa_analytics">Analytics & Tracking</strong>
+      </div>
+      <div class="card-body pb-3">
+        <div id="sfa-analytics-list" class="d-flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+
+    <!-- Apps (Shopify only) -->
+    <div class="card mb-3 d-none" id="sfa-apps-card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <i class="ri-apps-line"></i>
+          <strong data-i18n="sfa_apps">Detected Apps</strong>
+        </div>
+        <span id="sfa-apps-count" class="badge bg-secondary"></span>
+      </div>
+      <div class="card-body pb-3">
+        <div id="sfa-apps-list" class="d-flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+
+    <!-- Social media -->
+    <div class="card mb-3 d-none" id="sfa-social-card">
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="ri-share-forward-line"></i>
+        <strong data-i18n="sfa_social">Social Media</strong>
+      </div>
+      <div class="card-body pb-3">
+        <div id="sfa-social-list" class="d-flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+
+    <!-- Payment methods -->
+    <div class="card mb-3 d-none" id="sfa-payment-card">
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="ri-bank-card-line"></i>
+        <strong data-i18n="sfa_payment">Payment Methods</strong>
+      </div>
+      <div class="card-body pb-3">
+        <div id="sfa-payment-list" class="d-flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+
+    <!-- Partial data notice -->
+    <div id="sfa-partial-notice" class="alert alert-warning small d-none">
+      <i class="ri-information-line"></i>
+      <strong>Limited data:</strong> The store's main page is protected by Cloudflare or similar. Platform was detected via <code>robots.txt</code>. Analytics, apps and theme details are unavailable.
+    </div>
+
+    <!-- Tip -->
+    <div class="alert alert-secondary small">
+      <strong data-i18n="tip">Tip:</strong>
+      <span data-i18n="sfa_tip"> Results are extracted from the store's public HTML. Password-protected stores or sites blocking external crawlers may return limited data. Admin email is not publicly available.</span>
+    </div>
+  </div>
+</div>
+
+<style>
+.sfa-table th {
+  width: 150px;
+  white-space: nowrap;
+  font-weight: 600;
+  background: var(--bs-light, #f8f9fa);
+  font-size: 13.5px;
+}
+.sfa-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #dee2e6;
+  background: #f8f9fa;
+  color: #495057;
+  text-decoration: none;
+  transition: background .12s, color .12s;
+}
+a.sfa-tag:hover { background: #e9ecef; color: #212529; }
+.sfa-tag i { font-size: 14px; }
+.sfa-stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+}
+.sfa-stat-num { font-size: 1.4rem; font-weight: 700; color: #0f1117; line-height: 1.1; }
+.sfa-stat-label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: .7px; margin-top: 3px; }
+.sfa-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+.sfa-product-card {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: box-shadow .15s;
+}
+.sfa-product-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.sfa-product-img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: #f8f9fa;
+  display: block;
+}
+.sfa-product-info { padding: 8px 10px; }
+.sfa-product-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #212529;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
+}
+.sfa-product-price { font-size: 13px; font-weight: 700; color: #198754; }
+.sfa-product-compare { font-size: 11px; color: #9ca3af; text-decoration: line-through; margin-left: 4px; }
+</style>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var tr = function (k, d) { return (window.t && window.t(k)) || d || k; };
+
+  var btn      = $('sfa-btn');
+  var urlInput = $('sfa-url');
+  var errorEl  = $('sfa-error');
+  var loadingEl  = $('sfa-loading');
+  var resultsEl  = $('sfa-results');
+
+  /* ── Helpers ─────────────────────────────────────────────── */
+
+  function normalizeUrl(raw) {
+    raw = (raw || '').trim();
+    if (!raw) return null;
+    if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
+    try { return new URL(raw).href; } catch (e) { return null; }
+  }
+
+  function setVisible(el, visible) { el.classList.toggle('d-none', !visible); }
+
+  function showError(msg) {
+    errorEl.textContent = msg;
+    setVisible(errorEl, true);
+    setVisible(loadingEl, false);
+    setVisible(resultsEl, false);
+    btn.disabled = false;
+  }
+
+  function nd() { return tr('sfa_not_detected', 'Not detected'); }
+
+  function fmtPrice(str) {
+    var n = parseFloat(str);
+    return isNaN(n) ? str : n.toFixed(2).replace(/\.00$/, '');
+  }
+
+  /* ── CORS proxy ──────────────────────────────────────────── */
+
+  var PROXIES = [
+    {
+      build: function (u) { return 'https://api.allorigins.win/get?url=' + encodeURIComponent(u); },
+      parse: async function (r) {
+        var d = await r.json();
+        if (!d || !d.contents) throw new Error('empty');
+        return d.contents;
+      }
+    },
+    {
+      build: function (u) { return 'https://corsproxy.io/?' + encodeURIComponent(u); },
+      parse: async function (r) { return r.text(); }
+    },
+    {
+      build: function (u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); },
+      parse: async function (r) { return r.text(); }
+    }
+  ];
+
+  async function tryFetch(url, timeoutMs) {
+    var lastErr;
+    for (var i = 0; i < PROXIES.length; i++) {
+      var proxy = PROXIES[i];
+      var controller = new AbortController();
+      var tid = setTimeout(function () { controller.abort(); }, timeoutMs || 12000);
+      try {
+        var resp = await fetch(proxy.build(url), { signal: controller.signal });
+        clearTimeout(tid);
+        if (!resp.ok) { lastErr = new Error('http_' + resp.status); continue; }
+        var text = await proxy.parse(resp);
+        if (text && text.length > 30) return text;
+        lastErr = new Error('empty');
+      } catch (e) {
+        clearTimeout(tid);
+        if (e.name === 'AbortError') { lastErr = e; break; }
+        lastErr = e;
+      }
+    }
+    throw lastErr || new Error('all_failed');
+  }
+
+  /* ── Platform detection ──────────────────────────────────── */
+
+  function detectPlatform(html) {
+    var h = html.toLowerCase();
+    if (h.includes('cdn.shopify.com') || h.includes('.myshopify.com') || h.includes('shopify-checkout') || h.includes('shopify_checkout')) return 'shopify';
+    if (h.includes('woocommerce')) return 'woocommerce';
+    if (h.includes('wp-content') || h.includes('wp-includes') || /generator.*wordpress/i.test(html)) return 'wordpress';
+    if (h.includes('wix.com') || h.includes('wixsite.com') || h.includes('wix-code')) return 'wix';
+    if (h.includes('squarespace.com') || h.includes('squarespace-cdn')) return 'squarespace';
+    if (h.includes('webflow.io') || /data-wf-site|data-wf-page/i.test(html)) return 'webflow';
+    if (h.includes('bigcommerce.com') || h.includes('bigcommerce')) return 'bigcommerce';
+    if (h.includes('magento') || h.includes('mage/')) return 'magento';
+    return 'unknown';
+  }
+
+  function detectPlatformFromRobots(robots) {
+    if (/\.myshopify\.com/i.test(robots)) return 'shopify';
+    if (/\/wp-admin\//i.test(robots)) return /woocommerce/i.test(robots) ? 'woocommerce' : 'wordpress';
+    if (/Disallow:.*\/_api\//i.test(robots) || /wix\.com/i.test(robots)) return 'wix';
+    if (/squarespace/i.test(robots)) return 'squarespace';
+    if (/webflow/i.test(robots)) return 'webflow';
+    if (/bigcommerce/i.test(robots)) return 'bigcommerce';
+    return null;
+  }
+
+  var PLATFORM_LABEL = { shopify:'Shopify', woocommerce:'WooCommerce (WordPress)', wordpress:'WordPress', wix:'Wix', squarespace:'Squarespace', webflow:'Webflow', bigcommerce:'BigCommerce', magento:'Magento', unknown:'Unknown' };
+  var PLATFORM_BADGE = { shopify:'bg-success text-white', wordpress:'bg-primary text-white', woocommerce:'text-white', wix:'bg-warning text-dark', squarespace:'bg-dark text-white', webflow:'bg-info text-dark', bigcommerce:'bg-info text-dark', magento:'bg-danger text-white', unknown:'bg-secondary text-white' };
+
+  /* ── Shopify data extraction ─────────────────────────────── */
+
+  function extractShopifyDomain(html) {
+    var m = html.match(/["'`]([\w-]+\.myshopify\.com)["'`]/);
+    return m ? m[1].toLowerCase() : null;
+  }
+  function extractShopifyDomainFromRobots(robots) {
+    var m = robots.match(/https?:\/\/([\w-]+\.myshopify\.com)/i);
+    return m ? m[1].toLowerCase() : null;
+  }
+  function extractCurrency(html) {
+    var m;
+    m = html.match(/"active"\s*:\s*"([A-Z]{3})"/);     if (m) return m[1];
+    m = html.match(/currency\.active\s*=\s*["']([A-Z]{3})["']/); if (m) return m[1];
+    m = html.match(/["']currency["']\s*:\s*["']([A-Z]{3})["']/i); if (m) return m[1];
+    return null;
+  }
+  function extractLocale(html) {
+    var m;
+    m = html.match(/Shopify\.locale\s*=\s*["']([^"']+)["']/); if (m) return m[1];
+    m = html.match(/"locale"\s*:\s*"([a-z]{2}(?:[_-][A-Za-z]{2,4})?)"/i); if (m) return m[1];
+    m = html.match(/<html[^>]+lang=["']([^"']+)["']/i); if (m) return m[1];
+    return null;
+  }
+  function extractTheme(html) {
+    var m;
+    m = html.match(/Shopify\.theme\s*=\s*\{[^}]*["']?name["']?\s*:\s*["']([^"']+)["']/); if (m) return m[1];
+    m = html.match(/"theme"\s*:\s*\{[^}]*"name"\s*:\s*"([^"]+)"/); if (m) return m[1];
+    return null;
+  }
+  function extractStoreName(html) {
+    var m = html.match(/<title[^>]*>([^<]+)/i);
+    if (!m) return null;
+    return m[1].trim().replace(/\s*[|–—·\-]+\s*.+$/, '').trim() || null;
+  }
+  function isPasswordProtected(html) {
+    return /template-?password|<meta[^>]+content=["']password["']/i.test(html);
+  }
+
+  /* ── Analytics ───────────────────────────────────────────── */
+
+  var ANALYTICS = [
+    { re: /googletagmanager\.com|gtag\s*\(|ga\s*\(/, name:'Google Analytics / GTM', icon:'ri-bar-chart-line', color:'#e8453c' },
+    { re: /fbq\s*\(|facebook\.net\/[a-z_]+\/fbevents/, name:'Facebook / Meta Pixel', icon:'ri-facebook-circle-fill', color:'#1877f2' },
+    { re: /analytics\.tiktok\.com|ttq\s*\./, name:'TikTok Pixel', icon:'ri-tiktok-fill', color:'#010101' },
+    { re: /klaviyo/i, name:'Klaviyo', icon:'ri-mail-send-line', color:'#10b981' },
+    { re: /hotjar/i, name:'Hotjar', icon:'ri-fire-line', color:'#fd3a5c' },
+    { re: /crisp\.chat|crisp\.io/i, name:'Crisp Chat', icon:'ri-chat-3-line', color:'#1972f5' },
+    { re: /intercom/i, name:'Intercom', icon:'ri-customer-service-2-line', color:'#286efa' },
+    { re: /pintrk\s*\(|pinterest\.com\/ct/i, name:'Pinterest Tag', icon:'ri-pinterest-fill', color:'#e60023' },
+    { re: /snap\.licdn|linkedin\.com\/li/i, name:'LinkedIn Insight', icon:'ri-linkedin-fill', color:'#0077b5' },
+    { re: /snapchat\.com\/pixel/i, name:'Snapchat Pixel', icon:'ri-snapchat-fill', color:'#fffc00' },
+    { re: /mc\.yandex\.ru|metrika/i, name:'Yandex Metrica', icon:'ri-bar-chart-2-line', color:'#ff0000' },
+  ];
+
+  /* ── Apps ────────────────────────────────────────────────── */
+
+  var APPS = [
+    ['loox\\.io|loox-widget','Loox Reviews'], ['judge\\.me|judgeme','Judge.me Reviews'],
+    ['yotpo\\.com','Yotpo'], ['stamped\\.io','Stamped.io'], ['okendo\\.io','Okendo Reviews'],
+    ['privy\\.com','Privy'], ['omnisend\\.com','Omnisend'], ['klaviyo','Klaviyo'],
+    ['gorgias','Gorgias'], ['tidio','Tidio Chat'], ['freshchat|freshworks','Freshchat'],
+    ['recharge|rechargepayments','ReCharge'], ['bold\\.co|boldcommerce','Bold Apps'],
+    ['pagefly','PageFly'], ['shogun\\b','Shogun'], ['reconvert','ReConvert'],
+    ['smile\\.io|smile-rewards','Smile Loyalty'], ['loyalty-?lion','LoyaltyLion'],
+    ['wishlist[-_]plus|swym','Wishlist Plus'], ['langify','Langify'], ['weglot','Weglot'],
+    ['transcy','Transcy'], ['boost-sd\\.com|boostcommerce','Boost Filter'],
+    ['searchpie','SearchPie SEO'], ['aftership','AfterShip'], ['naviplus|pronavi','Navi+ Menu Builder'],
+    ['trustpilot','Trustpilot'], ['reviews\\.io','Reviews.io'], ['growave','Growave'],
+    ['back[-_]in[-_]stock','Back In Stock'], ['return[-_]prime|returnly','Returns App'],
+  ];
+
+  /* ── Social media ────────────────────────────────────────── */
+
+  var SOCIALS = [
+    { key:'Facebook',  re:/href=["']https?:\/\/(?:www\.)?facebook\.com\/((?!sharer|dialog|share|login|events)[^"'\s\/?#>]{2,})["']/i, icon:'ri-facebook-circle-fill', color:'#1877f2' },
+    { key:'Instagram', re:/href=["']https?:\/\/(?:www\.)?instagram\.com\/([^"'\s\/?#>]{2,})["']/i, icon:'ri-instagram-fill', color:'#e1306c' },
+    { key:'TikTok',    re:/href=["']https?:\/\/(?:www\.)?tiktok\.com\/@?([^"'\s\/?#>]{2,})["']/i, icon:'ri-tiktok-fill', color:'#010101' },
+    { key:'YouTube',   re:/href=["']https?:\/\/(?:www\.)?youtube\.com\/(?:channel\/|@|user\/)?([^"'\s\/?#>]{2,})["']/i, icon:'ri-youtube-fill', color:'#ff0000' },
+    { key:'X/Twitter', re:/href=["']https?:\/\/(?:www\.)?(?:twitter|x)\.com\/((?!intent|share|home|search)[^"'\s\/?#>]{2,})["']/i, icon:'ri-twitter-x-fill', color:'#000' },
+    { key:'Pinterest', re:/href=["']https?:\/\/(?:www\.)?pinterest\.[a-z.]{2,6}\/([^"'\s\/?#>]{2,})["']/i, icon:'ri-pinterest-fill', color:'#e60023' },
+    { key:'LinkedIn',  re:/href=["']https?:\/\/(?:www\.)?linkedin\.com\/(?:company\/|in\/)([^"'\s\/?#>]{2,})["']/i, icon:'ri-linkedin-fill', color:'#0077b5' },
+  ];
+
+  function extractSocialLinks(html) {
+    var found = [];
+    var seen = {};
+    SOCIALS.forEach(function (s) {
+      var m = html.match(s.re);
+      if (m && !seen[s.key]) {
+        seen[s.key] = true;
+        var handle = m[1].replace(/[/?#].*$/, '').replace(/["'>].*$/, '');
+        found.push({ key: s.key, handle: handle, icon: s.icon, color: s.color,
+          href: m[0].match(/href=["']([^"']+)/)[1] });
+      }
+    });
+    return found;
+  }
+
+  /* ── Payment methods ─────────────────────────────────────── */
+
+  var PAYMENTS = [
+    { re:/afterpay|clearpay/i, name:'Afterpay', icon:'ri-secure-payment-line' },
+    { re:/\bklarna\b/i, name:'Klarna', icon:'ri-secure-payment-line' },
+    { re:/\bpaypal\b/i, name:'PayPal', icon:'ri-paypal-fill' },
+    { re:/shoppay|shop[-_]?pay/i, name:'Shop Pay', icon:'ri-shopping-bag-2-line' },
+    { re:/apple[-_]?pay/i, name:'Apple Pay', icon:'ri-apple-fill' },
+    { re:/google[-_]?pay/i, name:'Google Pay', icon:'ri-google-fill' },
+    { re:/\bzip\b.*pay|zippay/i, name:'Zip Pay', icon:'ri-secure-payment-line' },
+    { re:/\bsezzle\b/i, name:'Sezzle', icon:'ri-secure-payment-line' },
+    { re:/\baffirm\b/i, name:'Affirm', icon:'ri-secure-payment-line' },
+    { re:/\blaybuy\b/i, name:'Laybuy', icon:'ri-secure-payment-line' },
+    { re:/\bhumm\b/i, name:'Humm', icon:'ri-secure-payment-line' },
+    { re:/\bpaidy\b/i, name:'Paidy', icon:'ri-secure-payment-line' },
+    { re:/stripe/i, name:'Stripe', icon:'ri-bank-card-line' },
+  ];
+
+  /* ── Sitemap parsing ─────────────────────────────────────── */
+
+  function parseSitemap(xml) {
+    if (!xml || !xml.includes('<sitemap')) return null;
+    var locs = xml.match(/<loc>[^<]+<\/loc>/gi) || [];
+    var stats = { products: 0, collections: 0, pages: 0, blogs: 0 };
+    locs.forEach(function (loc) {
+      var u = loc.replace(/<\/?loc>/gi, '');
+      if (/sitemap_products/i.test(u))    stats.products++;
+      else if (/sitemap_collections/i.test(u)) stats.collections++;
+      else if (/sitemap_pages/i.test(u))  stats.pages++;
+      else if (/sitemap_blog/i.test(u))   stats.blogs++;
+    });
+    return stats;
+  }
+
+  /* ── Products JSON parsing ───────────────────────────────── */
+
+  function parseProducts(jsonStr) {
+    if (!jsonStr || !jsonStr.includes('"products"')) return null;
+    try {
+      var data = JSON.parse(jsonStr);
+      if (!data.products || !data.products.length) return null;
+      return data.products.slice(0, 4).map(function (p) {
+        var v = (p.variants && p.variants[0]) || {};
+        return {
+          title: p.title || '',
+          img: (p.images && p.images[0] && p.images[0].src) || '',
+          price: v.price || '',
+          compare: v.compare_at_price || '',
+          url: p.handle ? ('/products/' + p.handle) : ''
+        };
+      });
+    } catch (e) { return null; }
+  }
+
+  /* ── Render helpers ──────────────────────────────────────── */
+
+  function tag(icon, color, label, href) {
+    var el = href ? 'a' : 'span';
+    var extra = href ? ' href="' + href + '" target="_blank" rel="noopener"' : '';
+    return '<' + el + ' class="sfa-tag"' + extra + '><i class="' + icon + '" style="color:' + (color||'inherit') + '"></i>' + label + '</' + el + '>';
+  }
+
+  /* ── Analyze ─────────────────────────────────────────────── */
+
+  async function analyze() {
+    var raw = urlInput.value;
+    var url = normalizeUrl(raw);
+    if (!url) { showError(tr('sfa_invalid_url','Please enter a valid URL')); return; }
+
+    btn.disabled = true;
+    setVisible(errorEl, false);
+    setVisible(resultsEl, false);
+    setVisible(loadingEl, true);
+
+    var base = url.replace(/\/$/, '');
+
+    /* Fetch 4 sources in parallel */
+    var settled = await Promise.allSettled([
+      tryFetch(base + '/robots.txt', 12000),
+      tryFetch(url, 14000),
+      tryFetch(base + '/sitemap.xml', 12000),
+      tryFetch(base + '/products.json?limit=4', 12000)
+    ]);
+
+    var robotsTxt   = settled[0].status === 'fulfilled' ? settled[0].value : null;
+    var html        = settled[1].status === 'fulfilled' ? settled[1].value : null;
+    var sitemapXml  = settled[2].status === 'fulfilled' ? settled[2].value : null;
+    var productsRaw = settled[3].status === 'fulfilled' ? settled[3].value : null;
+
+    /* Discard robots.txt if it looks like a challenge page */
+    if (robotsTxt && /<html/i.test(robotsTxt) && !robotsTxt.includes('myshopify')) robotsTxt = null;
+
+    if (!robotsTxt && !html && !sitemapXml) {
+      showError(tr('sfa_error_fetch','Could not fetch the URL. The site may block external crawlers.'));
+      return;
+    }
+
+    /* ── Platform ── */
+    var platform = 'unknown';
+    if (html)      platform = detectPlatform(html);
+    if (platform === 'unknown' && robotsTxt) platform = detectPlatformFromRobots(robotsTxt) || 'unknown';
+    if (platform === 'unknown' && sitemapXml && /myshopify/i.test(sitemapXml)) platform = 'shopify';
+
+    var isShopify = platform === 'shopify';
+    var partialData = !html && (!!robotsTxt || !!sitemapXml);
+
+    /* ── Extract ── */
+    var shopDomain = null;
+    if (isShopify) {
+      shopDomain = (html && extractShopifyDomain(html))
+                || (robotsTxt && extractShopifyDomainFromRobots(robotsTxt))
+                || (sitemapXml && extractShopifyDomainFromRobots(sitemapXml));
+    }
+
+    var currency  = html && isShopify ? extractCurrency(html) : null;
+    var locale    = html ? extractLocale(html) : null;
+    var theme     = html && isShopify ? extractTheme(html) : null;
+    var storeName = html ? extractStoreName(html) : null;
+    var analytics = html ? ANALYTICS.filter(function (a) { return a.re.test(html); }) : [];
+    var apps      = html && isShopify ? APPS.reduce(function (acc, p) { try { if (new RegExp(p[0],'i').test(html)) acc.push(p[1]); } catch(e){} return acc; }, []) : [];
+    var socials   = html ? extractSocialLinks(html) : [];
+    var payments  = html ? PAYMENTS.filter(function (p) { return p.re.test(html); }) : [];
+    var isPassword = isShopify && html && isPasswordProtected(html);
+    var sitemapStats = parseSitemap(sitemapXml);
+    var products  = isShopify ? parseProducts(productsRaw) : null;
+
+    var hostname = '';
+    try { hostname = new URL(url).hostname; } catch(e) {}
+
+    /* ── Render ── */
+
+    $('sfa-result-url').textContent = hostname;
+
+    var badge = $('sfa-platform-badge');
+    badge.className = 'badge fs-6 px-3 py-2 ' + (PLATFORM_BADGE[platform] || 'bg-secondary text-white');
+    if (platform === 'woocommerce') badge.style.background = '#7f54b3';
+    badge.textContent = (isShopify ? '✅ ' : '') + (PLATFORM_LABEL[platform] || platform);
+
+    $('sfa-platform-cell').textContent = PLATFORM_LABEL[platform] || platform;
+
+    if (shopDomain) {
+      $('sfa-shopify-domain-cell').innerHTML = '<a href="https://' + shopDomain + '" target="_blank" rel="noopener" class="font-monospace">' + shopDomain + '</a>';
+    }
+    setVisible($('sfa-shopify-domain-row'), !!shopDomain);
+
+    var nameCell = $('sfa-store-name-cell');
+    nameCell.textContent = storeName || nd();
+    if (isPassword) nameCell.innerHTML = (storeName || nd()) + ' <span class="badge bg-warning text-dark ms-1">Password protected</span>';
+
+    if (currency) {
+      $('sfa-currency-cell').textContent = currency;
+      setVisible($('sfa-currency-row'), true);
+    } else { setVisible($('sfa-currency-row'), isShopify); $('sfa-currency-cell').textContent = nd(); }
+
+    $('sfa-language-cell').textContent = locale || nd();
+
+    if (theme) {
+      var themeSlug = theme.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      $('sfa-theme-cell').innerHTML = '<a href="https://themes.shopify.com/themes/' + themeSlug + '" target="_blank" rel="noopener">' + theme + ' <i class="ri-external-link-line" style="font-size:0.85em;vertical-align:middle;"></i></a>';
+      setVisible($('sfa-theme-row'), true);
+    } else { setVisible($('sfa-theme-row'), isShopify); $('sfa-theme-cell').textContent = nd(); }
+
+    /* Store size */
+    var sizeCard = $('sfa-size-card');
+    if (sitemapStats && (sitemapStats.products || sitemapStats.collections || sitemapStats.pages || sitemapStats.blogs)) {
+      var statBoxes = [
+        { num: sitemapStats.products ? (sitemapStats.products * 250 > 250 ? (sitemapStats.products * 250 - 249) + '+' : '≤250') : '—', label: 'Products' },
+        { num: sitemapStats.collections || '—', label: 'Collections' },
+        { num: sitemapStats.pages || '—', label: 'Pages' },
+        { num: sitemapStats.blogs || '—', label: 'Blogs' },
+      ];
+      $('sfa-size-stats').innerHTML = statBoxes.map(function (s) {
+        return '<div class="sfa-stat-box"><span class="sfa-stat-num">' + s.num + '</span><span class="sfa-stat-label">' + s.label + '</span></div>';
+      }).join('');
+      setVisible(sizeCard, true);
+    } else { setVisible(sizeCard, false); }
+
+    /* Products */
+    var prodCard = $('sfa-products-card');
+    if (products && products.length) {
+      $('sfa-products-meta').textContent = products.length + ' shown';
+      $('sfa-products-grid').innerHTML = products.map(function (p) {
+        var priceHtml = p.price ? '<span class="sfa-product-price">' + fmtPrice(p.price) + '</span>' + (p.compare && p.compare !== '0.00' ? '<span class="sfa-product-compare">' + fmtPrice(p.compare) + '</span>' : '') : '';
+        var imgHtml = p.img ? '<img class="sfa-product-img" src="' + p.img + '" alt="" loading="lazy">' : '<div class="sfa-product-img" style="display:flex;align-items:center;justify-content:center;color:#dee2e6"><i class="ri-image-line" style="font-size:2rem"></i></div>';
+        var href = p.url ? 'https://' + (shopDomain || hostname) + p.url : '#';
+        return '<a class="sfa-product-card" href="' + href + '" target="_blank" rel="noopener">' + imgHtml + '<div class="sfa-product-info"><div class="sfa-product-title">' + p.title + '</div>' + priceHtml + '</div></a>';
+      }).join('');
+      setVisible(prodCard, true);
+    } else { setVisible(prodCard, false); }
+
+    /* Analytics */
+    $('sfa-analytics-list').innerHTML = analytics.length
+      ? analytics.map(function (a) { return tag(a.icon, a.color, a.name); }).join('')
+      : '<span class="text-muted small">' + (partialData ? '—' : nd()) + '</span>';
+
+    /* Apps */
+    var appsCard = $('sfa-apps-card');
+    if (isShopify) {
+      $('sfa-apps-count').textContent = apps.length;
+      $('sfa-apps-list').innerHTML = apps.length
+        ? apps.map(function (a) { return tag('ri-plug-line', '#6b7280', a); }).join('')
+        : '<span class="text-muted small">' + (partialData ? '—' : nd()) + '</span>';
+      setVisible(appsCard, true);
+    } else { setVisible(appsCard, false); }
+
+    /* Socials */
+    var socialCard = $('sfa-social-card');
+    if (socials.length) {
+      $('sfa-social-list').innerHTML = socials.map(function (s) {
+        return tag(s.icon, s.color, s.key + ' @' + s.handle, s.href);
+      }).join('');
+      setVisible(socialCard, true);
+    } else { setVisible(socialCard, false); }
+
+    /* Payments */
+    var payCard = $('sfa-payment-card');
+    if (payments.length) {
+      $('sfa-payment-list').innerHTML = payments.map(function (p) { return tag(p.icon, '#495057', p.name); }).join('');
+      setVisible(payCard, true);
+    } else { setVisible(payCard, false); }
+
+    /* Partial notice */
+    setVisible($('sfa-partial-notice'), partialData);
+
+    setVisible(loadingEl, false);
+    setVisible(resultsEl, true);
+    btn.disabled = false;
+  }
+
+  btn.addEventListener('click', analyze);
+  urlInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') analyze(); });
+
+})();
+</script>
