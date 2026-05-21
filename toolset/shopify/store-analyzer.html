@@ -336,13 +336,28 @@ a.sfa-tag:hover { background: #e9ecef; color: #212529; }
         || /shopify\.shop\s*=/i.test(html)            // Shopify.shop assignment
         || /"shop_id"\s*:\s*\d+/.test(html)           // Shopify shop_id in JSON
     ) return 'shopify';
-    if (h.includes('woocommerce')) return 'woocommerce';
-    if (h.includes('wp-content') || h.includes('wp-includes') || /generator.*wordpress/i.test(html)) return 'wordpress';
-    if (h.includes('wix.com') || h.includes('wixsite.com') || h.includes('wix-code')) return 'wix';
-    if (h.includes('squarespace.com') || h.includes('squarespace-cdn')) return 'squarespace';
-    if (h.includes('webflow.io') || /data-wf-site|data-wf-page/i.test(html)) return 'webflow';
-    if (h.includes('bigcommerce.com') || h.includes('bigcommerce')) return 'bigcommerce';
-    if (h.includes('magento') || h.includes('mage/')) return 'magento';
+    // WooCommerce: must have actual WC asset paths or cart classes
+    if (h.includes('/woocommerce/assets/') || h.includes('woocommerce.min.js')
+        || h.includes('wc-add-to-cart') || h.includes('class="woocommerce')
+        || h.includes("class='woocommerce")) return 'woocommerce';
+    // WordPress: must load assets from wp-content or wp-includes paths
+    if (h.includes('/wp-content/themes/') || h.includes('/wp-content/plugins/')
+        || h.includes('/wp-includes/js/') || h.includes('/wp-includes/css/')
+        || /generator['"]\s*content=['"]wordpress/i.test(html)) return 'wordpress';
+    // Wix: assets always served from wixstatic.com
+    if (h.includes('static.wixstatic.com') || h.includes('wix-code-widget')
+        || /data-mesh-id|class="[^"]*wix-/i.test(html)) return 'wix';
+    // Squarespace: assets from squarespace CDN
+    if (h.includes('static1.squarespace.com') || h.includes('squarespace-cdn')
+        || /data-block-type|class="[^"]*sqs-/i.test(html)) return 'squarespace';
+    // Webflow: data attributes only Webflow generates
+    if (/data-wf-site|data-wf-page/i.test(html) || h.includes('webflow.io/')) return 'webflow';
+    // BigCommerce: actual BC asset paths
+    if (h.includes('cdn11.bigcommerce.com') || h.includes('bigcommerce.com/s/')
+        || h.includes('bc-sf-filter')) return 'bigcommerce';
+    // Magento: Mage JS object or require-config paths
+    if (/window\.mage\b|require\.config.*magento/i.test(html)
+        || h.includes('/pub/static/frontend/')) return 'magento';
     return 'unknown';
   }
 
