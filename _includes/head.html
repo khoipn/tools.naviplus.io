@@ -160,6 +160,26 @@
   .np-tools-intro-head { font-size: 13px; font-weight: 700; color: #0f1117; margin-bottom: 5px; }
   .np-tools-intro-desc { font-size: 12px; color: #6b7280; line-height: 1.5; }
 
+  /* ── Cục highlight vàng: hướng dẫn Navi+ trên 177 theme Shopify ── */
+  .np-themes-promo { display:block; margin:2px 4px 0; padding:10px 11px; border-radius:10px;
+    background:linear-gradient(135deg,#fff7e0,#ffeebf); border:1px solid #f2d488; text-decoration:none;
+    font-family:"Inter",system-ui,sans-serif; }
+  .np-themes-promo:hover { border-color:#e8c25f; background:linear-gradient(135deg,#fff4d4,#ffe7ac); }
+  .np-themes-promo-badge { display:inline-flex; align-items:center; gap:4px; font-size:9.5px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.04em; color:#8a5a00; background:#ffdf8a;
+    padding:2px 7px; border-radius:20px; margin-bottom:7px; }
+  .np-themes-promo-title { display:block; font-size:12px; font-weight:600; color:#5c3d00; line-height:1.4; }
+  .np-themes-promo-title b { font-weight:700; color:#1c1c1c; }
+  .np-themes-grid { display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:8px; }
+  .np-theme-chip { display:flex; align-items:center; gap:8px; padding:3px 4px; border-radius:6px;
+    background:transparent; border:0; text-decoration:none;
+    font-family:"Inter",system-ui,sans-serif; transition:background .12s; }
+  .np-theme-chip:hover { background:rgba(255,255,255,.7); }
+  .np-theme-chip img { width:38px; height:25px; border-radius:4px; object-fit:cover; object-position:top; background:#fff; flex:none; }
+  .np-theme-chip span { font-size:11.5px; font-weight:600; color:#3d4352; line-height:1.15; }
+  .np-themes-promo-all { display:inline-block; margin:8px 4px 0; font-size:11.5px; font-weight:600; color:#8a5a00; text-decoration:none; font-family:"Inter",system-ui,sans-serif; }
+  .np-themes-promo-all:hover { text-decoration:underline; }
+
   /* Plain guide links */
   .np-guide-link {
     display: block; padding: 5px 10px; border-radius: 6px;
@@ -623,12 +643,27 @@
           <div class="np-mega-inner">
             <div class="np-mega-3col">
 
-              <!-- Col 1: Intro -->
+              <!-- Col 1: Intro + cục highlight 177 theme Shopify -->
               <div>
                 <div class="np-tools-intro">
                   <div class="np-tools-intro-head" data-i18n="nav_toolbox_section_title">Free support tools</div>
                   <div class="np-tools-intro-desc" data-i18n="nav_toolbox_section_desc">Tools to help you build a better, faster website. 100% free — no data stored.</div>
                 </div>
+
+                <!-- Highlight: hướng dẫn chèn & dùng Navi+ trên 177 theme Shopify -->
+                <a href="https://naviplus.io/shopify-themes/" class="np-themes-promo">
+                  <span class="np-themes-promo-badge"><i class="ri-shopping-bag-3-line" aria-hidden="true"></i> Shopify</span>
+                  <span class="np-themes-promo-title">Add &amp; use Navi+ menus on <b>177 Shopify themes</b> — step-by-step guide for each theme</span>
+                </a>
+                <div class="np-themes-grid">
+                  <a href="https://naviplus.io/shopify-themes/dawn/" class="np-theme-chip"><img src="https://cdn.naviplus.app/static/assets/v2/golive/theme-compat/img/dawn/thumb-desktop.webp" alt="Dawn theme" loading="lazy"><span>Dawn</span></a>
+                  <a href="https://naviplus.io/shopify-themes/horizon/" class="np-theme-chip"><img src="https://cdn.naviplus.app/static/assets/v2/golive/theme-compat/img/horizon/thumb-desktop.webp" alt="Horizon theme" loading="lazy"><span>Horizon</span></a>
+                  <a href="https://naviplus.io/shopify-themes/refresh/" class="np-theme-chip"><img src="https://cdn.naviplus.app/static/assets/v2/golive/theme-compat/img/refresh/thumb-desktop.webp" alt="Refresh theme" loading="lazy"><span>Refresh</span></a>
+                  <a href="https://naviplus.io/shopify-themes/craft/" class="np-theme-chip"><img src="https://cdn.naviplus.app/static/assets/v2/golive/theme-compat/img/craft/thumb-desktop.webp" alt="Craft theme" loading="lazy"><span>Craft</span></a>
+                  <a href="https://naviplus.io/shopify-themes/sense/" class="np-theme-chip"><img src="https://cdn.naviplus.app/static/assets/v2/golive/theme-compat/img/sense/thumb-desktop.webp" alt="Sense theme" loading="lazy"><span>Sense</span></a>
+                  <a href="https://naviplus.io/shopify-themes/studio/" class="np-theme-chip"><img src="https://cdn.naviplus.app/static/assets/v2/golive/theme-compat/img/studio/thumb-desktop.webp" alt="Studio theme" loading="lazy"><span>Studio</span></a>
+                </div>
+                <a href="https://naviplus.io/shopify-themes/" class="np-themes-promo-all">See all 177 themes →</a>
               </div>
 
               <!-- Col 2: Design & Images -->

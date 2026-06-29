@@ -1,0 +1,27 @@
+<!-- Inbox+ (NS) chat widget — công cụ hỗ trợ, dùng chung workspace với naviplus25
+     (cùng key nv_live_... → chat đổ về cùng inbox). Không có nút [data-ns-trigger]
+     → ns.js tự tạo bong bóng nổi #ns-fab góc dưới-phải.
+     Tham khảo pattern: naviplus25 app/layout/footer.php. -->
+<script>
+  /* Site tĩnh không có user đăng nhập → email/name để trống; store = hostname trang. */
+  window.nsvars = {
+    customerEmail: '',
+    customerName: '',
+    store: location.hostname,
+    apiUrl: 'https://api.inboxplus.app'
+  };
+</script>
+<script>
+  /* Lazy-load ns.js SAU window.load (script bên thứ ba, tải động async, không chặn render). */
+  (function () {
+    function loadNSWidget() {
+      var s = document.createElement('script');
+      s.src = 'https://ai.inboxplus.app/widget/ns.js';
+      s.setAttribute('data-key', 'nv_live_2072a78da40afa177b11402f21335055');
+      s.async = true;
+      document.body.appendChild(s);
+    }
+    if (document.readyState === 'complete') loadNSWidget();
+    else window.addEventListener('load', loadNSWidget);
+  })();
+</script>
