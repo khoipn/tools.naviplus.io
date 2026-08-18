@@ -1,0 +1,6 @@
+# tools.naviplus.io — bo cong cu mien phi chay trong trinh duyet.
+# Truoc day dung robots mac dinh cua Cloudflare va khong khai bao sitemap.
+User-agent: *
+Allow: /
+
+Sitemap: https://tools.naviplus.io/sitemap.xml

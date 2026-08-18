@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sitemap tinh cho tools.naviplus.io (13 cong cu + trang chu).
+  Sinh tay vi site chi bat jekyll-seo-tag, khong co jekyll-sitemap.
+  Them cong cu moi trong toolset/ thi bo sung mot dong <url> tuong ung o day.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://tools.naviplus.io/</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://tools.naviplus.io/toolset/design/color-palette</loc><priority>0.8</priority></url>
+  <url><loc>https://tools.naviplus.io/toolset/shopify/store-analyzer</loc><priority>0.8</priority></url>
+  <url><loc>https://tools.naviplus.io/toolset/images/color-picker</loc><priority>0.7</priority></url>
+  <url><loc>https://tools.naviplus.io/toolset/images/photo-collage</loc><priority>0.7</priority></url>
+  <url><loc>https://tools.naviplus.io/toolset/images/upload-image</loc><priority>0.7</priority></url>
+  <url><loc>https://tools.naviplus.io/toolset/images/watermark</loc><priority>0.7</priority></url>
+  <url><loc>https://tools.naviplus.io/toolset/images/remove-background</loc><priority>0.7</priority></url>
+  <url><loc>https://tools.naviplus.io/toolset/images/convert-to-webp</loc><priority>0.7</priority></url>
+  <url><loc>https://tools.naviplus.io/toolset/images/image-resizer</loc><priority>0.7</priority></url>
+  <url><loc>https://tools.naviplus.io/toolset/security/jwt-decoder</loc><priority>0.7</priority></url>
+  <url><loc>https://tools.naviplus.io/toolset/security/encrypt</loc><priority>0.7</priority></url>
+  <url><loc>https://tools.naviplus.io/toolset/security/generate-password</loc><priority>0.7</priority></url>
+  <url><loc>https://tools.naviplus.io/toolset/security/hash-generator</loc><priority>0.7</priority></url>
+</urlset>
