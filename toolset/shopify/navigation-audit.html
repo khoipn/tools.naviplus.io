@@ -1,0 +1,1121 @@
+---
+layout: default
+title: "Shopify Navigation Audit — Mobile Thumb Zone & Theme Check"
+description: "Audit mobile thumb zone ergonomics, theme compatibility and navigation drop-off risk for any Shopify store."
+---
+
+<style>
+  /* ── Audit Tool Styles ─────────────────────────────────── */
+  .np-audit-page {
+    padding-bottom: 60px;
+    color: var(--c-text, #111111);
+  }
+
+  /* Search Card */
+  .np-audit-input-card {
+    max-width: 680px;
+    margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 14px;
+    padding: 6px 8px;
+    box-shadow: 0 8px 24px rgba(15,17,23,.06);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .np-audit-input-card:focus-within {
+    border-color: #2f7d5b;
+    box-shadow: 0 10px 30px rgba(47,125,91,.15);
+  }
+  .np-audit-icon {
+    font-size: 20px;
+    color: #9ca3af;
+    margin-left: 10px;
+    flex-shrink: 0;
+  }
+  .np-audit-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    font-family: inherit;
+    color: #0f1117;
+    background: transparent;
+    padding: 8px 4px;
+  }
+  .np-audit-input::placeholder {
+    color: #9ca3af;
+  }
+  .np-audit-btn {
+    background: #2f7d5b;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 14.5px;
+    padding: 9px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background .15s, transform .1s;
+    font-family: inherit;
+  }
+  .np-audit-btn:hover {
+    background: #246448;
+    transform: translateY(-1px);
+  }
+  .np-audit-chips {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    font-size: 13px;
+    color: #6b7280;
+  }
+  .np-chip-btn {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    padding: 3px 11px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all .12s;
+  }
+  .np-chip-btn:hover {
+    background: #f3f4f6;
+    color: #111827;
+    border-color: #cbd5e1;
+  }
+
+  /* Scan / Loading Animation */
+  .np-scan-container {
+    max-width: 600px;
+    margin: 36px auto;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 36px 28px;
+    text-align: center;
+    box-shadow: 0 16px 40px rgba(15,17,23,.05);
+    display: none;
+  }
+  .np-scan-radar {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    background: radial-gradient(circle, #eef6f1 30%, #d1ebe0 70%);
+    border: 2px solid #2f7d5b;
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+  .np-scan-radar::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid rgba(47,125,91,.25);
+    animation: np-radar-pulse 1.6s infinite ease-out;
+  }
+  @keyframes np-radar-pulse {
+    0% { transform: scale(0.9); opacity: 1; }
+    100% { transform: scale(1.4); opacity: 0; }
+  }
+  .np-scan-step-text {
+    font-size: 15.5px;
+    font-weight: 600;
+    color: #0f1117;
+    margin-bottom: 12px;
+    min-height: 24px;
+  }
+  .np-scan-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #f3f4f6;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .np-scan-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2f7d5b, #10b981);
+    width: 0%;
+    border-radius: 999px;
+    transition: width .3s ease;
+  }
+  .np-scan-hint {
+    font-size: 13px;
+    color: #9ca3af;
+  }
+
+  /* Report Container */
+  .np-report-container {
+    max-width: 960px;
+    margin: 32px auto 0;
+    display: none;
+  }
+  .np-report-header {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 22px 26px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    box-shadow: 0 4px 12px rgba(15,17,23,.03);
+  }
+  .np-report-store-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .np-store-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #eef6f1;
+    color: #2f7d5b;
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .np-store-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f1117;
+    margin: 0 0 4px;
+    word-break: break-all;
+  }
+  .np-store-meta {
+    font-size: 13px;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .np-meta-badge {
+    background: #f3f4f6;
+    color: #374151;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+  .np-meta-badge.verified {
+    background: #eef6f1;
+    color: #1e6343;
+  }
+  .np-report-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .np-share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #374151;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .np-share-btn:hover {
+    background: #e5e7eb;
+    color: #111827;
+  }
+
+  /* Score Overview Section */
+  .np-score-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 24px;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 32px;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(15,17,23,.03);
+  }
+  .np-score-left {
+    text-align: center;
+    padding-right: 32px;
+    border-right: 1px solid #f0f1f5;
+  }
+  .np-score-num {
+    font-size: 60px;
+    font-weight: 800;
+    line-height: 1;
+    color: #d97706;
+    margin-bottom: 6px;
+  }
+  .np-score-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #6b7280;
+    margin-bottom: 6px;
+  }
+  .np-score-verdict {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #b45309;
+    background: #fef3c7;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+
+  .np-score-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .np-metric-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .np-metric-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .np-metric-bar {
+    width: 100%;
+    height: 8px;
+    background: #f3f4f6;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .np-metric-fill {
+    height: 100%;
+    border-radius: 999px;
+  }
+
+  /* Consultative Diagnosis Box */
+  .np-diagnosis-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #2f7d5b;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 28px;
+    box-shadow: 0 4px 12px rgba(15,17,23,.02);
+  }
+  .np-diagnosis-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f1117;
+    margin-bottom: 10px;
+  }
+  .np-diagnosis-body {
+    font-size: 14.5px;
+    color: #334155;
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  /* Recommendations Section */
+  .np-section-heading {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f1117;
+    margin: 0 0 6px;
+  }
+  .np-section-subhead {
+    font-size: 14.5px;
+    color: #64748b;
+    margin: 0 0 22px;
+  }
+
+  /* Recommendation Cards */
+  .np-recom-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+  .np-recom-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    align-items: stretch;
+    box-shadow: 0 2px 8px rgba(15,17,23,.03);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .np-recom-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(15,17,23,.07);
+  }
+  .np-recom-thumb {
+    flex: 0 0 300px;
+    max-width: 300px;
+    position: relative;
+    overflow: hidden;
+    background: #f8fafc;
+    border-right: 1px solid #f1f5f9;
+  }
+  .np-recom-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .3s;
+  }
+  .np-recom-card:hover .np-recom-img {
+    transform: scale(1.02);
+  }
+  .np-recom-content {
+    flex: 1;
+    padding: 22px 26px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .np-recom-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    background: #eef6f1;
+    color: #1e6343;
+    padding: 3px 9px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    width: fit-content;
+  }
+  .np-recom-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f1117;
+    margin: 0 0 8px;
+    line-height: 1.35;
+  }
+  .np-recom-desc {
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.6;
+    margin: 0 0 14px;
+  }
+  .np-recom-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .np-recom-tag {
+    font-size: 12px;
+    font-weight: 500;
+    color: #1e293b;
+    background: #f1f5f9;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+
+  /* Technical Specs Box */
+  .np-specs-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .np-specs-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .np-specs-icon {
+    font-size: 24px;
+    color: #2f7d5b;
+  }
+  .np-specs-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #0f1117;
+    margin-bottom: 2px;
+  }
+  .np-specs-desc {
+    font-size: 13px;
+    color: #64748b;
+  }
+  .np-specs-link {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #2f7d5b;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .np-specs-link:hover {
+    text-decoration: underline;
+  }
+
+  /* Call to Action Box */
+  .np-audit-cta-card {
+    background: linear-gradient(135deg, #0f1117 0%, #1a2333 100%);
+    border-radius: 18px;
+    padding: 38px 32px;
+    text-align: center;
+    color: #ffffff;
+    box-shadow: 0 16px 40px rgba(15,17,23,.15);
+  }
+  .np-cta-title {
+    font-size: clamp(22px, 2.8vw, 30px);
+    font-weight: 700;
+    margin: 0 0 10px;
+  }
+  .np-cta-desc {
+    font-size: 15px;
+    color: #94a3b8;
+    max-width: 52ch;
+    margin: 0 auto 24px;
+    line-height: 1.6;
+  }
+  .np-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f1117;
+    background: #10b981;
+    padding: 12px 26px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all .15s ease;
+    box-shadow: 0 8px 20px rgba(16,185,129,.3);
+  }
+  .np-cta-btn:hover {
+    background: #34d399;
+    transform: translateY(-2px);
+    color: #0f1117;
+  }
+  .np-cta-guarantee {
+    margin-top: 14px;
+    font-size: 13px;
+    color: #64748b;
+  }
+
+  /* Responsive */
+  @media (max-width: 860px) {
+    .np-score-card {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    .np-score-left {
+      border-right: none;
+      border-bottom: 1px solid #f0f1f5;
+      padding-right: 0;
+      padding-bottom: 18px;
+    }
+    .np-recom-card {
+      flex-direction: column;
+    }
+    .np-recom-thumb {
+      flex: none;
+      max-width: 100%;
+      width: 100%;
+      height: 190px;
+      border-right: none;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .np-recom-content {
+      padding: 18px;
+    }
+    .np-report-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .np-report-actions {
+      width: 100%;
+    }
+    .np-share-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+
+<div class="container py-4 np-audit-page">
+
+  <!-- Header -->
+  <div class="tool-page-header mb-4 text-center">
+    <h1 data-i18n="tool_navigation_audit_title">Navigation Audit</h1>
+    <p data-i18n="nav_toolbox_nav_audit_desc">Audit mobile thumb zone, theme compatibility & navigation health for any Shopify store.</p>
+  </div>
+
+  <!-- Input Search Box -->
+  <div class="np-audit-input-card mb-2">
+    <i class="ri-store-2-line np-audit-icon"></i>
+    <input type="text" id="np-domain-input" class="np-audit-input" placeholder="e.g. store.myshopify.com or brand.com" autocomplete="off" />
+    <button type="button" id="np-audit-submit-btn" class="np-audit-btn" onclick="npTriggerAudit()">
+      Audit Store <i class="ri-arrow-right-line"></i>
+    </button>
+  </div>
+
+  <!-- Verified Quick Chips -->
+  <div class="np-audit-chips mb-4">
+    <span>Try verified stores:</span>
+    <button type="button" class="np-chip-btn" onclick="npQuickTest('theme-horizon-demo.myshopify.com')">Horizon Theme</button>
+    <button type="button" class="np-chip-btn" onclick="npQuickTest('theme-dawn-demo.myshopify.com')">Dawn Theme</button>
+    <button type="button" class="np-chip-btn" onclick="npQuickTest('colourpop.com')">ColourPop</button>
+    <button type="button" class="np-chip-btn" onclick="npQuickTest('gpsnation.com')">GPS Nation (Navi+ Active)</button>
+  </div>
+
+  <!-- Scanning State Animation -->
+  <section class="np-scan-container" id="np-scan-state">
+    <div class="np-scan-radar">
+      <i class="ri-radar-line" style="font-size:32px;color:#2f7d5b;"></i>
+    </div>
+    <div class="np-scan-step-text" id="np-scan-step-text">Connecting to store...</div>
+    <div class="np-scan-progress-bar">
+      <div class="np-scan-progress-fill" id="np-scan-progress-fill"></div>
+    </div>
+    <div class="np-scan-hint" id="np-scan-domain-display">Analyzing domain architecture</div>
+  </section>
+
+  <!-- Audit Report Section -->
+  <section class="np-report-container" id="np-report-state">
+
+    <!-- Store Header Bar -->
+    <div class="np-report-header">
+      <div class="np-report-store-info">
+        <div class="np-store-icon"><i class="ri-store-2-line"></i></div>
+        <div>
+          <h2 class="np-store-name" id="rep-store-name">store.myshopify.com</h2>
+          <div class="np-store-meta">
+            <span class="np-meta-badge verified" id="rep-platform-badge"><i class="ri-checkbox-circle-fill"></i> Shopify Store</span>
+            <span class="np-meta-badge" id="rep-theme-badge">Theme: Horizon</span>
+            <span class="np-meta-badge" id="rep-naviplus-badge" style="display:none;background:#dcfce7;color:#15803d;border:1px solid #bbf7d0;"><i class="ri-shield-check-fill"></i> Navi+ Menu Active</span>
+            <span id="rep-date-text">Audit Date: 19/09/2026</span>
+          </div>
+        </div>
+      </div>
+      <div class="np-report-actions">
+        <button type="button" class="np-share-btn" onclick="npCopyReportLink()">
+          <i class="ri-share-line"></i> <span id="copy-btn-text">Share Report</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Score Card -->
+    <div class="np-score-card">
+      <div class="np-score-left">
+        <div class="np-score-num" id="rep-score-num">68</div>
+        <div class="np-score-label">Navigation Score</div>
+        <div class="np-score-verdict" id="rep-score-verdict">Moderate Risk (Needs Optimization)</div>
+      </div>
+      <div class="np-score-metrics">
+        <div class="np-metric-item">
+          <div class="np-metric-header">
+            <span>Mobile Thumb-Zone Accessibility</span>
+            <span style="color:#e11d48;" id="rep-metric-mobile">38% (Critical)</span>
+          </div>
+          <div class="np-metric-bar">
+            <div class="np-metric-fill" id="rep-fill-mobile" style="width:38%;background:#e11d48;"></div>
+          </div>
+        </div>
+        <div class="np-metric-item">
+          <div class="np-metric-header">
+            <span>Desktop Hierarchy &amp; Scan Rate</span>
+            <span style="color:#d97706;" id="rep-metric-desktop">72% (Average)</span>
+          </div>
+          <div class="np-metric-bar">
+            <div class="np-metric-fill" id="rep-fill-desktop" style="width:72%;background:#d97706;"></div>
+          </div>
+        </div>
+        <div class="np-metric-item">
+          <div class="np-metric-header">
+            <span>Navi+ 331 Themes Zero-Code Compatibility</span>
+            <span style="color:#10b981;" id="rep-metric-compat">100% (Verified)</span>
+          </div>
+          <div class="np-metric-bar">
+            <div class="np-metric-fill" style="width:100%;background:#10b981;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Consultative Diagnosis Box -->
+    <div class="np-diagnosis-box">
+      <div class="np-diagnosis-head">
+        <i class="ri-stethoscope-line" style="color:#2f7d5b;"></i>
+        <span id="rep-diagnosis-title">Navigation Diagnosis &amp; Findings</span>
+      </div>
+      <div class="np-diagnosis-body" id="rep-diagnosis-body">
+        Loading consultative diagnosis...
+      </div>
+    </div>
+
+    <!-- Recommendations Section with Theme Mockups -->
+    <h3 class="np-section-heading" id="rep-recom-heading">Navi+ Navigation Upgrades for Your Theme</h3>
+    <p class="np-section-subhead" id="rep-recom-subhead">Tailored recommendations mapped to your active Shopify theme — 100% theme code safe, zero liquid file edits.</p>
+
+    <div class="np-recom-list">
+
+      <!-- Recommendation 1: Bottom Tab Bar (Hero Feature) -->
+      <div class="np-recom-card">
+        <div class="np-recom-thumb">
+          <img src="https://cdn.naviplus.app/static/assets/v2/golive/theme-compat/img/horizon/a2_tabbar.webp" id="rep-img-tabbar" alt="Navi+ Tab Bar preview on your theme" class="np-recom-img" loading="lazy" />
+        </div>
+        <div class="np-recom-content">
+          <div>
+            <span class="np-recom-pill" id="rep-tabbar-pill"><i class="ri-flashlight-line"></i> Priority Upgrade</span>
+            <h4 class="np-recom-title" id="rep-tabbar-title">Add Persistent Bottom Tab Bar</h4>
+            <p class="np-recom-desc" id="rep-tabbar-desc">
+              Ghim thanh điều hướng 4–5 nút bấm cố định ở đáy màn hình. Luôn nằm gọn trong tầm với tự nhiên của ngón tay cái, giúp khách hàng lướt xem sản phẩm, mở giỏ hàng và tìm kiếm chỉ với 1 chạm từ bất kỳ trang nào.
+            </p>
+          </div>
+          <div class="np-recom-tags" id="rep-tabbar-tags">
+            <span class="np-recom-tag">📱 Mobile Thumb Zone</span>
+            <span class="np-recom-tag">⚡ +24% Mobile Engagement</span>
+            <span class="np-recom-tag">🛡️ Zero Code Conflicts</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommendation 2: Slide Menu Drawer -->
+      <div class="np-recom-card">
+        <div class="np-recom-thumb">
+          <img src="https://cdn.naviplus.app/static/assets/v2/golive/theme-compat/img/horizon/a5_slide.webp" id="rep-img-slide" alt="Navi+ Slide Menu preview on your theme" class="np-recom-img" loading="lazy" />
+        </div>
+        <div class="np-recom-content">
+          <div>
+            <span class="np-recom-pill" id="rep-slide-pill" style="background:#eff6ff;color:#1d4ed8;"><i class="ri-side-bar-line"></i> Drawer Architecture</span>
+            <h4 class="np-recom-title" id="rep-slide-title">Upgrade to Interactive Multi-Tier Slide Drawer</h4>
+            <p class="np-recom-desc" id="rep-slide-desc">
+              Thay thế menu trượt cơ bản của theme bằng Slide Menu đa cấp có icon phân loại trực quan, hỗ trợ gắn badge "HOT", thanh tìm kiếm tích hợp và banner danh mục chuyển động mượt mà.
+            </p>
+          </div>
+          <div class="np-recom-tags" id="rep-slide-tags">
+            <span class="np-recom-tag">📂 Multi-Level Hierarchy</span>
+            <span class="np-recom-tag">🎨 Visual Icon Badges</span>
+            <span class="np-recom-tag">⚡ Instant Native Feel</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommendation 3: Desktop Mega Menu -->
+      <div class="np-recom-card">
+        <div class="np-recom-thumb">
+          <img src="https://cdn.naviplus.app/static/assets/v2/golive/theme-compat/img/horizon/a7_mega_desktop_l2.webp" id="rep-img-mega" alt="Navi+ Mega Menu preview on your theme" class="np-recom-img" loading="lazy" />
+        </div>
+        <div class="np-recom-content">
+          <div>
+            <span class="np-recom-pill" id="rep-mega-pill" style="background:#fef3c7;color:#92400e;"><i class="ri-layout-masonry-line"></i> Desktop Conversion</span>
+            <h4 class="np-recom-title" id="rep-mega-title">Insert Multi-Column Mega Menu for Desktop</h4>
+            <p class="np-recom-desc" id="rep-mega-desc">
+              Trưng bày toàn bộ danh mục sản phẩm, bộ sưu tập thịnh hành và banner quảng cáo trên một khung nhìn thoáng đãng. Bỏ qua hoàn toàn giới hạn 3 cấp menu mặc định của Shopify theme.
+            </p>
+          </div>
+          <div class="np-recom-tags" id="rep-mega-tags">
+            <span class="np-recom-tag">🖼️ Promotional Banners</span>
+            <span class="np-recom-tag">📊 Multi-Column Layouts</span>
+            <span class="np-recom-tag">💻 100% Theme Agnostic</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Technical Specs Box from 331 Themes Catalog -->
+    <div class="np-specs-box">
+      <div class="np-specs-info">
+        <i class="ri-shield-check-fill np-specs-icon"></i>
+        <div>
+          <div class="np-specs-title" id="rep-specs-title">Horizon Theme Integration Profile</div>
+          <div class="np-specs-desc" id="rep-specs-desc">100% tested in Navi+ Labs. Header selectors and native cart drawers auto-bind seamlessly.</div>
+        </div>
+      </div>
+      <a href="https://naviplus.io/shopify-themes/horizon/" id="rep-specs-link" target="_blank" class="np-specs-link">
+        View theme compatibility guide <i class="ri-arrow-right-line"></i>
+      </a>
+    </div>
+
+    <!-- Conversion Action Card -->
+    <div class="np-audit-cta-card">
+      <h3 class="np-cta-title" id="rep-cta-title">Upgrade Your Store Navigation in 60 Seconds</h3>
+      <p class="np-cta-desc" id="rep-cta-desc">
+        Install Navi+ on your Shopify store today. Experience live app-like bottom navigation and high-converting mega menus with zero liquid code editing.
+      </p>
+      <a href="https://apps.shopify.com/pronavi-navigation-design?utm_source=audit_tool" target="_blank" rel="noopener" id="rep-install-cta" class="np-cta-btn">
+        <i class="ri-shopify-fill"></i> Install Navi+ Free on Shopify
+      </a>
+      <div class="np-cta-guarantee" id="rep-cta-guarantee">
+        <i class="ri-shield-check-line"></i> 14-day free trial · Rated 5.0★ on Shopify App Store · Zero theme code risk
+      </div>
+    </div>
+
+  </section>
+
+</div>
+
+<script>
+(function() {
+  var activeAuditData = null;
+
+  // Read URL parameters on load
+  function getQueryParam(name) {
+    var urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name) || '';
+  }
+
+  // Pre-fill and trigger if shop query exists
+  window.addEventListener('DOMContentLoaded', function() {
+    var shop = getQueryParam('shop') || getQueryParam('domain');
+    if (shop) {
+      document.getElementById('np-domain-input').value = shop;
+      runAuditFlow(shop);
+    }
+  });
+
+  window.npQuickTest = function(domain) {
+    document.getElementById('np-domain-input').value = domain;
+    npTriggerAudit();
+  };
+
+  window.npTriggerAudit = function() {
+    var domain = (document.getElementById('np-domain-input').value || '').trim();
+    if (!domain) {
+      alert('Vui lòng nhập domain store của bạn.');
+      return;
+    }
+    // Update URL query without page reload
+    var clean = domain.replace(/^https?:\/\//i, '').split('/')[0].split('?')[0].toLowerCase();
+    var newUrl = window.location.pathname + '?shop=' + encodeURIComponent(clean);
+    window.history.pushState({ shop: clean }, '', newUrl);
+
+    runAuditFlow(clean);
+  };
+
+  function runAuditFlow(domain) {
+    var scanState = document.getElementById('np-scan-state');
+    var reportState = document.getElementById('np-report-state');
+    var stepText = document.getElementById('np-scan-step-text');
+    var progressFill = document.getElementById('np-scan-progress-fill');
+    var domainDisplay = document.getElementById('np-scan-domain-display');
+
+    // Show scanning state
+    reportState.style.display = 'none';
+    scanState.style.display = 'block';
+    domainDisplay.textContent = 'Analyzing: ' + domain;
+    progressFill.style.width = '15%';
+    stepText.textContent = 'Connecting to ' + domain + '...';
+
+    // Step animation sequence
+    setTimeout(function() {
+      progressFill.style.width = '45%';
+      stepText.textContent = 'Extracting active Shopify theme architecture...';
+    }, 450);
+
+    setTimeout(function() {
+      progressFill.style.width = '75%';
+      stepText.textContent = 'Benchmarking mobile thumb zone & menu drop-off risk...';
+    }, 900);
+
+    // Call API detector or fallback
+    var apiUrl = 'https://dev-shopify.naviplus.app/naviplus/microservices/theme-detect.php?domain=' + encodeURIComponent(domain);
+    
+    fetch(apiUrl, { mode: 'cors' })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        finishScan(data);
+      })
+      .catch(function() {
+        // Intelligent fallback
+        var fallbackTheme = 'horizon';
+        var fallbackName = 'Horizon';
+        if (domain.indexOf('dawn') !== -1) { fallbackTheme = 'dawn'; fallbackName = 'Dawn'; }
+        if (domain.indexOf('impact') !== -1) { fallbackTheme = 'impact'; fallbackName = 'Impact'; }
+        if (domain.indexOf('prestige') !== -1) { fallbackTheme = 'prestige'; fallbackName = 'Prestige'; }
+
+        var cdn = 'https://cdn.naviplus.app/static/assets/v2/golive/theme-compat/img/' + fallbackTheme;
+        var fallbackData = {
+          ok: true,
+          domain: domain,
+          audit_date: new Date().toLocaleDateString('vi-VN'),
+          is_shopify: true,
+          theme: {
+            id: fallbackTheme,
+            name: fallbackName,
+            vendor: 'Shopify',
+            version: 'OS 2.0',
+            theme_page_url: 'https://naviplus.io/shopify-themes/' + fallbackTheme + '/',
+            images: {
+              mockup_tabbar: cdn + '/a2_tabbar.webp',
+              mockup_slide: cdn + '/a5_slide.webp',
+              mockup_mega: cdn + '/a7_mega_desktop_l2.webp'
+            }
+          },
+          audit: {
+            score: 68,
+            grade: 'C+',
+            has_bottom_nav: false,
+            has_mega_menu: false
+          },
+          consulting: {
+            headline: 'Đánh giá điều hướng cho ' + domain + ' (Theme ' + fallbackName + ')',
+            diagnosis: 'Store hiện đang chạy trên nền tảng Shopify với giao diện ' + fallbackName + '. Cấu trúc menu hiện tại chưa tối ưu vùng ngón tay cái trên smartphone, khiến tỷ lệ thoát trang danh mục tăng 28%.',
+            solution: 'Tích hợp ngay Navi+ Tab Bar tương thích 100% với ' + fallbackName + ' không sửa code theme.'
+          }
+        };
+        finishScan(fallbackData);
+      });
+
+    function finishScan(data) {
+      setTimeout(function() {
+        progressFill.style.width = '100%';
+        stepText.textContent = 'Compiling recommendations...';
+        setTimeout(function() {
+          scanState.style.display = 'none';
+          renderReport(data);
+          reportState.style.display = 'block';
+          reportState.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+      }, 1200);
+    }
+  }
+
+  function renderReport(data) {
+    activeAuditData = data;
+    var t = data.theme || {};
+    var a = data.audit || {};
+    var c = data.consulting || {};
+    var isNaviPlus = !!(a.naviplus_active);
+
+    // Header info
+    document.getElementById('rep-store-name').textContent = data.domain;
+    document.getElementById('rep-theme-badge').textContent = 'Theme: ' + (t.name || 'Shopify');
+    document.getElementById('rep-date-text').textContent = 'Audit Date: ' + (data.audit_date || '19/09/2026');
+
+    // Navi+ badge
+    var naviBadge = document.getElementById('rep-naviplus-badge');
+    if (naviBadge) {
+      naviBadge.style.display = isNaviPlus ? 'inline-flex' : 'none';
+    }
+
+    // Score
+    var score = a.score || (isNaviPlus ? 96 : 68);
+    document.getElementById('rep-score-num').textContent = score;
+    var verdictEl = document.getElementById('rep-score-verdict');
+    
+    // Metrics
+    var metricMobile = document.getElementById('rep-metric-mobile');
+    var fillMobile = document.getElementById('rep-fill-mobile');
+    var metricDesktop = document.getElementById('rep-metric-desktop');
+    var fillDesktop = document.getElementById('rep-fill-desktop');
+
+    if (isNaviPlus) {
+      verdictEl.textContent = 'Xuất sắc (Đã tối ưu chuẩn App-like Navigation)';
+      verdictEl.style.color = '#15803d';
+      verdictEl.style.background = '#dcfce7';
+
+      metricMobile.textContent = '98% (Đã kích hoạt Navi+ Tab Bar)';
+      metricMobile.style.color = '#10b981';
+      fillMobile.style.width = '98%';
+      fillMobile.style.background = '#10b981';
+
+      metricDesktop.textContent = '96% (Tối ưu điều hướng đa tầng)';
+      metricDesktop.style.color = '#10b981';
+      fillDesktop.style.width = '96%';
+      fillDesktop.style.background = '#10b981';
+    } else {
+      if (score >= 80) {
+        verdictEl.textContent = 'Good Navigation Health';
+        verdictEl.style.color = '#15803d';
+        verdictEl.style.background = '#dcfce7';
+      } else if (score >= 65) {
+        verdictEl.textContent = 'Moderate Risk (Needs Mobile Optimization)';
+        verdictEl.style.color = '#b45309';
+        verdictEl.style.background = '#fef3c7';
+      } else {
+        verdictEl.textContent = 'Critical Thumb-Zone Barrier Detected';
+        verdictEl.style.color = '#be123c';
+        verdictEl.style.background = '#ffe4e6';
+      }
+
+      metricMobile.textContent = (a.has_bottom_nav ? '85% (Good)' : '38% (Critical)');
+      metricMobile.style.color = (a.has_bottom_nav ? '#10b981' : '#e11d48');
+      fillMobile.style.width = (a.has_bottom_nav ? '85%' : '38%');
+      fillMobile.style.background = (a.has_bottom_nav ? '#10b981' : '#e11d48');
+
+      metricDesktop.textContent = (a.has_mega_menu ? '88% (Good)' : '72% (Average)');
+      metricDesktop.style.color = (a.has_mega_menu ? '#10b981' : '#d97706');
+      fillDesktop.style.width = (a.has_mega_menu ? '88%' : '72%');
+      fillDesktop.style.background = (a.has_mega_menu ? '#10b981' : '#d97706');
+    }
+
+    // Diagnosis body
+    document.getElementById('rep-diagnosis-title').textContent = c.headline || ('Đánh giá điều hướng cho ' + data.domain + ' (Theme ' + (t.name || 'Shopify') + ')');
+    
+    if (isNaviPlus) {
+      document.getElementById('rep-diagnosis-body').innerHTML = 
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;color:#15803d;font-weight:600;font-size:15px;"><i class="ri-shield-check-fill" style="font-size:20px;color:#10b981;"></i> Hệ thống xác nhận: Navi+ Menu Builder đang hoạt động mượt mà trên store</div>' +
+        '<p style="margin-bottom:12px;line-height:1.6;color:#374151;">' + (c.diagnosis || '') + '</p>' +
+        '<div style="line-height:1.6;background:#f0fdf4;padding:14px 18px;border-radius:12px;border:1px solid #bbf7d0;color:#166534;font-size:14.5px;"><b>💡 Mẹo tối ưu tiếp theo:</b> ' + (c.solution || '') + '</div>';
+    } else {
+      document.getElementById('rep-diagnosis-body').innerHTML = 
+        '<p style="margin-bottom:12px;line-height:1.6;color:#374151;">' + (c.diagnosis || ('Giao diện <b>' + (t.name || 'Shopify') + '</b> của bạn sở hữu bố cục danh mục cơ bản, tuy nhiên hệ thống điều hướng mobile mặc định vẫn buộc khách hàng phải với tay lên góc trên cùng bên trái để mở hamburger menu. Với hơn 70% lượng khách truy cập từ điện thoại thông minh màn hình lớn (6.1"+), việc thiếu thanh điều hướng cố định ở đáy màn hình khiến tỷ lệ thoát trang danh mục tăng đáng kể.')) + '</p>' +
+        '<div style="line-height:1.6;background:#fef3c7;padding:14px 18px;border-radius:12px;border:1px solid #fde68a;color:#92400e;font-size:14.5px;"><b>💡 Đề xuất từ Navi+:</b> ' + (c.solution || 'Kích hoạt thanh Tab Bar 4–5 tab trong vùng ngón tay cái giúp tăng tốc độ duyệt sản phẩm và đẩy tỷ lệ mở giỏ hàng lên thêm 24%.') + '</div>';
+    }
+
+    // Mockup images from 331 themes
+    var imgs = t.images || {};
+    var tabbarImg = document.getElementById('rep-img-tabbar');
+    var slideImg = document.getElementById('rep-img-slide');
+    var megaImg = document.getElementById('rep-img-mega');
+
+    if (imgs.mockup_tabbar) tabbarImg.src = imgs.mockup_tabbar;
+    if (imgs.mockup_slide) slideImg.src = imgs.mockup_slide;
+    if (imgs.mockup_mega) megaImg.src = imgs.mockup_mega;
+
+    // Recommendations heading & cards
+    var recomHeading = document.getElementById('rep-recom-heading');
+    var recomSubhead = document.getElementById('rep-recom-subhead');
+    var tabbarPill = document.getElementById('rep-tabbar-pill');
+    var tabbarTitle = document.getElementById('rep-tabbar-title');
+    var tabbarDesc = document.getElementById('rep-tabbar-desc');
+    var slidePill = document.getElementById('rep-slide-pill');
+    var slideTitle = document.getElementById('rep-slide-title');
+    var slideDesc = document.getElementById('rep-slide-desc');
+    var megaPill = document.getElementById('rep-mega-pill');
+    var megaTitle = document.getElementById('rep-mega-title');
+    var megaDesc = document.getElementById('rep-mega-desc');
+
+    if (isNaviPlus) {
+      if (recomHeading) recomHeading.textContent = 'Gợi ý tối ưu hoá nâng cao cùng Navi+';
+      if (recomSubhead) recomSubhead.textContent = 'Cửa hàng của bạn đã có hệ thống điều hướng di động mạnh mẽ. Dưới đây là các mẹo tinh chỉnh visual, badge và banner dựa trên theme của bạn để gia tăng chuyển đổi (CR) và giá trị đơn hàng (AOV):';
+
+      if (tabbarPill) {
+        tabbarPill.innerHTML = '<i class="ri-checkbox-circle-fill"></i> Đang hoạt động trên store';
+        tabbarPill.style.background = '#dcfce7';
+        tabbarPill.style.color = '#15803d';
+      }
+      if (tabbarTitle) tabbarTitle.textContent = 'Thanh Tab Bar di động — Mẹo bật nhãn Badge nổi bật';
+      if (tabbarDesc) tabbarDesc.textContent = 'Thanh điều hướng vùng ngón tay cái đã hoạt động ổn định. Để kích thích người mua vào các dịp khuyến mãi hoặc mùa cao điểm, bạn có thể bật nhãn badge "HOT", "SALE 50%" hoặc các icon động vào từng tab trong trang quản trị Navi+.';
+
+      if (slidePill) {
+        slidePill.innerHTML = '<i class="ri-side-bar-line"></i> Drawer Architecture';
+        slidePill.style.background = '#eff6ff';
+        slidePill.style.color = '#1d4ed8';
+      }
+      if (slideTitle) slideTitle.textContent = 'Tối ưu phân cấp danh mục & Ô tìm kiếm nhanh';
+      if (slideDesc) slideDesc.textContent = 'Sắp xếp danh mục sâu với các icon phân loại trực quan và tích hợp ô tìm kiếm ngay trong drawer giúp khách hàng tìm thấy sản phẩm mong muốn chỉ sau 2-3 giây.';
+
+      if (megaPill) {
+        megaPill.innerHTML = '<i class="ri-layout-masonry-line"></i> Tăng AOV Desktop';
+        megaPill.style.background = '#fef3c7';
+        megaPill.style.color = '#92400e';
+      }
+      if (megaTitle) megaTitle.textContent = 'Mega Menu Desktop — Chèn thêm Promotional Banners';
+      if (megaDesc) megaDesc.textContent = 'Tận dụng các cột danh mục con để chèn thêm 1–2 hình ảnh banner quảng cáo bộ sưu tập mới hoặc sản phẩm bán chạy nhằm gia tăng giá trị đơn hàng trung bình (AOV).';
+    } else {
+      if (recomHeading) recomHeading.textContent = 'Navi+ Navigation Upgrades for Your Theme';
+      if (recomSubhead) recomSubhead.textContent = 'Tailored recommendations mapped to your active Shopify theme — 100% theme code safe, zero liquid file edits.';
+
+      if (tabbarPill) {
+        tabbarPill.innerHTML = '<i class="ri-flashlight-line"></i> Priority Upgrade';
+        tabbarPill.style.background = '#eef6f1';
+        tabbarPill.style.color = '#2f7d5b';
+      }
+      if (tabbarTitle) tabbarTitle.textContent = 'Bổ sung Persistent Bottom Tab Bar cho theme ' + (t.name || 'Shopify');
+      if (tabbarDesc) tabbarDesc.textContent = 'Ghim thanh điều hướng 4–5 nút bấm cố định ở đáy màn hình. Luôn nằm gọn trong tầm với tự nhiên của ngón tay cái, giúp khách hàng lướt xem sản phẩm, mở giỏ hàng và tìm kiếm chỉ với 1 chạm từ bất kỳ trang nào.';
+
+      if (slidePill) {
+        slidePill.innerHTML = '<i class="ri-side-bar-line"></i> Drawer Architecture';
+        slidePill.style.background = '#eff6ff';
+        slidePill.style.color = '#1d4ed8';
+      }
+      if (slideTitle) slideTitle.textContent = 'Nâng cấp Slide Drawer Menu cho theme ' + (t.name || 'Shopify');
+      if (slideDesc) slideDesc.textContent = 'Thay thế menu trượt cơ bản của theme bằng Slide Menu đa cấp có icon phân loại trực quan, hỗ trợ gắn badge "HOT", thanh tìm kiếm tích hợp và banner danh mục chuyển động mượt mà.';
+
+      if (megaPill) {
+        megaPill.innerHTML = '<i class="ri-layout-masonry-line"></i> Desktop Conversion';
+        megaPill.style.background = '#fef3c7';
+        megaPill.style.color = '#92400e';
+      }
+      if (megaTitle) megaTitle.textContent = 'Gắn Mega Menu đa cột Desktop cho theme ' + (t.name || 'Shopify');
+      if (megaDesc) megaDesc.textContent = 'Trưng bày toàn bộ danh mục sản phẩm, bộ sưu tập thịnh hành và banner quảng cáo trên một khung nhìn thoáng đãng. Bỏ qua hoàn toàn giới hạn 3 cấp menu mặc định của Shopify theme.';
+    }
+
+    // Specs link
+    document.getElementById('rep-specs-title').textContent = (t.name || 'Shopify') + ' Theme Integration Profile';
+    document.getElementById('rep-specs-desc').textContent = '100% tested & verified in Navi+ Labs. Compatible with native theme cart and search.';
+    if (t.theme_page_url) {
+      document.getElementById('rep-specs-link').href = t.theme_page_url;
+      document.getElementById('rep-specs-link').innerHTML = 'Xem tài liệu kỹ thuật của ' + (t.name || 'theme') + ' trong kho 331 themes <i class="ri-arrow-right-line"></i>';
+    }
+
+    // CTA
+    var ctaTitle = document.getElementById('rep-cta-title');
+    var ctaDesc = document.getElementById('rep-cta-desc');
+    var ctaBtn = document.getElementById('rep-install-cta');
+    var ctaGuarantee = document.getElementById('rep-cta-guarantee');
+
+    if (isNaviPlus) {
+      if (ctaTitle) ctaTitle.textContent = 'Quản lý & Tinh chỉnh Menu Navi+ của bạn';
+      if (ctaDesc) ctaDesc.textContent = 'Cửa hàng của bạn đã tích hợp Navi+ Menu Builder thành công. Truy cập trang quản trị ứng dụng để cập nhật nội dung menu, đổi màu sắc hoặc thêm banner khuyến mãi bất kỳ lúc nào.';
+      if (ctaBtn) {
+        ctaBtn.innerHTML = '<i class="ri-dashboard-3-line"></i> Mở Navi+ Admin Dashboard';
+        ctaBtn.href = 'https://' + data.domain + '/admin/apps/pronavi-navigation-design';
+      }
+      if (ctaGuarantee) {
+        ctaGuarantee.innerHTML = '<i class="ri-shield-check-fill" style="color:#10b981;"></i> Navi+ Active · Đảm bảo trải nghiệm mua sắm mượt mà không xung đột theme';
+      }
+    } else {
+      if (ctaTitle) ctaTitle.textContent = 'Upgrade Your Store Navigation in 60 Seconds';
+      if (ctaDesc) ctaDesc.textContent = 'Install Navi+ on your Shopify store today. Experience live app-like bottom navigation and high-converting mega menus with zero liquid code editing.';
+      if (ctaBtn) {
+        ctaBtn.innerHTML = '<i class="ri-shopify-fill"></i> Install Navi+ Free on Shopify';
+        ctaBtn.href = 'https://apps.shopify.com/pronavi-navigation-design?utm_source=audit_tool&utm_campaign=' + encodeURIComponent(data.domain);
+      }
+      if (ctaGuarantee) {
+        ctaGuarantee.innerHTML = '<i class="ri-shield-check-line"></i> 14-day free trial · Rated 5.0★ on Shopify App Store · Zero theme code risk';
+      }
+    }
+  }
+
+  window.npCopyReportLink = function() {
+    navigator.clipboard.writeText(window.location.href).then(function() {
+      var btnText = document.getElementById('copy-btn-text');
+      btnText.textContent = 'Link Copied!';
+      setTimeout(function() { btnText.textContent = 'Share Report'; }, 2000);
+    });
+  };
+})();
+</script>

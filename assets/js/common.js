@@ -17,7 +17,8 @@
       { key: 'tool_hash_title',     en: 'Hash Generator',     path: '/toolset/security/hash-generator.html',    icon: 'ri-fingerprint-line'     }
     ],
     shopify: [
-      { key: 'tool_shopify_analyzer_title', en: 'Website Analyser', path: '/toolset/shopify/store-analyzer.html', icon: 'ri-bar-chart-line' }
+      { key: 'tool_shopify_analyzer_title', en: 'Website Analyser', path: '/toolset/shopify/store-analyzer.html', icon: 'ri-bar-chart-line' },
+      { key: 'tool_navigation_audit_title', en: 'Navigation Audit', path: '/toolset/shopify/navigation-audit.html', icon: 'ri-radar-line' }
     ]
   };
 

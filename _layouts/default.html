@@ -5,12 +5,21 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
 
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-MW0VM1RL2K"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HZDB0E0C45"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-MW0VM1RL2K');
+      gtag('config', 'G-HZDB0E0C45', {'navi_surface': 'tools'});
+      document.addEventListener('click', function(event) {
+        var link = event.target.closest('a[href*="apps.shopify.com"]');
+        if (!link) return;
+        gtag('event', 'shopify_app_store_click', {
+          link_url: link.href, link_text: (link.textContent || '').trim().slice(0, 100),
+          page_path: window.location.pathname, cta_location: link.dataset.ctaLocation || 'tools',
+          navi_surface: 'tools'
+        });
+      });
     </script>
 
     <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}</title>
