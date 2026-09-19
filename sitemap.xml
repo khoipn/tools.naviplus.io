@@ -8,6 +8,7 @@
   <url><loc>https://tools.naviplus.io/</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>
   <url><loc>https://tools.naviplus.io/toolset/design/color-palette</loc><priority>0.8</priority></url>
   <url><loc>https://tools.naviplus.io/toolset/shopify/store-analyzer</loc><priority>0.8</priority></url>
+  <url><loc>https://tools.naviplus.io/toolset/shopify/navigation-audit</loc><priority>0.8</priority></url>
   <url><loc>https://tools.naviplus.io/toolset/images/color-picker</loc><priority>0.7</priority></url>
   <url><loc>https://tools.naviplus.io/toolset/images/photo-collage</loc><priority>0.7</priority></url>
   <url><loc>https://tools.naviplus.io/toolset/images/upload-image</loc><priority>0.7</priority></url>
