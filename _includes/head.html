@@ -430,15 +430,22 @@
     <!-- Desktop nav links -->
     <ul class="np-nav-links" role="list">
 
-      <!-- Services -->
+      <!-- Home -->
+      <li class="np-nav-item">
+        <a href="/" class="np-nav-link" data-np-self="/">
+          <span data-i18n="nav_home">Home</span>
+        </a>
+      </li>
+
+      <!-- Solutions -->
       <li class="np-nav-item">
         <button class="np-nav-link" aria-haspopup="true">
-          <span data-i18n="nav_services">Services</span>
+          <span data-i18n="nav_services">Solutions</span>
           <svg class="np-nav-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <div class="np-mega" style="width:780px;left:0;" role="region" aria-label="Services">
+        <div class="np-mega" style="width:780px;left:0;" role="region" aria-label="Solutions">
           <div class="np-mega-inner">
             <div class="np-mega-2col">
 
@@ -631,15 +638,15 @@
         </a>
       </li>
 
-      <!-- Support Tools (current site) -->
+      <!-- Free Tools (current site) -->
       <li class="np-nav-item">
         <button class="np-nav-link active" aria-haspopup="true" aria-current="page">
-          <span data-i18n="nav_support_tools">Support Tools</span>
+          <span data-i18n="nav_support_tools">Free Tools</span>
           <svg class="np-nav-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <div class="np-mega" style="width:860px;" role="region" aria-label="Support Tools">
+        <div class="np-mega" style="width:860px;" role="region" aria-label="Free Tools">
           <div class="np-mega-inner">
             <div class="np-mega-3col">
 
@@ -781,6 +788,13 @@
         </div>
       </li>
 
+      <!-- Blogs -->
+      <li class="np-nav-item">
+        <a href="https://naviplus.io/blogs/" class="np-nav-link" target="_blank" rel="noopener">
+          <span data-i18n="nav_blogs">Blogs</span>
+        </a>
+      </li>
+
     </ul>
 
     <!-- Desktop CTA -->
@@ -839,10 +853,17 @@
   <nav aria-label="Main navigation">
     <ul class="np-mob-nav" role="list">
 
-      <!-- Services accordion -->
+      <!-- Home -->
+      <li>
+        <a href="/" class="np-mob-link" data-np-self="/">
+          <span data-i18n="nav_home">Home</span>
+        </a>
+      </li>
+
+      <!-- Solutions accordion -->
       <li>
         <button class="np-mob-link" aria-expanded="false" aria-controls="np-mob-services" id="np-mob-services-btn">
-          <span data-i18n="nav_services">Services</span>
+          <span data-i18n="nav_services">Solutions</span>
           <svg class="np-mob-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -905,10 +926,10 @@
         </a>
       </li>
 
-      <!-- Support Tools accordion -->
+      <!-- Free Tools accordion -->
       <li>
         <button class="np-mob-link active" aria-expanded="false" aria-controls="np-mob-toolbox" id="np-mob-toolbox-btn" aria-current="page">
-          <span data-i18n="nav_support_tools">Support Tools</span>
+          <span data-i18n="nav_support_tools">Free Tools</span>
           <svg class="np-mob-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -933,6 +954,13 @@
           <li><a href="https://tools.naviplus.io/toolset/shopify/navigation-audit.html" class="np-mob-sub-plain" data-i18n="nav_toolbox_nav_audit">Navigation Audit</a></li>
           <li style="border-top:1px solid #f0f1f5;margin-top:4px;"><a href="https://tools.naviplus.io/" class="np-mob-sub-plain" style="color:#377e62;font-weight:600;" data-i18n="nav_toolbox_all_tools">All tools →</a></li>
         </ul>
+      </li>
+
+      <!-- Blogs -->
+      <li>
+        <a href="https://naviplus.io/blogs/" class="np-mob-link" target="_blank" rel="noopener">
+          <span data-i18n="nav_blogs">Blogs</span>
+        </a>
       </li>
 
     </ul>
