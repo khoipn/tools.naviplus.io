@@ -11,7 +11,7 @@ title: "Navi+ Connection Check"
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>Connection Check — test your connection to Navi+ | Navi+ Toolbox</title>
-<meta name="description" content="Free tool: test how your device and network reach the Navi+ servers and the services the Navi+ Shopify app depends on. Finds blocked, slow or unstable connections and sends the results to Navi+ support.">
+<meta name="description" content="Free tool: deep test of how your device and network reach the Navi+ servers and the services the Navi+ Shopify app depends on. Measures packet loss, latency, IPv6, MTU, proxies and more, then sends the results to Navi+ support.">
 <link rel="canonical" href="https://tools.naviplus.io/connection-check/">
 <style>
   /* Trang độc lập: KHÔNG dùng layout/CDN/font ngoài — nếu nó phụ thuộc chính thứ đang đo thì vô nghĩa. */
@@ -26,12 +26,13 @@ title: "Navi+ Connection Check"
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--text);
          font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
-  .wrap { max-width:820px; margin:0 auto; padding:20px 16px 64px; }
+  .wrap { max-width:840px; margin:0 auto; padding:20px 16px 64px; }
   .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
   .top a { color:var(--muted); text-decoration:none; font-size:14px; }
   .top a:hover { color:var(--green); }
   h1 { font-size:24px; margin:0 0 4px; }
   h2 { font-size:17px; margin:0 0 6px; }
+  h3 { font-size:14px; margin:16px 0 4px; }
   p { margin:0 0 10px; }
   .muted { color:var(--muted); }
   .brand { font-weight:700; color:var(--green); letter-spacing:.02em; }
@@ -59,7 +60,7 @@ title: "Navi+ Connection Check"
   details { margin-top:12px; }
   summary { cursor:pointer; color:var(--blue); font-weight:600; }
   pre { background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:12px; overflow:auto;
-        font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; white-space:pre-wrap; word-break:break-word; max-height:340px; }
+        font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; white-space:pre-wrap; word-break:break-word; max-height:360px; }
   .tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:8px; margin-top:12px; }
   .tile { border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:13px; }
   .tile b { display:block; margin-bottom:2px; }
@@ -68,6 +69,8 @@ title: "Navi+ Connection Check"
   .note { font-size:13px; color:var(--muted); }
   .hint { border-radius:10px; padding:10px 12px; margin-top:10px; font-size:14px; background:var(--amber-bg); color:var(--text); border:1px solid var(--line); }
   .hint.good { background:var(--green-bg); }
+  #deep ul { margin:6px 0 0; padding-left:18px; font-size:13px; }
+  #deep li { margin:2px 0; }
   .hp { position:absolute; left:-9999px; }
   .status { margin-top:10px; min-height:22px; font-weight:600; }
   .status.ok-t { color:var(--green); } .status.bad-t { color:var(--red); }
@@ -79,19 +82,21 @@ title: "Navi+ Connection Check"
 <div class="wrap">
   <div class="top"><span class="brand">Navi+</span><a href="https://tools.naviplus.io/">← All free tools</a></div>
   <h1>Connection Check</h1>
-  <p class="muted">Sometimes Navi+ will not open on one particular device or network. This page tests how your connection reaches the
-    Navi+ servers and the services the Navi+ app depends on, so we can find the cause. It takes about a minute. Nothing is installed.</p>
+  <p class="muted">Sometimes Navi+ will not open on one particular device or network. This page runs a deep test of how your connection reaches the
+    Navi+ servers and the services the Navi+ app depends on (delay, lost packets, IPv6, packet sizes, proxies, browser storage…), so we can
+    find the cause. It takes 1–2 minutes. Nothing is installed.</p>
 
   <!-- ─── Bước 1 ─── -->
   <div class="card" id="c1">
     <h2><span class="step">1</span>Run the test</h2>
-    <p class="note">Runs about 90 tiny requests and two ~0.5 MB downloads: Navi+ servers, Shopify, your network basics (DNS, clock, stability)
-      and a real page-load test. Please keep this tab open until it finishes.</p>
+    <p class="note">About 150 tiny requests plus a few downloads (in total ≈ 6 MB of data). Please keep this tab open until it finishes.</p>
+    <label style="font-weight:400;margin:6px 0 0"><input type="checkbox" id="lite"> Light mode — skip the big downloads (≈ 0.1 MB in total, for mobile data)</label>
     <div class="row">
       <button class="primary" id="runBtn" type="button">Run test now</button>
       <span id="runState" class="note"></span>
     </div>
     <div id="hints"></div>
+    <div id="deep"></div>
     <table id="resTable" style="display:none">
       <thead><tr><th>What was tested</th><th>Result</th><th>Median</th><th>Protocol</th><th>Server</th><th>Details</th></tr></thead>
       <tbody id="resBody"></tbody>
@@ -104,7 +109,8 @@ title: "Navi+ Connection Check"
   <div class="card" id="c3">
     <h2><span class="step">2</span>Watch for problems <span class="muted" style="font-weight:400">(best if the error comes and goes)</span></h2>
     <p class="note">Leave this tab open (you can keep working in another tab). It quietly re-checks every 20 seconds and records exactly
-      when and where a connection fails. Stops by itself after 3 hours. Your computer must stay awake.</p>
+      when and where a connection fails, and whether the rest of your internet was still working at that moment. Stops by itself after 3 hours.
+      Your computer must stay awake.</p>
     <div class="row">
       <button id="monBtn" type="button">Start watching</button>
       <span id="monState" class="note"></span>
@@ -127,8 +133,8 @@ title: "Navi+ Connection Check"
     <details>
       <summary>Preview exactly what will be sent</summary>
       <pre id="preview">Run the test first.</pre>
-      <p class="note">This includes your public IP address and internet provider region (needed to look up your connection in our logs).
-        It does <b>not</b> include passwords, store data or anything from other tabs.</p>
+      <p class="note">This includes your public IP address (needed to look up your connection in our logs) and technical details of your browser and
+        network. It does <b>not</b> include passwords, store data, your exact location or anything from other tabs.</p>
     </details>
     <label style="font-weight:400"><input type="checkbox" id="consent"> I agree to send this information to Navi+ support.</label>
     <div class="row">
@@ -146,11 +152,12 @@ title: "Navi+ Connection Check"
 (function () {
   'use strict';
 
-  var VERSION = '2';
+  var VERSION = '3';
   var WS_KEY = 'nv_live_2072a78da40afa177b11402f21335055';   // khoá CÔNG KHAI của widget chat Inbox+ (đã nằm sẵn trong mọi trang dùng widget)
   var API = 'https://api.inboxplus.app';
-  var MAX_MSG = 4700;                                          // API tạo chat cho phép 5000 ký tự; chừa chỗ khung HTML
-  var STORE_KEY = 'naviConnCheck.v2';
+  var SPEED = 'https://speed.cloudflare.com';                  // dịch vụ đo tốc độ công khai của Cloudflare (CORS *, trả server-timing cfL4)
+  var CHUNK = 4200, MAX_TOTAL = 22000;                         // API tạo chat ≤5000 ký tự/tin → tách nhiều tin; tổng ≤ ~6 tin
+  var STORE_KEY = 'naviConnCheck.v3';
   var MON_INTERVAL = 20000, MON_MAX_MS = 3 * 3600 * 1000, MON_MAX_EVENTS = 300;
   var BIG = 'https://cdn.naviplus.app/static/assets/v2/golive/r2_common.css';     // cùng 1 file (~490 KB) có mặt ở R2 và Bunny
   var BIG_BUNNY = 'https://flov.b-cdn.net/static/assets/v2/golive/r2_common.css';
@@ -161,36 +168,50 @@ title: "Navi+ Connection Check"
   var PROBE_PATH = '/naviplus/connection-probe.html', PROBE_LEN = 96000, PROBE_SUM = 17850;
 
   /* Các điểm đo (mỗi điểm 1 dòng trong bảng, theo nhóm g).
-     kind: trace = /cdn-cgi/trace (Cloudflare tự trả ip/colo/http/tls/loc/ts, CORS *) · range = 2 KB đầu file · json = GET JSON
-           len = tải CORS + phải đủ min byte · nocors = chỉ cần kết nối được (phản hồi opaque) · dl = tải trọn file, so độ dài.
-     cf=true: nằm sau Cloudflare (để so với Bunny — không qua Cloudflare). opt=true: lỗi chỉ là thông tin, không tính là sự cố. */
+     kind: trace = /cdn-cgi/trace (Cloudflare tự trả ip/colo/http/tls/kex/uag…, CORS *) · range = 2 KB đầu file · json = GET JSON ·
+           len = tải CORS + phải đủ min byte · nocors = chỉ cần kết nối được (opaque) · dl = tải trọn file (stream, đo tạm dừng) ·
+           head = HEAD · ping = speed.cloudflare.com/__down?bytes=0 (đọc cfL4) · còn lại là bài tổng hợp (burst, parallel, clock, l4, ladder, speed, mitm, store, iframe).
+     cf=true: nằm sau Cloudflare (để so với Bunny). opt=true: lỗi chỉ là thông tin. heavy=true: bỏ qua ở chế độ Light. */
   var TESTS = [
-    { g:'Navi+ servers', id:'app',   label:'Navi+ app server',            host:'cdn-naviplus.com',   kind:'trace', url:'https://cdn-naviplus.com/cdn-cgi/trace', cf:true },
-    { g:'Navi+ servers', id:'dash',  label:'Navi+ app (backup domain)',   host:'dash.naviplus.app',  kind:'trace', url:'https://dash.naviplus.app/cdn-cgi/trace', cf:true },
-    { g:'Navi+ servers', id:'r2',    label:'Asset CDN (Cloudflare R2)',   host:'cdn.naviplus.app',   kind:'trace', url:'https://cdn.naviplus.app/cdn-cgi/trace', cf:true },
-    { g:'Navi+ servers', id:'bunny', label:'Asset CDN (Bunny backup)',    host:'flov.b-cdn.net',     kind:'range', url:BIG_BUNNY, cf:false },
-    { g:'Navi+ servers', id:'tools', label:'This page (tools.naviplus.io)', host:'tools.naviplus.io', kind:'trace', url:'https://tools.naviplus.io/cdn-cgi/trace', cf:true },
-    { g:'Navi+ servers', id:'chat',  label:'Support chat server',         host:'api.inboxplus.app',  kind:'json',  url:API + '/', cf:true },
-    { g:'Navi+ servers', id:'dl_r2',    label:'Download 490 KB via Cloudflare R2', host:'cdn.naviplus.app', kind:'dl', url:BIG, cf:true, n:1 },
-    { g:'Navi+ servers', id:'dl_bunny', label:'Download 490 KB via Bunny',         host:'flov.b-cdn.net',   kind:'dl', url:BIG_BUNNY, cf:false, n:1 },
+    { g:'Navi+ servers', id:'app',   label:'Navi+ app server',            host:'cdn-naviplus.com',   kind:'trace', url:'https://cdn-naviplus.com/cdn-cgi/trace', cf:true, n:6 },
+    { g:'Navi+ servers', id:'dash',  label:'Navi+ app (backup domain)',   host:'dash.naviplus.app',  kind:'trace', url:'https://dash.naviplus.app/cdn-cgi/trace', cf:true, n:6 },
+    { g:'Navi+ servers', id:'r2',    label:'Asset CDN (Cloudflare R2)',   host:'cdn.naviplus.app',   kind:'trace', url:'https://cdn.naviplus.app/cdn-cgi/trace', cf:true, n:6 },
+    { g:'Navi+ servers', id:'bunny', label:'Asset CDN (Bunny backup)',    host:'flov.b-cdn.net',     kind:'range', url:BIG_BUNNY, cf:false, n:6 },
+    { g:'Navi+ servers', id:'tools', label:'This page (tools.naviplus.io)', host:'tools.naviplus.io', kind:'trace', url:'https://tools.naviplus.io/cdn-cgi/trace', cf:true, n:6 },
+    { g:'Navi+ servers', id:'chat',  label:'Support chat server',         host:'api.inboxplus.app',  kind:'json',  url:API + '/', cf:true, n:6 },
+    { g:'Navi+ servers', id:'dl_r2',    label:'Download 490 KB via Cloudflare R2', host:'cdn.naviplus.app', kind:'dl', url:BIG, cf:true, n:1, heavy:true },
+    { g:'Navi+ servers', id:'dl_bunny', label:'Download 490 KB via Bunny',         host:'flov.b-cdn.net',   kind:'dl', url:BIG_BUNNY, cf:false, n:1, heavy:true },
 
-    { g:'What the Navi+ app needs to start', id:'ab',    label:'Shopify App Bridge script',  host:'cdn.shopify.com',   kind:'len',    url:'https://cdn.shopify.com/shopifycloud/app-bridge.js', min:50000, n:3, dep:true },
+    { g:'What the Navi+ app needs to start', id:'ab',    label:'Shopify App Bridge script',  host:'cdn.shopify.com',   kind:'len',    url:'https://cdn.shopify.com/shopifycloud/app-bridge.js', min:50000, n:3, dep:true, heavy:true },
     { g:'What the Navi+ app needs to start', id:'shadm', label:'Shopify admin',              host:'admin.shopify.com', kind:'nocors', url:'https://admin.shopify.com/', n:3, dep:true },
-    { g:'What the Navi+ app needs to start', id:'jq',    label:'jQuery (jsDelivr)',          host:'cdn.jsdelivr.net',  kind:'len',    url:'https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js', min:50000, n:3, dep:true },
+    { g:'What the Navi+ app needs to start', id:'jq',    label:'jQuery (jsDelivr)',          host:'cdn.jsdelivr.net',  kind:'len',    url:'https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js', min:50000, n:3, dep:true, heavy:true },
     { g:'What the Navi+ app needs to start', id:'nsw',   label:'Support chat widget',        host:'ai.inboxplus.app',  kind:'len',    url:'https://ai.inboxplus.app/widget/ns.js', min:500, n:3, dep:true },
 
-    { g:'Your network basics', id:'v4',   label:'Cloudflare by IPv4 address (no DNS)', host:'1.1.1.1',           kind:'trace', url:'https://1.1.1.1/cdn-cgi/trace', cf:true, n:3, basic:true },
-    { g:'Your network basics', id:'v6',   label:'Cloudflare by IPv6 address (no DNS)', host:'[2606:4700:4700::1111]', kind:'trace', url:'https://[2606:4700:4700::1111]/cdn-cgi/trace', cf:true, n:2, basic:true, opt:true },
+    { g:'Your network basics', id:'v4',   label:'Cloudflare by IPv4 address (no DNS)', host:'1.1.1.1',           kind:'trace', url:'https://1.1.1.1/cdn-cgi/trace', cf:true, n:10, basic:true },
+    { g:'Your network basics', id:'v6',   label:'Cloudflare by IPv6 address (no DNS)', host:'[2606:4700:4700::1111]', kind:'trace', url:'https://[2606:4700:4700::1111]/cdn-cgi/trace', cf:true, n:10, basic:true, opt:true },
     { g:'Your network basics', id:'burst',label:'Stability: 20 quick requests',        host:'cdn-naviplus.com',  kind:'burst' },
     { g:'Your network basics', id:'par',  label:'8 requests at the same time',        host:'cdn-naviplus.com',  kind:'parallel' },
     { g:'Your network basics', id:'clock',label:'Your device clock',                   host:'this device',       kind:'clock' },
+
+    { g:'Deep network quality', id:'l4',     label:'Path quality as Cloudflare measures it', host:'speed.cloudflare.com', kind:'l4' },
+    { g:'Deep network quality', id:'ladder', label:'Packet-size ladder (MTU check)',         host:'speed.cloudflare.com', kind:'ladder', heavy:true },
+    { g:'Deep network quality', id:'speed',  label:'Speed & delay under load',               host:'speed.cloudflare.com', kind:'speed', heavy:true },
+    { g:'Deep network quality', id:'mitm',   label:'Anything in the middle? (proxy / TLS inspection)', host:'this network', kind:'mitm' },
+    { g:'Deep network quality', id:'store',  label:'Browser storage & cookies',              host:'this browser', kind:'store' },
 
     { g:'Page-load test (like the app)', id:'doc1', label:'Web page download (zstd/gzip)', host:'cdn-naviplus.com', kind:'nocors', url:'https://cdn-naviplus.com/', n:3, doc:true },
     { g:'Page-load test (like the app)', id:'doc2', label:'Web page download (zstd/gzip)', host:'dash.naviplus.app', kind:'nocors', url:'https://dash.naviplus.app/', n:3, doc:true },
     { g:'Page-load test (like the app)', id:'if1',  label:'Page inside a frame, intact?',   host:'cdn-naviplus.com',  kind:'iframe', url:'https://cdn-naviplus.com' + PROBE_PATH, n:2, iframe:true },
     { g:'Page-load test (like the app)', id:'if2',  label:'Page inside a frame, intact?',   host:'dash.naviplus.app', kind:'iframe', url:'https://dash.naviplus.app' + PROBE_PATH, n:2, iframe:true }
   ];
-  var MON = TESTS.filter(function (t) { return { app:1, dash:1, r2:1, bunny:1, tools:1, chat:1 }[t.id]; });   // 6 điểm nhẹ cho chế độ theo dõi
+  function T(id) { return TESTS.filter(function (t) { return t.id === id; })[0]; }
+  var PING = { id:'ping', label:'Cloudflare speed edge', host:'speed.cloudflare.com', kind:'ping', url:SPEED + '/__down?bytes=0' };
+  /* Chế độ theo dõi: 6 điểm Navi+ + 3 ĐỐI CHỨNG (Cloudflare bằng IP thô, Shopify, speed.cloudflare) để biết mỗi lần rớt là do
+     "cả internet của KH" hay "chỉ riêng Navi+". */
+  var MON = [T('app'), T('dash'), T('r2'), T('bunny'), T('tools'), T('chat'),
+             { id:'v4c',  label:'Cloudflare by IPv4', host:'1.1.1.1', kind:'trace', url:'https://1.1.1.1/cdn-cgi/trace', ctrl:true },
+             { id:'shop', label:'Shopify CDN', host:'cdn.shopify.com', kind:'head', url:'https://cdn.shopify.com/shopifycloud/app-bridge.js', ctrl:true },
+             { id:'spd',  label:'Cloudflare speed edge', host:'speed.cloudflare.com', kind:'ping', url:SPEED + '/__down?bytes=0', ctrl:true }];
 
   var $ = function (id) { return document.getElementById(id); };
   var params = new URLSearchParams(location.search);
@@ -207,8 +228,8 @@ title: "Navi+ Connection Check"
   /* Xoá email khỏi thanh địa chỉ/lịch sử (ảnh chụp màn hình, lịch sử trình duyệt) sau khi đã đọc; giữ ?ref. */
   try { if (P_FROM || P_NAME || P_TO) { var keep = new URLSearchParams(); if (REF) keep.set('ref', REF); history.replaceState(null, '', location.pathname + (keep.toString() ? '?' + keep.toString() : '')); } } catch (e) {}
 
-  var state = { env:null, run:null, mon:null, ip:null };
-  try { performance.setResourceTimingBufferSize(1500); } catch (e) {}
+  var state = { env:null, run:null, mon:null, ip:null, l4:null };
+  try { performance.setResourceTimingBufferSize(2500); } catch (e) {}
 
   /* ───────────── tiện ích ───────────── */
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
@@ -219,32 +240,37 @@ title: "Navi+ Connection Check"
   function hhmmss(t) { return new Date(t).toISOString().slice(11, 19); }
   function mode(a) { var c = {}, best = null; a.forEach(function (x) { if (!x) return; c[x] = (c[x] || 0) + 1; if (best === null || c[x] > c[best]) best = x; }); return best; }
   function parseTrace(t) { var o = {}; String(t).split('\n').forEach(function (l) { var i = l.indexOf('='); if (i > 0) o[l.slice(0, i)] = l.slice(i + 1).trim(); }); return o; }
+  /* server-timing: cfL4;desc="?proto=TCP&rtt=57001&min_rtt=..&rtt_var=..&sent=5&recv=7&lost=0&retrans=0&delivery_rate=..&cwnd=53&cid=.."
+     = số liệu tầng TCP/QUIC do CHÍNH Cloudflare đo cho kết nối của khách (rtt tính µs). */
+  function parseL4(st) { var m = /cfL4;desc="\?([^"]+)"/.exec(st || ''); if (!m) return null; var o = {}; m[1].split('&').forEach(function (kv) { var i = kv.indexOf('='); if (i > 0) o[kv.slice(0, i)] = kv.slice(i + 1); }); ['rtt', 'min_rtt', 'rtt_var', 'sent', 'recv', 'lost', 'retrans', 'delivery_rate', 'cwnd'].forEach(function (k) { if (o[k] != null) o[k] = Number(o[k]); }); return o; }
+  function ms1(us) { return us == null ? '?' : (Math.round(us / 100) / 10) + ' ms'; }
+  function fam(ip) { return !ip ? '' : ip.indexOf(':') >= 0 ? 'IPv6' : 'IPv4'; }
+  function seqStr(a) { var out = [], last = null, n = 0; a.forEach(function (x) { if (!x) return; if (x === last) n++; else { if (last) out.push(last + (n > 1 ? '×' + n : '')); last = x; n = 1; } }); if (last) out.push(last + (n > 1 ? '×' + n : '')); return out.join('→'); }
   function lsGet() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { return null; } }
   function lsSet(v) { try { localStorage.setItem(STORE_KEY, JSON.stringify(v)); } catch (e) {} }
+  function brProto(url) { try { var es = performance.getEntriesByName(url), en = es[es.length - 1]; return en && en.nextHopProtocol ? (en.nextHopProtocol === 'h3' ? 'http/3' : en.nextHopProtocol === 'h2' ? 'http/2' : en.nextHopProtocol) : ''; } catch (e) { return ''; } }
+  function chromeMajor() { var m = /(?:Chrome|Chromium|Edg|OPR)\/(\d+)/.exec(navigator.userAgent); return m ? parseInt(m[1], 10) : 0; }
 
   /* ───────────── 1 lần đo ─────────────
-     Trả {ok, ms, kind, detail, proto, colo, ip, loc, tls, warp, ts, bytes, status}.
-     kind lỗi: network (fetch ném lỗi: DNS/TLS/QUIC/bị chặn), timeout, http (mã ≠ 2xx), badbody (nhận được nhưng nội dung sai/cụt). */
+     Trả {ok, ms, ttfb, kind, detail, proto, brProto, colo, ip, loc, tls, warp, ts, tr, l4, bytes, status, fast}.
+     kind lỗi: network (fetch ném lỗi: DNS/TLS/QUIC/bị chặn), timeout, http (mã ≠ 2xx), badbody (nhận được nhưng nội dung sai/cụt).
+     fast=true: lỗi NGAY (<60 ms) → thường bị chặn ngay trên máy (extension/antivirus/firewall/DNS filter), không phải mạng chậm. */
   async function probe(ep, timeout) {
     var t0 = performance.now(), ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, timeout);
     var url = ep.url;
-    if (ep.kind === 'trace' || ep.kind === 'json' || ep.kind === 'nocors') url += (url.indexOf('?') < 0 ? '?' : '&') + 'cb=' + Date.now() + Math.random().toString(36).slice(2, 6);
-    var o = { ok:false, ms:0, kind:'', detail:'', proto:'', colo:'', ip:'', loc:'', tls:'', warp:'', ts:'', bytes:0, status:0 };
+    if (ep.kind === 'trace' || ep.kind === 'json' || ep.kind === 'nocors' || ep.kind === 'ping') url += (url.indexOf('?') < 0 ? '?' : '&') + 'cb=' + Date.now() + Math.random().toString(36).slice(2, 6);
+    var o = { ok:false, ms:0, ttfb:0, kind:'', detail:'', proto:'', brProto:'', colo:'', ip:'', loc:'', tls:'', warp:'', ts:'', tr:null, l4:null, bytes:0, status:0, fast:false };
     try {
-      var init = { cache:'no-store', signal:ctl.signal, credentials:'omit', mode:ep.kind === 'nocors' ? 'no-cors' : 'cors', referrerPolicy:'no-referrer' };
+      var init = { cache:'no-store', signal:ctl.signal, credentials:'omit', mode:ep.kind === 'nocors' ? 'no-cors' : 'cors', referrerPolicy:'no-referrer', method:ep.kind === 'head' ? 'HEAD' : 'GET' };
       if (ep.kind === 'range') init.headers = { Range:'bytes=0-2047' };
       var r = await fetch(url, init);
-      o.status = r.status;
+      o.ttfb = Math.round(performance.now() - t0); o.status = r.status;
+      try { o.l4 = parseL4(r.headers.get('server-timing')); } catch (e) {}
       if (ep.kind === 'nocors') {
         o.ok = true;                                          // phản hồi opaque: chỉ biết kết nối + nhận được phản hồi hợp lệ
-      } else if (ep.kind === 'dl') {
-        var expect = parseInt(r.headers.get('content-length') || '0', 10);
-        var buf = await r.arrayBuffer();
-        o.bytes = buf.byteLength;
-        if (r.status !== 200) { o.kind = 'http'; o.detail = 'HTTP ' + r.status; }
-        else if (expect && buf.byteLength !== expect) { o.kind = 'badbody'; o.detail = 'got ' + buf.byteLength + ' of ' + expect + ' bytes (truncated/altered)'; }
-        else if (buf.byteLength < 100000) { o.kind = 'badbody'; o.detail = 'only ' + buf.byteLength + ' bytes'; }
-        else o.ok = true;
+      } else if (ep.kind === 'head' || ep.kind === 'ping') {
+        if (ep.kind === 'ping') await r.arrayBuffer();
+        if (!r.ok) { o.kind = 'http'; o.detail = 'HTTP ' + r.status; } else o.ok = true;
       } else if (ep.kind === 'range') {
         var b2 = await r.arrayBuffer(); o.bytes = b2.byteLength;
         if (r.status !== 206 && r.status !== 200) { o.kind = 'http'; o.detail = 'HTTP ' + r.status; }
@@ -261,42 +287,73 @@ title: "Navi+ Connection Check"
         else if (ep.kind === 'trace') {
           var tr = parseTrace(txt);
           if (!tr.ip || !tr.colo) { o.kind = 'badbody'; o.detail = 'unexpected response body'; }
-          else { o.ok = true; o.proto = tr.http || ''; o.colo = tr.colo; o.ip = tr.ip; o.loc = tr.loc || ''; o.tls = tr.tls || ''; o.warp = tr.warp || ''; o.ts = tr.ts || ''; }
+          else { o.ok = true; o.proto = tr.http || ''; o.colo = tr.colo; o.ip = tr.ip; o.loc = tr.loc || ''; o.tls = tr.tls || ''; o.warp = tr.warp || ''; o.ts = tr.ts || ''; o.tr = tr; }
         } else {
           try { JSON.parse(txt); o.ok = true; } catch (e) { o.kind = 'badbody'; o.detail = 'response is not valid JSON'; }
         }
       }
     } catch (e) {
+      var el = Math.round(performance.now() - t0);
       if (e && e.name === 'AbortError') { o.kind = 'timeout'; o.detail = 'no answer within ' + Math.round(timeout / 1000) + 's'; }
-      else { o.kind = 'network'; o.detail = (e && e.name ? e.name : 'Error') + ': ' + (e && e.message ? e.message : ''); }
+      else { o.kind = 'network'; o.detail = (e && e.name ? e.name : 'Error') + ': ' + (e && e.message ? e.message : ''); if (el < 60) { o.fast = true; o.detail += ' [failed instantly, ' + el + ' ms - usually blocked on this device: extension, antivirus, firewall or DNS filter]'; } }
     }
     clearTimeout(timer);
     o.ms = Math.round(performance.now() - t0);
-    if (!o.proto) {                                    // giao thức thấy từ phía trình duyệt (h3/h2/http/1.1)
-      try {
-        var es = performance.getEntriesByName(url), en = es[es.length - 1];
-        if (en && en.nextHopProtocol) o.proto = en.nextHopProtocol === 'h3' ? 'http/3' : en.nextHopProtocol === 'h2' ? 'http/2' : en.nextHopProtocol;
-      } catch (e) {}
-    }
+    o.brProto = brProto(url); if (!o.proto) o.proto = o.brProto;   // giao thức thấy từ phía trình duyệt (h3/h2/http/1.1)
     return o;
   }
 
+  /* Tải kiểu STREAM: đo thời gian tới byte đầu, tốc độ, và KHOẢNG DỪNG dài nhất giữa 2 gói dữ liệu (dấu hiệu MTU/QUIC/Wi-Fi/vệ tinh chập chờn).
+     opt: {method, body, headers, expect (số byte mong đợi), minBytes}. */
+  async function streamGet(url, timeout, opt) {
+    opt = opt || {};
+    var t0 = performance.now(), ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, timeout);
+    var o = { ok:false, ms:0, ttfb:0, bytes:0, maxGap:0, kind:'', detail:'', l4:null, status:0, mbps:null };
+    try {
+      var r = await fetch(url, { cache:'no-store', signal:ctl.signal, credentials:'omit', mode:'cors', referrerPolicy:'no-referrer', method:opt.method || 'GET', body:opt.body, headers:opt.headers });
+      o.ttfb = Math.round(performance.now() - t0); o.status = r.status;
+      try { o.l4 = parseL4(r.headers.get('server-timing')); } catch (e) {}
+      var expect = opt.expect != null ? opt.expect : parseInt(r.headers.get('content-length') || '0', 10);
+      if (r.body && r.body.getReader) {
+        var rd = r.body.getReader(), last = performance.now();
+        for (;;) { var c = await rd.read(); if (c.done) break; var now = performance.now(), gap = now - last; if (gap > o.maxGap) o.maxGap = gap; last = now; o.bytes += c.value.length; }
+      } else { var b = await r.arrayBuffer(); o.bytes = b.byteLength; }
+      o.ms = Math.round(performance.now() - t0); o.maxGap = Math.round(o.maxGap);
+      var payload = opt.body ? opt.body.length : o.bytes;
+      if (r.status !== 200) { o.kind = 'http'; o.detail = 'HTTP ' + r.status; }
+      else if (expect && !opt.body && o.bytes !== expect) { o.kind = 'badbody'; o.detail = 'got ' + o.bytes + ' of ' + expect + ' bytes (truncated/altered)'; }
+      else if (opt.minBytes && o.bytes < opt.minBytes) { o.kind = 'badbody'; o.detail = 'only ' + o.bytes + ' bytes'; }
+      else { o.ok = true; if (o.ms > 0) o.mbps = Math.round(payload * 8 / 1e6 / (o.ms / 1000) * 10) / 10; }
+    } catch (e) {
+      o.ms = Math.round(performance.now() - t0);
+      if (e && e.name === 'AbortError') { o.kind = 'timeout'; o.detail = 'stalled: no completion within ' + Math.round(timeout / 1000) + 's (got ' + o.bytes + ' bytes)'; }
+      else { o.kind = 'network'; o.detail = (e && e.name ? e.name : 'Error') + ': ' + (e && e.message ? e.message : ''); }
+    }
+    clearTimeout(timer); return o;
+  }
+
   /* Bài test "trang HTML trong khung": nhúng iframe ẩn tới naviplus/connection-probe.html rồi ĐỢI postMessage.
-     Trang thăm dò tự kiểm độ dài + checksum của thân trang sau khi giải nén. Nếu tài liệu bị lỗi (Chrome hiện trang lỗi kiểu
-     "invalid response", bị chặn, cắt, sửa) thì KHÔNG có tin nhắn hợp lệ → thất bại. Đây là cách duy nhất từ trang ngoài để
-     kiểm một TÀI LIỆU (không phải fetch) — đúng dạng phản hồi mà iframe app trong Shopify admin cần. */
+     Trang thăm dò tự kiểm độ dài + checksum của thân trang sau khi giải nén, đo chi tiết thời gian (DNS/TCP/TLS/TTFB) và thử cookie/lưu trữ
+     bên thứ ba (đúng tình huống app chạy trong iframe Shopify admin). Tài liệu bị lỗi (Chrome hiện trang lỗi kiểu "invalid response",
+     bị chặn, cắt, sửa) thì KHÔNG có tin nhắn hợp lệ → thất bại. */
   function probeIframe(ep, timeout) {
     return new Promise(function (resolve) {
       var t0 = performance.now(), done = false, fr = document.createElement('iframe');
-      var o = { ok:false, ms:0, kind:'', detail:'', proto:'', colo:'', ip:'', loc:'', tls:'', warp:'', ts:'', bytes:0, status:0 };
+      var o = { ok:false, ms:0, kind:'', detail:'', proto:'', brProto:'', colo:'', ip:'', loc:'', tls:'', warp:'', ts:'', tr:null, l4:null, bytes:0, status:0, probe:null };
       var origin = new URL(ep.url).origin;
       function fin() { if (done) return; done = true; clearTimeout(timer); window.removeEventListener('message', onMsg); try { fr.remove(); } catch (e) {} o.ms = Math.round(performance.now() - t0); resolve(o); }
       function onMsg(ev) {
         var d = ev.data; if (ev.origin !== origin || !d || d.navi !== 'probe') return;
         if (d.error) { o.kind = 'badbody'; o.detail = 'page script error: ' + d.error; fin(); return; }
-        var n = d.nav || {}; o.proto = n.proto === 'h3' ? 'http/3' : n.proto === 'h2' ? 'http/2' : (n.proto || ''); o.status = n.status || 200; o.bytes = d.len;
+        var n = d.nav || {}; o.proto = n.proto === 'h3' ? 'http/3' : n.proto === 'h2' ? 'http/2' : (n.proto || ''); o.status = n.status || 200; o.bytes = d.len; o.probe = d;
         if (d.len !== PROBE_LEN || d.sum !== PROBE_SUM) { o.kind = 'badbody'; o.detail = 'page arrived altered (' + d.len + ' chars, checksum ' + d.sum + ')'; }
-        else { o.ok = true; o.detail = 'transfer ' + Math.round((n.xfer || 0) / 1024) + ' KB, body ' + Math.round((n.dec || 0) / 1024) + ' KB, first byte ' + (n.ttfb || 0) + ' ms'; }
+        else {
+          o.ok = true;
+          var sm = (d.same || []).filter(function (x) { return x && x.ms != null; }).map(function (x) { return x.ms; });
+          o.detail = 'transfer ' + Math.round((n.xfer || 0) / 1024) + ' KB, body ' + Math.round((n.dec || 0) / 1024) + ' KB, first byte ' + (n.ttfb || 0) + ' ms' +
+            (n.dns != null ? ' (DNS ' + n.dns + ', connect ' + n.tcp + ', TLS ' + n.tls + ')' : '') +
+            (d.cookie != null ? '; 3rd-party cookie ' + (d.cookie ? 'allowed' : 'BLOCKED') : '') + (d.ls != null ? ', storage ' + (d.ls ? 'allowed' : 'BLOCKED') : '') + (sm.length ? '; same-site requests median ' + median(sm) + ' ms' : '');
+        }
         fin();
       }
       var timer = setTimeout(function () { o.kind = 'timeout'; o.detail = 'the page never finished loading in the frame (blocked, cut off or error page)'; fin(); }, timeout);
@@ -320,118 +377,234 @@ title: "Navi+ Connection Check"
   async function collectEnv() {
     var n = navigator, c = n.connection || n.mozConnection || n.webkitConnection || {}, s = screen, uach = n.userAgentData;
     var isBrave = false; try { isBrave = !!(n.brave && await n.brave.isBrave()); } catch (e) {}
+    var he = null; try { if (uach && uach.getHighEntropyValues) he = await Promise.race([uach.getHighEntropyValues(['platformVersion', 'architecture', 'bitness', 'fullVersionList']), sleep(1500).then(function () { return null; })]); } catch (e) {}
+    var quota = null; try { var est = await navigator.storage.estimate(); quota = Math.round(est.quota / 1048576); } catch (e) {}
     return {
       ua: n.userAgent,
       platform: (uach && uach.platform) || n.platform || '',
       brands: uach && uach.brands ? uach.brands.map(function (b) { return b.brand + ' ' + b.version; }).join(', ') : '',
+      full: he && he.fullVersionList ? he.fullVersionList.filter(function (b) { return !/Not/.test(b.brand); }).map(function (b) { return b.brand + ' ' + b.version; }).join(', ') : '',
+      osv: he ? (he.platformVersion || '') + ' ' + (he.architecture || '') + (he.bitness || '') : '',
       mobile: uach ? !!uach.mobile : null,
-      lang: n.language || '', tz: (function () { try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { return ''; } })(),
+      lang: n.language || '', langs: (n.languages || []).slice(0, 3).join(','), tz: (function () { try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { return ''; } })(),
       tzOffsetMin: -new Date().getTimezoneOffset(),
-      screen: s.width + 'x' + s.height + '@' + (window.devicePixelRatio || 1),
+      screen: s.width + 'x' + s.height + '@' + (window.devicePixelRatio || 1), touch: n.maxTouchPoints || 0,
       online: n.onLine, cookies: n.cookieEnabled, dnt: n.doNotTrack || '',
       conn: { type:c.type || '', eff:c.effectiveType || '', down:c.downlink != null ? c.downlink : '', rtt:c.rtt != null ? c.rtt : '', save:c.saveData ? 'on' : 'off' },
-      cores: n.hardwareConcurrency || '', memGB: n.deviceMemory || '',
+      cores: n.hardwareConcurrency || '', memGB: n.deviceMemory || '', quotaMB: quota, secure: window.isSecureContext, coi: !!window.crossOriginIsolated,
       blocker: await detectBlocker(), brave: isBrave, webdriver: !!n.webdriver,
       swCtrl: !!(n.serviceWorker && n.serviceWorker.controller), extra: (window.chrome && chrome.runtime && chrome.runtime.id) ? 'chrome.runtime present' : ''
     };
   }
   function connStr(e) { var c = e.conn; return 'type=' + (c.type || '?') + ' effective=' + (c.eff || '?') + ' downlink=' + (c.down !== '' ? c.down + 'Mbps' : '?') + ' rtt=' + (c.rtt !== '' ? c.rtt + 'ms' : '?') + ' saveData=' + c.save; }
+  /* Kiểm cookie / lưu trữ NGAY trên trang này (bên thứ nhất); bản bên thứ ba (trong iframe) do trang thăm dò đo. */
+  async function storageTest() {
+    var r = { cookie:false, ls:false, ss:false, idb:false };
+    try { document.cookie = 'nvck=1; Path=/; Max-Age=60; SameSite=Lax'; r.cookie = document.cookie.indexOf('nvck=1') >= 0; document.cookie = 'nvck=; Path=/; Max-Age=0'; } catch (e) {}
+    try { localStorage.setItem('nvck', '1'); r.ls = localStorage.getItem('nvck') === '1'; localStorage.removeItem('nvck'); } catch (e) {}
+    try { sessionStorage.setItem('nvck', '1'); r.ss = sessionStorage.getItem('nvck') === '1'; sessionStorage.removeItem('nvck'); } catch (e) {}
+    try { r.idb = await new Promise(function (res) { var q = indexedDB.open('nvck'), tm = setTimeout(function () { res(false); }, 2500); q.onsuccess = function () { clearTimeout(tm); try { q.result.close(); indexedDB.deleteDatabase('nvck'); } catch (e) {} res(true); }; q.onerror = function () { clearTimeout(tm); res(false); }; }); } catch (e) {}
+    return r;
+  }
 
   /* ───────────── Bước 1: chạy test ───────────── */
   function summarise(ep, samples, extra) {
     var oks = samples.filter(function (s) { return s.ok; });
     var kinds = {}; samples.forEach(function (s) { if (!s.ok) { var k = s.kind + (s.detail ? ' (' + s.detail + ')' : ''); kinds[k] = (kinds[k] || 0) + 1; } });
-    var okMs = oks.map(function (s) { return s.ms; });
+    var okMs = oks.map(function (s) { return s.ms; }), warm = oks.slice(1).map(function (s) { return s.ms; });
+    var lastTr = null; oks.forEach(function (s) { if (s.tr) lastTr = s.tr; });
     var sum = {
       id:ep.id, label:ep.label, host:ep.host, g:ep.g, cf:!!ep.cf, opt:!!ep.opt, dep:!!ep.dep, basic:!!ep.basic, doc:!!ep.doc, iframe:!!ep.iframe, kind:ep.kind,
       n:samples.length, okN:oks.length, med:median(okMs), max:okMs.length ? Math.max.apply(null, okMs) : null, p95:pct(okMs, 0.95),
-      proto:mode(samples.map(function (s) { return s.proto; })), colo:mode(oks.map(function (s) { return s.colo; })),
+      cold:oks.length > 2 && samples[0].ok ? samples[0].ms : null, warmMed:warm.length > 1 ? median(warm) : null,
+      ttfbMed:median(oks.map(function (s) { return s.ttfb; }).filter(Boolean)),
+      proto:mode(samples.map(function (s) { return s.proto; })), protoSeq:seqStr(oks.map(function (s) { return s.proto; })), colo:mode(oks.map(function (s) { return s.colo; })),
       ip:(oks.filter(function (s) { return s.ip; })[0] || {}).ip || '', loc:(oks.filter(function (s) { return s.loc; })[0] || {}).loc || '',
       tls:mode(oks.map(function (s) { return s.tls; })), warp:mode(oks.map(function (s) { return s.warp; })),
       ts:(oks.filter(function (s) { return s.ts; })[0] || {}).ts || '', okDetail:(oks.filter(function (s) { return s.detail; })[0] || {}).detail || '',
-      errs:kinds, mbps:(ep.kind === 'dl' && oks.length) ? Math.round((oks[0].bytes * 8 / 1e6) / (oks[0].ms / 1000) * 10) / 10 : null
+      tr:lastTr ? { uag:lastTr.uag, http:lastTr.http, tls:lastTr.tls, kex:lastTr.kex, sni:lastTr.sni, gateway:lastTr.gateway, rbi:lastTr.rbi, warp:lastTr.warp, ip:lastTr.ip, colo:lastTr.colo, loc:lastTr.loc } : null,
+      brProto:mode(samples.map(function (s) { return s.brProto; })), fastFails:samples.filter(function (s) { return s.fast; }).length,
+      errs:kinds
     };
     if (extra) for (var k in extra) sum[k] = extra[k];
     return sum;
   }
   function renderRow(sum) {
     var tr = $('row_' + sum.id); if (!tr) { tr = document.createElement('tr'); tr.id = 'row_' + sum.id; $('resBody').appendChild(tr); }
-    var cls = sum.info ? 'idle' : sum.okN === sum.n ? 'ok' : sum.okN === 0 ? (sum.opt ? 'warn' : 'bad') : 'warn';
+    var cls = sum.level || (sum.info ? 'idle' : sum.okN === sum.n ? 'ok' : sum.okN === 0 ? (sum.opt ? 'warn' : 'bad') : 'warn');
     var det = Object.keys(sum.errs).map(function (k) { return esc(k) + ' ×' + sum.errs[k]; }).join('<br>');
-    if (!det && sum.kind === 'dl' && sum.mbps != null) det = sum.mbps + ' Mbit/s';
-    if (!det && sum.okDetail) det = esc(sum.okDetail);
     if (sum.note) det = (det ? det + '<br>' : '') + esc(sum.note);
+    if (!det && sum.okDetail) det = esc(sum.okDetail);
+    if (sum.cold != null && sum.warmMed != null) det = (det ? det + '<br>' : '') + esc('first ' + sum.cold + ' ms, then ' + sum.warmMed + ' ms');
     var lbl = sum.info ? esc(sum.info) : sum.okN + '/' + sum.n + ' OK';
+    var prot = sum.protoSeq && sum.protoSeq.indexOf('→') > 0 ? sum.protoSeq : (sum.proto || '–');
     tr.innerHTML = '<td><b>' + esc(sum.label) + '</b><br><span class="muted">' + esc(sum.host) + '</span></td>' +
       '<td><span class="pill ' + cls + '">' + lbl + '</span></td>' +
-      '<td>' + (sum.med != null ? sum.med + ' ms' : '–') + '</td><td>' + esc(sum.proto || '–') + '</td><td>' + esc(sum.colo || '–') + '</td><td class="note">' + det + '</td>';
+      '<td>' + (sum.med != null ? sum.med + ' ms' : '–') + '</td><td>' + esc(prot) + '</td><td>' + esc(sum.colo || '–') + '</td><td class="note">' + det + '</td>';
   }
   function ensureSection(g) {
     var id = 'sec_' + g.replace(/\W+/g, '_'); if ($(id)) return;
     var tr = document.createElement('tr'); tr.id = id; tr.className = 'sec'; tr.innerHTML = '<td colspan="6">' + esc(g) + '</td>'; $('resBody').appendChild(tr);
   }
+
+  /* "Có gì ở giữa không?": so những gì Cloudflare thấy (trace) với những gì trình duyệt thật đang làm. Chỉ dùng tín hiệu đã kiểm
+     là KHÔNG báo sai khi kết nối thẳng (Chrome 153: uag khớp, kex=X25519MLKEM768). */
+  function mitmSignals(sums, env) {
+    var sig = [], trs = sums.filter(function (s) { return s.tr && s.id !== 'v4' && s.id !== 'v6'; });
+    var ua = navigator.userAgent, cm = chromeMajor();
+    trs.forEach(function (s) {
+      var t = s.tr;
+      if (t.uag && t.uag !== ua && sig.indexOf('ua') < 0) sig.push('ua');
+      if (t.gateway && t.gateway !== 'off' && sig.indexOf('gateway') < 0) sig.push('gateway');
+      if (t.rbi && t.rbi !== 'off' && sig.indexOf('rbi') < 0) sig.push('rbi');
+      if (t.warp && t.warp !== 'off' && sig.indexOf('warp') < 0) sig.push('warp');
+      if (cm >= 131 && t.kex && !/MLKEM/i.test(t.kex) && sig.indexOf('kex') < 0) sig.push('kex');
+      if (t.tls && t.tls !== 'TLSv1.3' && sig.indexOf('tls') < 0) sig.push('tls');
+    });
+    var l4 = state.l4; if (l4 && l4.brProto && l4.proto) { var q = /QUIC/i.test(l4.proto), h3 = l4.brProto === 'http/3'; if (q !== h3 && (l4.brProto === 'http/3' || l4.brProto === 'http/2' || l4.brProto === 'http/1.1')) sig.push('proto'); }
+    var ips = {}; trs.forEach(function (s) { if (s.tr && s.tr.ip) { var f = fam(s.tr.ip); ips[f] = ips[f] || {}; ips[f][s.tr.ip] = 1; } });
+    Object.keys(ips).forEach(function (f) { if (Object.keys(ips[f]).length > 1) sig.push('ipdiff'); });
+    return sig;
+  }
+  var SIG_TXT = { ua:'the User-Agent seen by the server differs from your browser (a proxy/extension rewrites headers)', gateway:'Cloudflare Gateway (corporate filtering) is active on this connection', rbi:'remote browser isolation is active', warp:'Cloudflare WARP/VPN is active',
+    kex:'this Chrome should use post-quantum TLS but the server saw classic TLS (a TLS-inspection proxy/antivirus may be re-encrypting your traffic)', tls:'the server saw an older TLS version than expected',
+    proto:'the browser and the server disagree about the connection type (HTTP/2 vs HTTP/3): something sits in the middle', ipdiff:'different public IP addresses were seen at different Navi+ servers (shared/rotating NAT or proxy)' };
+
+  /* Chỉ số sâu (dòng "Key readings"): dùng cho màn hình + báo cáo. */
+  function deepLines(sums, env) {
+    var by = {}; sums.forEach(function (s) { by[s.id] = s; }); var L = [];
+    var l4 = state.l4;
+    if (l4) L.push('Path to Cloudflare: RTT ' + ms1(l4.rtt) + ' (best ' + ms1(l4.min_rtt) + ', jitter ' + ms1(l4.rtt_var) + ') · ' + (l4.proto || '?') + ' · lost ' + l4.lost + ' / retransmitted ' + l4.retrans + ' of ' + l4.sent + ' packets sent · cwnd ' + l4.cwnd);
+    if (by.app && by.app.ip) L.push('cdn-naviplus.com is reached over ' + fam(by.app.ip) + ' (' + by.app.ip + ') via Cloudflare ' + (by.app.colo || '?') + (by.app.loc ? ' · country ' + by.app.loc : ''));
+    if (by.v4 && by.v6) L.push('IPv4: ' + by.v4.okN + '/' + by.v4.n + (by.v4.med != null ? ' median ' + by.v4.med + ' ms, worst ' + by.v4.max + ' ms' : '') + '  ·  IPv6: ' + (by.v6.okN ? by.v6.okN + '/' + by.v6.n + ' median ' + by.v6.med + ' ms, worst ' + by.v6.max + ' ms' : 'not available on this network'));
+    if (by.burst && by.burst.protoSeq) L.push('Connection type over 20 requests to cdn-naviplus.com: ' + by.burst.protoSeq + (by.burst.protoSeq.indexOf('3') < 0 ? ' (never switched to HTTP/3 — QUIC unavailable or previously marked broken by this browser)' : ''));
+    ['app', 'dash', 'r2', 'tools'].forEach(function (id) { var s = by[id]; if (s && s.cold != null && s.warmMed != null) L.push(s.host + ': first request ' + s.cold + ' ms, later ' + s.warmMed + ' ms → connection setup (DNS + TCP + TLS) ≈ ' + Math.max(0, s.cold - s.warmMed) + ' ms'); });
+    if (by.speed && by.speed.deep) L.push(by.speed.deep);
+    if (by.ladder && by.ladder.deep) L.push(by.ladder.deep);
+    if (by.par && by.par.med != null && by.par.okN) L.push('8 simultaneous requests: median ' + by.par.med + ' ms, worst ' + by.par.max + ' ms');
+    if (by.clock && by.clock.skewSec != null) L.push('Clock: ' + (by.clock.skewSec >= 0 ? '+' : '') + by.clock.skewSec + ' s versus Cloudflare');
+    if (by.store && by.store.deep) L.push(by.store.deep);
+    if (by.mitm) L.push('Middlebox check: ' + (by.mitm.sig && by.mitm.sig.length ? by.mitm.sig.map(function (k) { return SIG_TXT[k]; }).join('; ') : 'nothing unusual — traffic looks direct'));
+    L.push('Browser: ' + (env.full || env.brands || '?') + ' · ' + env.platform + (env.osv ? ' ' + env.osv : '') + ' · ' + connStr(env));
+    return L;
+  }
+
   /* Kết luận gợi ý bằng lời cho khách — chỉ là gợi ý, không phải chẩn đoán. */
   function verdict(sums, env) {
     var by = {}; sums.forEach(function (s) { by[s.id] = s; });
-    var out = [], real = sums.filter(function (s) { return !s.opt && !s.info; });
-    var allOk = real.every(function (s) { return s.okN === s.n; });
+    var out = [], real = sums.filter(function (s) { return !s.opt && !s.info && !s.level; });
+    var allOk = real.every(function (s) { return s.okN === s.n; }) && !sums.some(function (s) { return s.level === 'bad'; });
     var cf = sums.filter(function (s) { return s.cf && s.kind === 'trace' && s.g === 'Navi+ servers'; }), cfFail = cf.filter(function (s) { return s.okN === 0; });
-    var bunnyOk = by.bunny && by.bunny.okN > 0;
-    if (allOk) out.push({ good:true, t:'Everything worked right now. If the problem comes and goes, use "Watch for problems" (step 2) and leave it running until the error appears.' });
+    var bunnyOk = by.bunny && by.bunny.okN > 0, l4 = state.l4;
+    if (allOk && !sums.some(function (s) { return s.level === 'warn'; })) out.push({ good:true, t:'Everything worked right now. If the problem comes and goes, use "Watch for problems" (step 2) and leave it running until the error appears.' });
     if (cf.length && cfFail.length === cf.length && bunnyOk) out.push({ t:'Every Cloudflare-hosted Navi+ server failed while Bunny (not Cloudflare) worked → this network/device is blocking or breaking connections to Cloudflare.' });
     else if (cfFail.length && cfFail.length < cf.length) out.push({ t:'Only some Navi+ servers failed (' + cfFail.map(function (s) { return s.host; }).join(', ') + ') while others worked → the problem is specific to those addresses on this network.' });
     if (real.length && real.every(function (s) { return s.okN === 0; })) out.push({ t:'Nothing at all could be reached → no working internet connection at the moment.' });
-    ['ab', 'shadm', 'jq'].forEach(function (id) { var s = by[id]; if (s && s.okN < s.n) out.push({ t:'Could not fully reach ' + s.host + ' (' + s.label + ') → the Navi+ app needs it to start; something here is blocking or slowing it.' }); });
+    ['ab', 'shadm', 'jq'].forEach(function (id) { var s = by[id]; if (s && !s.skipped && s.okN < s.n) out.push({ t:'Could not fully reach ' + s.host + ' (' + s.label + ') → the Navi+ app needs it to start; something here is blocking or slowing it.' }); });
     if (by.v4 && by.v4.okN > 0 && cf.length && cfFail.length) out.push({ t:'Cloudflare is reachable by IP address but some names failed → likely a DNS problem (your DNS server, VPN or content filter).' });
     if (by.v4 && by.v4.okN === 0 && by.tools && by.tools.okN > 0) out.push({ t:'Cloudflare could not be reached by raw IP while names work → your network may filter direct-IP HTTPS (normal on some corporate/school networks).' });
+    var appV6 = by.app && by.app.ip && by.app.ip.indexOf(':') >= 0;
+    if (by.v6 && by.v6.okN > 0 && by.v6.okN < by.v6.n && by.v4 && by.v4.okN === by.v4.n) out.push({ t:'IPv6 is unreliable on your network (' + (by.v6.n - by.v6.okN) + ' of ' + by.v6.n + ' requests failed) while IPv4 is perfect' + (appV6 ? ', and your browser uses IPv6 to reach Navi+ → this is a very likely cause of on-and-off errors. Try disabling IPv6 on your router/device, or another network.' : '.') });
+    if (by.v6 && by.v6.okN === 0 && appV6) out.push({ t:'Your browser reaches Navi+ over IPv6 but the raw IPv6 test failed → IPv6 routing may be broken at times on your network.' });
     if (by.clock && by.clock.bad) out.push({ t:'Your device clock is off by about ' + by.clock.skewMin + ' minute(s). A wrong clock breaks secure (HTTPS) connections — please set date & time to automatic.' });
     if (by.burst && by.app && by.app.okN > 0 && by.burst.okN < by.burst.n) out.push({ t:'Some of 20 quick requests failed (' + (by.burst.n - by.burst.okN) + ') → the connection drops packets or requests; typical for unstable Wi-Fi, mobile/satellite links or a flaky VPN.' });
     if (by.par && by.app && by.app.okN > 0 && by.par.okN < by.par.n) out.push({ t:'Some parallel requests failed → a proxy, firewall or antivirus may be limiting simultaneous connections.' });
+    if (l4 && (l4.lost > 0 || l4.retrans > 0)) out.push({ t:'Cloudflare saw lost/retransmitted packets on your connection (lost ' + l4.lost + ', retransmitted ' + l4.retrans + ') → the path between you and the internet is dropping data (Wi-Fi interference, weak mobile/satellite signal, congested router).' });
+    if (l4 && l4.min_rtt > 250000) out.push({ t:'The network delay to the nearest Cloudflare server is high (' + ms1(l4.min_rtt) + ') → typical of satellite, VPN or a very distant/congested route.' });
+    if (l4 && l4.rtt_var > 80000) out.push({ t:'Your connection delay is very uneven (jitter ' + ms1(l4.rtt_var) + ') → unstable link.' });
+    if (by.speed && by.speed.bloat > 300) out.push({ t:'Delay grows by ' + by.speed.bloat + ' ms when your connection is busy (bufferbloat) → uploads/downloads by other devices or apps can make Navi+ requests time out.' });
+    if (by.ladder && by.ladder.stallAt) out.push({ t:'Data blocks larger than about ' + by.ladder.stallAt + ' bytes do not get through reliably → a packet-size (MTU) problem: common with some VPNs, PPPoE/DSL, mobile carriers or firewalls that block fragmented/QUIC packets.' });
     sums.forEach(function (s) { if (s.kind === 'dl' && Object.keys(s.errs).some(function (k) { return k.indexOf('badbody') === 0; })) out.push({ t:'The 490 KB download arrived incomplete or altered (' + s.host + ') → something between you and the server (proxy, VPN, antivirus, router) may be changing responses.' }); });
+    sums.forEach(function (s) { if (s.kind === 'dl' && s.maxGap > 2000 && s.okN) out.push({ t:'The download from ' + s.host + ' froze for ' + Math.round(s.maxGap / 100) / 10 + ' s in the middle → unstable connection (weak signal, satellite/mobile handover, or packet loss).' }); });
+    if (by.mitm && by.mitm.sig && by.mitm.sig.length) by.mitm.sig.forEach(function (k) { if (k !== 'warp') out.push({ t:'Something may be in the middle of your connection: ' + SIG_TXT[k] + '.' }); });
+    if (by.store && by.store.bad) out.push({ t:'Your browser blocks cookies or site storage on this page → the Navi+ app (which runs in a frame inside Shopify) may not be able to keep you signed in. Allow cookies/site data for Shopify and naviplus.' });
     var docOk = ['doc1', 'doc2'].some(function (id) { return by[id] && by[id].okN === by[id].n; });
     ['if1', 'if2'].forEach(function (id) { var s = by[id], hostUp = by[id === 'if1' ? 'app' : 'dash']; if (s && !s.skipped && s.okN < s.n && hostUp && hostUp.okN > 0) out.push({ t:'A full web page failed to load inside a frame from ' + s.host + (docOk ? ' even though plain downloads work' : '') + ' → security software, a proxy or a browser extension may be interfering with page loads.' }); });
-    sums.forEach(function (s) { if (!s.opt && !s.info && s.okN && s.med > 1500 && s.kind !== 'dl') out.push({ t:s.host + ' was slow (median ' + s.med + ' ms).' }); });
-    if (by.app && by.app.warp && by.app.warp !== 'off') out.push({ t:'Cloudflare WARP/VPN detected (' + by.app.warp + ').' });
+    sums.forEach(function (s) { if (s.fastFails && s.okN < s.n && !s.opt && s.id !== 'v4' && s.id !== 'v6') out.push({ t:'Requests to ' + s.host + ' failed instantly → this is almost always something on your own device (browser extension, antivirus/firewall, hosts file or DNS filter) blocking it, not the internet.' }); });
+    sums.forEach(function (s) { if (!s.opt && !s.info && !s.level && s.okN && s.med > 1500 && s.kind !== 'dl') out.push({ t:s.host + ' was slow (median ' + s.med + ' ms).' }); });
+    ['app', 'dash', 'r2', 'tools'].forEach(function (id) { var s = by[id]; if (s && s.cold != null && s.warmMed != null && s.cold - s.warmMed > 1200) out.push({ t:'Setting up a connection to ' + s.host + ' is very slow (' + (s.cold - s.warmMed) + ' ms extra) → slow DNS lookup or a slow/lossy first hop.' }); });
     if (env && env.blocker) out.push({ t:'A content/ad blocker seems to be active in this browser. Try the test again in a private window with extensions disabled.' });
+    if (chromeMajor() && chromeMajor() < 120) out.push({ t:'Your browser (version ' + chromeMajor() + ') is quite old. Please update it: old versions have known problems with modern HTTPS/HTTP3.' });
     return out;
   }
+
   async function runTest() {
-    var btn = $('runBtn'); btn.disabled = true; $('hints').innerHTML = ''; $('resBody').innerHTML = ''; $('resTable').style.display = '';
+    var btn = $('runBtn'), lite = $('lite').checked; btn.disabled = true; $('hints').innerHTML = ''; $('deep').innerHTML = ''; $('resBody').innerHTML = ''; $('resTable').style.display = '';
     $('runState').textContent = 'Checking your browser…';
-    state.env = await collectEnv();
+    state.env = await collectEnv(); state.l4 = null;
     var t0 = Date.now(), sums = [];
     for (var i = 0; i < TESTS.length; i++) {
       var ep = TESTS[i], samples = [], sum;
       ensureSection(ep.g);
-      $('runState').textContent = 'Testing ' + ep.host + ' (' + (i + 1) + '/' + TESTS.length + ')…';
-      if (ep.kind === 'burst') {
-        var app = TESTS.filter(function (t) { return t.id === 'app'; })[0];
+      $('runState').textContent = 'Testing ' + ep.host + ' — ' + ep.label.slice(0, 40) + ' (' + (i + 1) + '/' + TESTS.length + ')…';
+      if (ep.heavy && lite) { sum = summarise(ep, [], { n:1, okN:0, skipped:true, info:'skipped (light mode)' }); }
+      else if (ep.kind === 'burst') {
+        var app = T('app');
         for (var b = 0; b < 20; b++) { samples.push(await probe(app, 6000)); await sleep(100); }
         var okMs = samples.filter(function (s) { return s.ok; }).map(function (s) { return s.ms; });
-        sum = summarise(ep, samples, { note:okMs.length ? 'slowest ' + Math.max.apply(null, okMs) + ' ms, typical ' + median(okMs) + ' ms' : '' });
+        sum = summarise(ep, samples, { note:okMs.length ? 'slowest ' + Math.max.apply(null, okMs) + ' ms, typical ' + median(okMs) + ' ms, 95th ' + pct(okMs, 0.95) + ' ms' : '' });
       } else if (ep.kind === 'parallel') {
-        var app2 = TESTS.filter(function (t) { return t.id === 'app'; })[0], jobs = [];
+        var app2 = T('app'), jobs = [];
         for (var p = 0; p < 8; p++) jobs.push(probe(app2, 8000));
         samples = await Promise.all(jobs); sum = summarise(ep, samples);
       } else if (ep.kind === 'clock') {
         var withTs = sums.map(function (s) { return s.ts; }).filter(Boolean)[0], skew = withTs ? Math.round(Date.now() / 1000 - parseFloat(withTs)) : null;
         if (skew == null) sum = summarise(ep, [], { n:1, okN:0, info:'unknown', note:'no server time available' });
-        else { var bad = Math.abs(skew) > 120; sum = summarise(ep, [], { n:1, okN:bad ? 0 : 1, bad:bad, skewMin:Math.round(skew / 60), note:'off by ' + (skew >= 0 ? '+' : '') + skew + ' s vs Cloudflare' }); sum.errs = bad ? { 'clock wrong': 1 } : {}; }
+        else { var bad = Math.abs(skew) > 120; sum = summarise(ep, [], { n:1, okN:bad ? 0 : 1, bad:bad, skewSec:skew, skewMin:Math.round(skew / 60), note:'off by ' + (skew >= 0 ? '+' : '') + skew + ' s vs Cloudflare' }); sum.errs = bad ? { 'clock wrong': 1 } : {}; }
+      } else if (ep.kind === 'l4') {
+        for (var k = 0; k < 8; k++) { samples.push(await probe(PING, 6000)); await sleep(150); }
+        var oksL = samples.filter(function (s) { return s.ok && s.l4; }), last = oksL[oksL.length - 1];
+        if (last) { var lo = last.l4; lo.brProto = last.brProto; state.l4 = lo; }
+        var lo2 = state.l4;
+        sum = summarise(ep, samples, lo2 ? { level:(lo2.lost > 0 || lo2.retrans > 0 || lo2.rtt_var > 80000) ? 'warn' : 'ok', info:(lo2.lost > 0 || lo2.retrans > 0) ? 'loss seen' : 'clean', note:'RTT ' + ms1(lo2.rtt) + ', jitter ' + ms1(lo2.rtt_var) + ', lost ' + lo2.lost + ', retrans ' + lo2.retrans + ', ' + (lo2.proto || '?'), proto:lo2.proto } : { info:'unavailable', note:'Cloudflare speed service not reachable or blocked' });
+      } else if (ep.kind === 'ladder') {
+        var sizes = [1, 1200, 1500, 3000, 9000, 32000, 128000, 512000], res = [], stall = null, worst = 0;
+        for (var z = 0; z < sizes.length; z++) { var g = await streamGet(SPEED + '/__down?bytes=' + sizes[z] + '&cb=' + Date.now(), 8000, { expect:sizes[z] }); res.push(g); samples.push({ ok:g.ok, ms:g.ms, ttfb:g.ttfb, kind:g.kind, detail:g.detail, proto:'' }); if (!g.ok && stall == null) stall = sizes[z]; if (g.ok && g.ms > worst) worst = g.ms; }
+        var okR = res.filter(function (x) { return x.ok; });
+        sum = summarise(ep, samples, { stallAt:stall, deep:'Packet-size ladder (1 B → 512 KB): ' + (stall ? 'FAILED at ' + stall + ' bytes' : 'all ' + sizes.length + ' sizes arrived, slowest ' + worst + ' ms'), note:okR.length ? 'slowest ' + worst + ' ms' : '' });
+      } else if (ep.kind === 'speed') {
+        var idle = state.l4 ? Math.round(state.l4.min_rtt / 1000) : null, loaded = [];
+        var dlp = streamGet(SPEED + '/__down?bytes=3000000&cb=' + Date.now(), 25000, { expect:3000000 });
+        var pl = (async function () { for (var w = 0; w < 6; w++) { await sleep(300); var pr = await probe(PING, 5000); if (pr.ok) loaded.push(pr.ms); } })();
+        var dd = await dlp; await pl;
+        var up = await streamGet(SPEED + '/__up?cb=' + Date.now(), 20000, { method:'POST', body:new Uint8Array(400000), headers:{ 'Content-Type':'application/octet-stream' } });
+        var lm = loaded.length ? median(loaded) : null, bloat = (lm != null && idle != null) ? Math.max(0, lm - idle) : null;
+        var l4d = dd.l4 || up.l4; if (l4d && state.l4) { state.l4.lost = Math.max(state.l4.lost, l4d.lost || 0); state.l4.retrans = Math.max(state.l4.retrans, l4d.retrans || 0); }
+        var okSp = dd.ok && up.ok;
+        sum = summarise(ep, [{ ok:okSp, ms:dd.ms, ttfb:dd.ttfb, kind:dd.kind || up.kind, detail:dd.detail || up.detail, proto:'' }], {
+          bloat:bloat, level:okSp ? ((bloat != null && bloat > 300) || dd.maxGap > 2000 ? 'warn' : 'ok') : 'bad', info:okSp ? (dd.mbps + ' ↓ / ' + up.mbps + ' ↑ Mbit/s') : 'failed',
+          note:(dd.ok ? 'download ' + dd.mbps + ' Mbit/s (first byte ' + dd.ttfb + ' ms, longest pause ' + dd.maxGap + ' ms)' : 'download ' + dd.detail) + '; ' + (up.ok ? 'upload ' + up.mbps + ' Mbit/s' : 'upload ' + up.detail) +
+            (lm != null ? '; delay under load ' + lm + ' ms vs idle ' + (idle != null ? idle : '?') + ' ms' : ''),
+          deep:'Speed: ' + (dd.ok ? dd.mbps + ' Mbit/s down' : 'download FAILED (' + dd.detail + ')') + ' · ' + (up.ok ? up.mbps + ' Mbit/s up' : 'upload FAILED (' + up.detail + ')') + (dd.ok ? ' · longest pause during download ' + dd.maxGap + ' ms' : '') + (lm != null ? ' · delay idle ' + (idle != null ? idle : '?') + ' ms → under load ' + lm + ' ms' + (bloat != null && bloat > 100 ? ' (+' + bloat + ' ms bufferbloat)' : '') : '') });
+        sum.okN = okSp ? 1 : 0; sum.n = 1; sum.med = null;
+      } else if (ep.kind === 'mitm') {
+        var sig = mitmSignals(sums, state.env);
+        sum = summarise(ep, [], { n:1, okN:sig.length ? 0 : 1, sig:sig, level:sig.length ? (sig.every(function (k) { return k === 'warp'; }) ? 'warn' : 'warn') : 'ok', info:sig.length ? sig.length + ' sign' + (sig.length > 1 ? 's' : '') + ' found' : 'looks direct', note:sig.map(function (k) { return SIG_TXT[k]; }).join('; ') });
+      } else if (ep.kind === 'store') {
+        var st = await storageTest(), okSt = st.cookie && st.ls, quota = state.env.quotaMB;
+        sum = summarise(ep, [], { n:1, okN:okSt ? 1 : 0, bad:!okSt, level:okSt ? 'ok' : 'warn', info:okSt ? 'allowed' : 'blocked', note:'cookies ' + (st.cookie ? 'ok' : 'BLOCKED') + ', localStorage ' + (st.ls ? 'ok' : 'BLOCKED') + ', sessionStorage ' + (st.ss ? 'ok' : 'BLOCKED') + ', IndexedDB ' + (st.idb ? 'ok' : 'BLOCKED') + (quota != null ? ', quota ' + quota + ' MB' + (quota < 130 ? ' (very low → private/incognito window?)' : '') : ''),
+          deep:'Browser storage: cookies ' + (st.cookie ? 'ok' : 'BLOCKED') + ' · localStorage ' + (st.ls ? 'ok' : 'BLOCKED') + ' · IndexedDB ' + (st.idb ? 'ok' : 'BLOCKED') + (quota != null ? ' · quota ' + quota + ' MB' : '') });
+        sum.errs = okSt ? {} : { 'storage blocked':1 };
       } else if (ep.kind === 'iframe') {
         if (!PROBE_ON) { sum = summarise(ep, [], { n:1, okN:0, skipped:true, info:'not yet available', note:'page-load probe is being rolled out' }); }
         else { for (var q = 0; q < (ep.n || 2); q++) { samples.push(await probeIframe(ep, 12000)); await sleep(200); } sum = summarise(ep, samples); }
       } else {
         var N = ep.n || 5;
-        for (var k = 0; k < N; k++) { samples.push(await probe(ep, ep.kind === 'dl' ? 25000 : 8000)); if (ep.kind !== 'dl') { renderRow(summarise(ep, samples)); if (k < N - 1) await sleep(250); } }
+        for (var m = 0; m < N; m++) {
+          if (ep.kind === 'dl') { var g2 = await streamGet(ep.url, 25000, { minBytes:100000 }); samples.push({ ok:g2.ok, ms:g2.ms, ttfb:g2.ttfb, kind:g2.kind, detail:g2.detail, proto:'', bytes:g2.bytes, mbps:g2.mbps, maxGap:g2.maxGap }); }
+          else { samples.push(await probe(ep, 8000)); renderRow(summarise(ep, samples)); if (m < N - 1) await sleep(200); }
+        }
         sum = summarise(ep, samples);
+        if (ep.kind === 'dl') { var s0 = samples[0]; sum.mbps = s0.mbps; sum.maxGap = s0.maxGap; sum.note = s0.ok ? s0.mbps + ' Mbit/s, first byte ' + s0.ttfb + ' ms, longest pause ' + s0.maxGap + ' ms' : ''; }
       }
       sums.push(sum); renderRow(sum);
     }
-    var hints = verdict(sums, state.env);
+    var hints = verdict(sums, state.env), deep = deepLines(sums, state.env);
     var ipS = sums.filter(function (s) { return s.ip; })[0];
     if (ipS) state.ip = { ip:ipS.ip, loc:ipS.loc, tls:ipS.tls, warp:ipS.warp };
-    state.run = { at:t0, secs:Math.round((Date.now() - t0) / 1000), sums:sums, hints:hints.map(function (h) { return h.t; }), good:hints.some(function (h) { return h.good; }) };
+    state.run = { at:t0, secs:Math.round((Date.now() - t0) / 1000), lite:lite, sums:sums, hints:hints.map(function (h) { return h.t; }), good:hints.some(function (h) { return h.good; }), deep:deep, l4:state.l4 };
     $('hints').innerHTML = hints.map(function (h) { return '<div class="hint' + (h.good ? ' good' : '') + '">' + esc(h.t) + '</div>'; }).join('');
+    $('deep').innerHTML = '<h3>Key readings</h3><ul>' + deep.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul>';
     $('envLine').textContent = 'Your connection: ' + (ipS ? ipS.ip + ' (' + (ipS.loc || '?') + ')' : 'IP unknown') + ' · ' + state.env.platform + ' · ' + connStr(state.env);
     $('runState').textContent = 'Done in ' + state.run.secs + 's.';
     btn.disabled = false; btn.textContent = 'Run test again';
@@ -440,8 +613,8 @@ title: "Navi+ Connection Check"
 
   /* ───────────── Bước 2: theo dõi nền ───────────── */
   function newMon() {
-    var st = {}; MON.forEach(function (e) { st[e.id] = { n:0, fail:0, last:null, lastOk:true, max:0, sum:0 }; });
-    return { on:false, startedAt:0, checks:0, stats:st, events:[], stoppedAt:0, timer:null, wake:null };
+    var st = {}; MON.forEach(function (e) { st[e.id] = { n:0, fail:0, last:null, lastOk:true, max:0, sum:0, ms:[] }; });
+    return { on:false, startedAt:0, checks:0, stats:st, events:[], stoppedAt:0, timer:null, wake:null, l4prev:null, rounds:{ bad:0, all:0, host:0, part:0 } };
   }
   function addEvent(t, kind, msg) {
     var m = state.mon; if (!m) return;
@@ -453,28 +626,39 @@ title: "Navi+ Connection Check"
     if (Date.now() - m.startedAt > MON_MAX_MS) { stopMon('Stopped automatically after 3 hours.'); return; }
     m.checks++;
     try { performance.clearResourceTimings(); } catch (e) {}
+    var res = {};
     for (var i = 0; i < MON.length; i++) {
       if (!m.on) return;
-      var ep = MON[i], r = await probe(ep, 8000), s = m.stats[ep.id], now = Date.now();
-      s.n++; s.last = r.ms; s.sum += r.ms; if (r.ms > s.max) s.max = r.ms;
+      var ep = MON[i], r = await probe(ep, 8000), s = m.stats[ep.id], now = Date.now(), retry = '';
+      if (!r.ok && r.kind !== 'http') {                                   // thử lại 1 lần sau 0,4 s: lỗi thoáng qua hay lỗi kéo dài?
+        await sleep(400); var r2 = await probe(ep, 8000); retry = r2.ok ? ' | retry after 0.4s: OK (transient)' : ' | retry after 0.4s: failed again (persistent)';
+      }
+      res[ep.id] = r.ok;
+      s.n++; s.last = r.ms; s.sum += r.ms; if (r.ms > s.max) s.max = r.ms; if (r.ok) { s.ms.push(r.ms); if (s.ms.length > 90) s.ms.shift(); }
       if (!r.ok) {
         s.fail++;
-        addEvent(now, 'FAIL', ep.host + ' ' + r.kind + (r.detail ? ' - ' + r.detail : '') + ' (' + r.ms + 'ms' + (r.proto ? ', ' + r.proto : '') + ')');
+        addEvent(now, 'FAIL', ep.host + ' ' + r.kind + (r.detail ? ' - ' + r.detail : '') + ' (' + r.ms + 'ms' + (r.proto ? ', ' + r.proto : '') + ')' + retry + ' | online=' + navigator.onLine);
       } else if (r.ms > 3000) addEvent(now, 'SLOW', ep.host + ' answered in ' + r.ms + 'ms' + (r.proto ? ' (' + r.proto + ')' : ''));
       if (s.lastOk !== r.ok) { if (r.ok && s.n > 1) addEvent(now, 'OK', ep.host + ' recovered (' + r.ms + 'ms)'); s.lastOk = r.ok; }
       if (r.ok && r.proto && s.proto && s.proto !== r.proto) addEvent(now, 'PROTO', ep.host + ' switched ' + s.proto + ' -> ' + r.proto);
       if (r.ok && r.proto) s.proto = r.proto;
       if (r.ok && r.colo && s.colo && s.colo !== r.colo) addEvent(now, 'COLO', ep.host + ' edge changed ' + s.colo + ' -> ' + r.colo);
       if (r.ok && r.colo) s.colo = r.colo;
-      if (r.ok && r.ip && s.ip && s.ip !== r.ip) addEvent(now, 'IP', 'your public IP changed ' + s.ip + ' -> ' + r.ip);
+      if (r.ok && r.ip && s.ip && s.ip !== r.ip) addEvent(now, 'IP', ep.host + ': your public IP changed ' + s.ip + ' -> ' + r.ip);
       if (r.ok && r.ip) s.ip = r.ip;
+      if (ep.id === 'spd' && r.ok && r.l4) {                              // đếm gói mất/truyền lại do CLOUDFLARE đo — tăng nghĩa là đường truyền đang rớt gói
+        var pv = m.l4prev;
+        if (pv && pv.cid === r.l4.cid && (r.l4.lost > pv.lost || r.l4.retrans > pv.retrans)) addEvent(now, 'L4', 'packet loss on path to Cloudflare: lost +' + (r.l4.lost - pv.lost) + ', retransmitted +' + (r.l4.retrans - pv.retrans) + ', RTT ' + ms1(r.l4.rtt));
+        if (r.l4.rtt > 500000) addEvent(now, 'L4', 'very high path delay: RTT ' + ms1(r.l4.rtt));
+        m.l4prev = { cid:r.l4.cid, lost:r.l4.lost, retrans:r.l4.retrans };
+      }
     }
-    if (PROBE_ON && m.checks % 3 === 1 && m.on) {                        // cứ 3 vòng (~1 phút) thử thêm 1 trang HTML trong khung
-      var pe = TESTS.filter(function (t) { return t.id === 'if1'; })[0], pr = await probeIframe(pe, 12000);
-      m.stats.frame = m.stats.frame || { n:0, fail:0, last:null, lastOk:true, max:0, sum:0 };
-      var fs = m.stats.frame; fs.n++; fs.last = pr.ms; fs.sum += pr.ms; if (pr.ms > fs.max) fs.max = pr.ms;
-      if (!pr.ok) { fs.fail++; addEvent(Date.now(), 'FAIL', 'page-in-frame cdn-naviplus.com ' + pr.kind + ' - ' + pr.detail); }
-      if (fs.lastOk !== pr.ok) { if (pr.ok && fs.n > 1) addEvent(Date.now(), 'OK', 'page-in-frame recovered'); fs.lastOk = pr.ok; }
+    var failed = MON.filter(function (e) { return !res[e.id]; }), ctl = MON.filter(function (e) { return e.ctrl; }), ctlOk = ctl.filter(function (e) { return res[e.id]; }).length;
+    if (failed.length) {                                                   // PHÂN LOẠI vòng này: cả internet rớt hay chỉ riêng Navi+?
+      var cls = (failed.length === MON.length || ctlOk === 0) ? 'CONNECTION LOST — even the control checks (Cloudflare by IP, Shopify, Cloudflare speed) failed: your internet connection itself dropped' :
+        ctlOk === ctl.length ? 'NAVI+-SPECIFIC — general internet, Shopify and Cloudflare-by-IP all OK; only ' + failed.map(function (e) { return e.host; }).join(', ') + ' failed' :
+        'PARTIAL — ' + failed.map(function (e) { return e.host; }).join(', ') + ' failed; controls OK ' + ctlOk + '/' + ctl.length;
+      addEvent(Date.now(), 'ROUND', cls); m.rounds.bad++; if (failed.length === MON.length || ctlOk === 0) m.rounds.all++; else if (ctlOk === ctl.length) m.rounds.host++; else m.rounds.part++;
     }
     renderTiles(); persist(); refreshSend();
     if (m.on) m.timer = setTimeout(monTick, MON_INTERVAL);
@@ -484,13 +668,12 @@ title: "Navi+ Connection Check"
     var m = state.mon; if (!m) return; var box = $('tiles'); box.style.display = '';
     box.innerHTML = monList().map(function (ep) {
       var s = m.stats[ep.id]; if (!s) return '';
-      var up = s.n ? Math.round((s.n - s.fail) / s.n * 1000) / 10 : 100;
-      return '<div class="tile"><b><span class="dot ' + (s.lastOk ? 'ok' : 'bad') + '"></span>' + esc(ep.host) + '</b>' +
-        (s.n ? (s.n - s.fail) + '/' + s.n + ' OK (' + up + '%)<br>last ' + (s.last != null ? s.last + ' ms' : '–') + ', slowest ' + s.max + ' ms' : 'waiting…') + '</div>';
+      var up = s.n ? Math.round((s.n - s.fail) / s.n * 1000) / 10 : 100, p95 = s.ms && s.ms.length ? pct(s.ms, 0.95) : null;
+      return '<div class="tile"><b><span class="dot ' + (s.lastOk ? 'ok' : 'bad') + '"></span>' + esc(ep.host) + (ep.ctrl ? ' <span class="muted">(control)</span>' : '') + '</b>' +
+        (s.n ? (s.n - s.fail) + '/' + s.n + ' OK (' + up + '%)<br>last ' + (s.last != null ? s.last + ' ms' : '–') + (p95 != null ? ', 95th ' + p95 + ' ms' : '') + ', slowest ' + s.max + ' ms' : 'waiting…') + '</div>';
     }).join('');
     var mins = Math.round(((m.on ? Date.now() : m.stoppedAt) - m.startedAt) / 60000);
-    var fails = 0; Object.keys(m.stats).forEach(function (k) { fails += m.stats[k].fail; });
-    $('monState').textContent = (m.on ? 'Watching… ' : 'Stopped. ') + mins + ' min · ' + m.checks + ' rounds · ' + fails + ' failed checks';
+    $('monState').textContent = (m.on ? 'Watching… ' : 'Stopped. ') + mins + ' min · ' + m.checks + ' rounds · ' + m.rounds.bad + ' rounds with a failure (' + m.rounds.host + ' Navi+-specific, ' + m.rounds.all + ' whole-internet)';
   }
   async function startMon() {
     state.mon = newMon(); var m = state.mon; m.on = true; m.startedAt = Date.now();
@@ -511,7 +694,7 @@ title: "Navi+ Connection Check"
   window.addEventListener('online',  function () { addEvent(Date.now(), 'NET', 'browser says: online'); });
   window.addEventListener('offline', function () { addEvent(Date.now(), 'NET', 'browser says: OFFLINE'); });
   document.addEventListener('visibilitychange', function () { if (state.mon && state.mon.on) addEvent(Date.now(), 'TAB', 'tab ' + document.visibilityState); });
-  try { var cn = navigator.connection; if (cn && cn.addEventListener) cn.addEventListener('change', function () { var c = navigator.connection; addEvent(Date.now(), 'NET', 'connection changed: type=' + (c.type || '?') + ' effective=' + (c.effectiveType || '?') + ' rtt=' + c.rtt + 'ms'); }); } catch (e) {}
+  try { var cn = navigator.connection; if (cn && cn.addEventListener) cn.addEventListener('change', function () { var c = navigator.connection; addEvent(Date.now(), 'NET', 'connection changed: type=' + (c.type || '?') + ' effective=' + (c.effectiveType || '?') + ' rtt=' + c.rtt + 'ms downlink=' + c.downlink); }); } catch (e) {}
 
   /* ───────────── Báo cáo ───────────── */
   function buildReport() {
@@ -521,50 +704,61 @@ title: "Navi+ Connection Check"
     L.push('Visitor: ' + ($('uname').value.trim() || '-') + ' <' + ($('email').value.trim() || '-') + '>');
     if ($('errCode').value.trim()) L.push('ERROR CODE SEEN: ' + $('errCode').value.trim());
     if ($('notes').value.trim()) L.push('Notes: ' + $('notes').value.trim().replace(/\s+/g, ' '));
+    if (state.run && state.run.hints.length) { L.push(''); L.push('[Auto-read — hints, not a diagnosis]'); state.run.hints.forEach(function (h) { L.push(' - ' + h); }); }
+    if (state.run && state.run.deep) { L.push(''); L.push('[Key readings]'); state.run.deep.forEach(function (d) { L.push(' * ' + d); }); }
     L.push('');
     if (env) {
       L.push('[Visitor connection]');
       if (state.ip) L.push('IP ' + state.ip.ip + ' country=' + (state.ip.loc || '?') + ' tls=' + (state.ip.tls || '?') + ' warp=' + (state.ip.warp || '?'));
       L.push('UA: ' + env.ua);
-      if (env.brands) L.push('UA-CH: ' + env.brands + ' | platform=' + env.platform + ' mobile=' + env.mobile);
-      L.push('lang=' + env.lang + ' tz=' + env.tz + ' (UTC' + (env.tzOffsetMin >= 0 ? '+' : '') + env.tzOffsetMin / 60 + ') screen=' + env.screen + ' cores=' + env.cores + ' mem=' + (env.memGB || '?') + 'GB');
-      L.push('net: ' + connStr(env) + ' online=' + env.online + ' cookies=' + env.cookies + ' dnt=' + (env.dnt || '-'));
+      if (env.brands) L.push('UA-CH: ' + env.brands + ' | platform=' + env.platform + ' ' + (env.osv || '') + ' mobile=' + env.mobile + (env.full ? ' | full=' + env.full : ''));
+      L.push('lang=' + env.lang + (env.langs ? ' [' + env.langs + ']' : '') + ' tz=' + env.tz + ' (UTC' + (env.tzOffsetMin >= 0 ? '+' : '') + env.tzOffsetMin / 60 + ') screen=' + env.screen + ' touch=' + env.touch + ' cores=' + env.cores + ' mem=' + (env.memGB || '?') + 'GB');
+      L.push('net: ' + connStr(env) + ' online=' + env.online + ' cookies=' + env.cookies + ' dnt=' + (env.dnt || '-') + ' quota=' + (env.quotaMB != null ? env.quotaMB + 'MB' : '?') + ' secure=' + env.secure);
       L.push('blocker=' + (env.blocker == null ? '?' : env.blocker) + ' brave=' + env.brave + ' webdriver=' + env.webdriver + ' sw=' + env.swCtrl + (env.extra ? ' ' + env.extra : ''));
     }
     if (state.run) {
       L.push('');
-      L.push('[Test run ' + utc(state.run.at) + ', ' + state.run.secs + 's]');
+      L.push('[Test run ' + utc(state.run.at) + ', ' + state.run.secs + 's' + (state.run.lite ? ', LIGHT MODE' : '') + ']');
       var lastG = '';
       state.run.sums.forEach(function (s) {
         if (s.g !== lastG) { lastG = s.g; L.push('-- ' + s.g); }
         var e = Object.keys(s.errs).map(function (k) { return k + ' x' + s.errs[k]; }).join('; ');
-        var tag = s.info ? 'INFO' : (s.okN === s.n ? 'OK  ' : s.okN ? 'PART' : (s.opt ? 'n/a ' : 'FAIL'));
-        L.push(tag + ' ' + s.host + (s.kind === 'dl' ? ' [download]' : s.kind === 'iframe' ? ' [frame]' : s.kind === 'burst' ? ' [burst x20]' : s.kind === 'parallel' ? ' [parallel x8]' : s.kind === 'clock' ? ' [clock]' : '') + ' ' + (s.info ? s.info : s.okN + '/' + s.n) +
-          (s.med != null ? ' med=' + s.med + 'ms max=' + s.max + 'ms' : '') + (s.proto ? ' ' + s.proto : '') + (s.colo ? ' colo=' + s.colo : '') +
-          (s.mbps != null ? ' ' + s.mbps + 'Mbps' : '') + (s.note ? ' ' + s.note : '') + (s.okDetail ? ' ' + s.okDetail : '') + (e ? ' | ' + e : ''));
+        var tag = s.skipped ? 'SKIP' : s.level ? (s.level === 'ok' ? 'OK  ' : s.level === 'warn' ? 'WARN' : 'FAIL') : s.info ? 'INFO' : (s.okN === s.n ? 'OK  ' : s.okN ? 'PART' : (s.opt ? 'n/a ' : 'FAIL'));
+        var prot = s.protoSeq && s.protoSeq.indexOf('→') > 0 ? s.protoSeq : s.proto;
+        L.push(tag + ' ' + s.host + (s.kind === 'dl' ? ' [download]' : s.kind === 'iframe' ? ' [frame]' : s.kind === 'burst' ? ' [burst x20]' : s.kind === 'parallel' ? ' [parallel x8]' : s.kind === 'clock' ? ' [clock]' : s.kind === 'l4' ? ' [L4]' : s.kind === 'ladder' ? ' [ladder]' : s.kind === 'speed' ? ' [speed]' : s.kind === 'mitm' ? ' [middlebox]' : s.kind === 'store' ? ' [storage]' : s.id === 'v4' ? ' [IPv4]' : s.id === 'v6' ? ' [IPv6]' : '') + ' ' + (s.info ? s.info : s.okN + '/' + s.n) +
+          (s.med != null ? ' med=' + s.med + 'ms p95=' + s.p95 + 'ms max=' + s.max + 'ms' : '') + (s.ttfbMed ? ' ttfb=' + s.ttfbMed + 'ms' : '') + (prot ? ' ' + prot : '') + (s.colo ? ' colo=' + s.colo : '') +
+          (s.cold != null && s.warmMed != null ? ' cold=' + s.cold + 'ms warm=' + s.warmMed + 'ms' : '') + (s.note ? ' ' + s.note : '') + (s.okDetail ? ' ' + s.okDetail : '') + (e ? ' | ' + e : ''));
+        if (s.tr && s.id !== 'v6' && (s.id === 'app' || s.id === 'dash')) L.push('     edge saw: http=' + s.tr.http + ' tls=' + s.tr.tls + ' kex=' + s.tr.kex + ' sni=' + s.tr.sni + ' gateway=' + s.tr.gateway + ' rbi=' + s.tr.rbi + ' ua_match=' + (s.tr.uag === (env && env.ua)));
       });
       L.push('Protocols seen: ' + state.run.sums.filter(function (s) { return s.proto; }).map(function (s) { return s.host + '=' + s.proto; }).join(', ') + ' (first visit is always HTTP/2; HTTP/3 only after the browser has learned it)');
-      if (state.run.hints.length) { L.push('Auto-read (hints only):'); state.run.hints.forEach(function (h) { L.push(' - ' + h); }); }
     } else L.push('', '[Test run] not run');
     var m = state.mon;
     if (m && m.checks) {
       var end = m.on ? Date.now() : (m.stoppedAt || Date.now());
       L.push('');
-      L.push('[Watching ' + utc(m.startedAt) + ' -> ' + utc(end) + ' UTC, ' + Math.round((end - m.startedAt) / 60000) + ' min, ' + m.checks + ' rounds]');
-      monList().forEach(function (ep) { var s = m.stats[ep.id]; if (s) L.push(ep.host + ': ' + (s.n - s.fail) + '/' + s.n + ' OK, avg ' + (s.n ? Math.round(s.sum / s.n) : 0) + 'ms, slowest ' + s.max + 'ms' + (s.proto ? ', ' + s.proto : '')); });
+      L.push('[Watching ' + utc(m.startedAt) + ' -> ' + utc(end) + ' UTC, ' + Math.round((end - m.startedAt) / 60000) + ' min, ' + m.checks + ' rounds; ' + m.rounds.bad + ' rounds with a failure: ' + m.rounds.host + ' Navi+-specific, ' + m.rounds.part + ' partial, ' + m.rounds.all + ' whole-internet]');
+      monList().forEach(function (ep) { var s = m.stats[ep.id]; if (s) L.push(ep.host + (ep.ctrl ? ' (control)' : '') + ': ' + (s.n - s.fail) + '/' + s.n + ' OK, avg ' + (s.n ? Math.round(s.sum / s.n) : 0) + 'ms' + (s.ms && s.ms.length ? ', p95 ' + pct(s.ms, 0.95) + 'ms' : '') + ', slowest ' + s.max + 'ms' + (s.proto ? ', ' + s.proto : '')); });
       var evs = m.events.filter(function (x) { return x.k !== 'START' && x.k !== 'STOP'; });
       if (evs.length) { L.push('Events (UTC, newest last):'); evs.forEach(function (x) { L.push(hhmmss(x.t) + ' ' + x.k + ' ' + x.m); }); }
       else L.push('No failures or slow answers were recorded while watching.');
     }
     var txt = L.join('\n');
-    /* Vượt trần API (5000): cắt bớt các sự kiện CŨ nhất trước, giữ đầu (thông tin máy + kết quả test) và cuối (sự kiện mới). */
-    if (txt.length > MAX_MSG) {
+    /* Trần tổng: cắt bớt các sự kiện CŨ nhất trước, giữ đầu (kết luận + thông tin máy + kết quả test) và cuối (sự kiện mới). */
+    if (txt.length > MAX_TOTAL) {
       var mk = L.indexOf('Events (UTC, newest last):'), head = mk >= 0 ? L.slice(0, mk + 1) : L, tail = mk >= 0 ? L.slice(mk + 1) : [];
-      if (tail.length) while (tail.length > 3 && (head.concat(['... older events trimmed ...'], tail).join('\n')).length > MAX_MSG) tail.shift();
+      if (tail.length) while (tail.length > 3 && (head.concat(['... older events trimmed ...'], tail).join('\n')).length > MAX_TOTAL) tail.shift();
       txt = tail.length ? head.concat(['... older events trimmed ...'], tail).join('\n') : txt;
-      if (txt.length > MAX_MSG) txt = txt.slice(0, MAX_MSG - 20) + '\n...(truncated)';
+      if (txt.length > MAX_TOTAL) txt = txt.slice(0, MAX_TOTAL - 20) + '\n...(truncated)';
     }
     return txt;
+  }
+  function chunks(text) {                                            // tách theo dòng thành các tin ≤ CHUNK ký tự (API chat giới hạn 5000/tin đầu)
+    var out = [], cur = '';
+    text.split('\n').forEach(function (line) {
+      while (line.length > CHUNK) { if (cur) { out.push(cur); cur = ''; } out.push(line.slice(0, CHUNK)); line = line.slice(CHUNK); }
+      if (cur.length + line.length + 1 > CHUNK) { out.push(cur); cur = line; } else cur = cur ? cur + '\n' + line : line;
+    });
+    if (cur) out.push(cur); return out;
   }
   function refreshSend() {
     var has = !!(state.run || (state.mon && state.mon.checks));
@@ -574,22 +768,31 @@ title: "Navi+ Connection Check"
     $('sendBtn').disabled = !(has && emailOk && $('consent').checked);
     $('mailBtn').href = 'mailto:' + SUPPORT + '?subject=' + encodeURIComponent('Navi+ Connection Check' + (REF ? ' (' + REF + ')' : '')) + '&body=' + encodeURIComponent(has ? buildReport().slice(0, 1800) : '');
   }
+  function wrapHtml(part, i, n) { return (i === 0 ? '<b>Navi+ Connection Check</b>' : '<b>Connection Check — part ' + (i + 1) + '/' + n + '</b>') + '<pre style="white-space:pre-wrap;font:12px/1.45 monospace;margin:6px 0 0">' + esc(part) + '</pre>'; }
   async function send() {
     if ($('hpot').value) return;                               // bẫy bot
     var btn = $('sendBtn'), st = $('sendState'); btn.disabled = true; st.className = 'status'; st.textContent = 'Sending…';
-    var text = buildReport();
-    var html = '<b>Navi+ Connection Check</b><pre style="white-space:pre-wrap;font:12px/1.45 monospace;margin:6px 0 0">' + esc(text) + '</pre>';
+    var parts = chunks(buildReport()), sentN = 0;
     try {
       var r = await fetch(API + '/chat', {
         method:'POST', headers:{ 'Content-Type':'application/json' }, referrerPolicy:'no-referrer',
-        body:JSON.stringify({ email:$('email').value.trim(), workspaceKey:WS_KEY, name:$('uname').value.trim() || undefined, message:html.length > 5000 ? html.slice(0, 4990) : html, store:'connection-check' + (REF ? ' ' + REF : '') })
+        body:JSON.stringify({ email:$('email').value.trim(), workspaceKey:WS_KEY, name:$('uname').value.trim() || undefined, message:wrapHtml(parts[0], 0, parts.length), store:'connection-check' + (REF ? ' ' + REF : '') })
       });
       var j = await r.json().catch(function () { return {}; });
-      if (!r.ok || (j && j.ok === false)) throw new Error((j && j.error && j.error.message) || ('HTTP ' + r.status));
-      st.className = 'status ok-t'; st.textContent = 'Sent. Thank you! Navi+ support will look at it and reply to your email.';
+      if (!r.ok || (j && j.ok === false)) throw new Error((j && (j.message || (typeof j.error === 'string' ? j.error : ''))) || ('HTTP ' + r.status));
+      sentN = 1;
+      var chatId = j && j.data && j.data.chatId;
+      for (var i = 1; i < parts.length; i++) {
+        st.textContent = 'Sending part ' + (i + 1) + ' of ' + parts.length + '…';
+        if (!chatId) throw new Error('chat id missing for the next parts');
+        var r2 = await fetch(API + '/chat/' + encodeURIComponent(chatId) + '/message', { method:'POST', headers:{ 'Content-Type':'application/json' }, referrerPolicy:'no-referrer', body:JSON.stringify({ sender:'customer', type:'html', content:wrapHtml(parts[i], i, parts.length) }) });
+        if (!r2.ok) throw new Error('part ' + (i + 1) + ' failed (HTTP ' + r2.status + ')');
+        sentN++; await sleep(150);
+      }
+      st.className = 'status ok-t'; st.textContent = 'Sent (' + sentN + ' message' + (sentN > 1 ? 's' : '') + '). Thank you! Navi+ support will look at it and reply to your email.';
     } catch (e) {
       st.className = 'status bad-t';
-      st.textContent = 'Could not send (' + (e && e.message ? e.message : 'network error') + '). Please use "Copy report" and paste it into an email to ' + SUPPORT + ', or use "Email it instead".';
+      st.textContent = (sentN ? 'Only ' + sentN + ' of ' + parts.length + ' parts were sent. ' : '') + 'Could not send (' + (e && e.message ? e.message : 'network error') + '). Please use "Copy report" and paste it into an email to ' + SUPPORT + ', or use "Email it instead".';
       $('mailBtn').style.display = '';
     }
     btn.disabled = false; refreshSend();
@@ -607,17 +810,18 @@ title: "Navi+ Connection Check"
 
   /* Giữ kết quả nếu khách lỡ đóng/tải lại tab (localStorage có thể bị chặn → bọc try). */
   function persist() {
-    lsSet({ t:Date.now(), run:state.run, ip:state.ip, env:state.env,
-      mon:state.mon ? { startedAt:state.mon.startedAt, stoppedAt:state.mon.stoppedAt, checks:state.mon.checks, stats:state.mon.stats, events:state.mon.events, on:false } : null,
+    lsSet({ t:Date.now(), run:state.run, ip:state.ip, env:state.env, l4:state.l4,
+      mon:state.mon ? { startedAt:state.mon.startedAt, stoppedAt:state.mon.stoppedAt, checks:state.mon.checks, stats:state.mon.stats, events:state.mon.events, rounds:state.mon.rounds, on:false } : null,
       email:$('email').value, uname:$('uname').value, notes:$('notes').value, err:$('errCode').value });
   }
   function restore() {
     var s = lsGet(); if (!s || Date.now() - s.t > 6 * 3600 * 1000) return;
-    state.run = s.run; state.ip = s.ip; state.env = s.env;
-    if (s.mon && s.mon.checks) { state.mon = newMon(); state.mon.startedAt = s.mon.startedAt; state.mon.stoppedAt = s.mon.stoppedAt || s.t; state.mon.checks = s.mon.checks; state.mon.stats = s.mon.stats; state.mon.events = s.mon.events; state.mon.on = false; $('monBtn').textContent = 'Start watching again'; renderTiles(); }
+    state.run = s.run; state.ip = s.ip; state.env = s.env; state.l4 = s.l4 || null;
+    if (s.mon && s.mon.checks) { state.mon = newMon(); state.mon.startedAt = s.mon.startedAt; state.mon.stoppedAt = s.mon.stoppedAt || s.t; state.mon.checks = s.mon.checks; state.mon.stats = s.mon.stats; state.mon.events = s.mon.events; state.mon.rounds = s.mon.rounds || state.mon.rounds; state.mon.on = false; $('monBtn').textContent = 'Start watching again'; renderTiles(); }
     if (s.run) {
       $('resTable').style.display = ''; var lg = ''; s.run.sums.forEach(function (x) { if (x.g !== lg) { lg = x.g; ensureSection(lg); } renderRow(x); });
       $('hints').innerHTML = s.run.hints.map(function (h, i) { return '<div class="hint' + (s.run.good && i === 0 ? ' good' : '') + '">' + esc(h) + '</div>'; }).join('');
+      if (s.run.deep) $('deep').innerHTML = '<h3>Key readings</h3><ul>' + s.run.deep.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul>';
       $('runState').textContent = 'Restored your last test (' + utc(s.run.at) + ' UTC).';
     }
     $('email').value = s.email || ''; $('uname').value = s.uname || ''; $('notes').value = s.notes || ''; $('errCode').value = s.err || '';
@@ -630,6 +834,7 @@ title: "Navi+ Connection Check"
   $('copyBtn').addEventListener('click', copy);
   ['email', 'uname', 'notes', 'errCode', 'consent'].forEach(function (id) { $(id).addEventListener('input', function () { refreshSend(); persist(); }); $(id).addEventListener('change', refreshSend); });
   window.addEventListener('beforeunload', function (e) { if (state.mon && state.mon.on) { e.preventDefault(); e.returnValue = ''; } });
+  try { var c0 = navigator.connection; if (c0 && (c0.saveData || /cellular/.test(c0.type || ''))) { $('lite').checked = true; } } catch (e) {}   // dùng dữ liệu di động → mặc định chế độ Light
 
   restore();
   if (P_FROM) $('email').value = P_FROM;
