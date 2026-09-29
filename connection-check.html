@@ -376,7 +376,7 @@ title: "Navi+ Connection Check"
         else {
           o.ok = true;
           var sm = (d.same || []).filter(function (x) { return x && x.ms != null; }).map(function (x) { return x.ms; });
-          o.detail = 'transfer ' + Math.round((n.xfer || 0) / 1024) + ' KB, body ' + Math.round((n.dec || 0) / 1024) + ' KB, first byte ' + (n.ttfb || 0) + ' ms' +
+          o.detail = (n.dec > 1024 ? 'transfer ' + Math.round(n.xfer / 1024) + ' KB, body ' + Math.round((n.dec || 0) / 1024) + ' KB, ' : '') + 'first byte ' + (n.ttfb || 0) + ' ms' +
             (n.dns != null ? ' (DNS ' + n.dns + ', connect ' + n.tcp + ', TLS ' + n.tls + ')' : '') +
             (d.cookie != null ? '; 3rd-party cookie ' + (d.cookie ? 'allowed' : 'BLOCKED') : '') + (d.ls != null ? ', storage ' + (d.ls ? 'allowed' : 'BLOCKED') : '') + (sm.length ? '; same-site requests median ' + median(sm) + ' ms' : '');
         }
@@ -441,11 +441,15 @@ title: "Navi+ Connection Check"
       document.head.appendChild(l);
     });
   }
+  /* Host do CHÍNH hạ tầng của trang tự chèn (Cloudflare Pages tự thêm beacon Web Analytics ở tầng edge — không có trong mã nguồn) → không phải antivirus. */
+  function benignHost(u) { try { var h = new URL(u, location.href).hostname; return KNOWN_HOSTS.indexOf(h) >= 0 || /(^|\.)cloudflareinsights\.com$/.test(h); } catch (e) { return false; } }
   function injectionScan() {
     var dom = [], vendors = {}, hosts = {}, ext = 0, own = $('probeFrames');
     [].slice.call(document.querySelectorAll('script[src],iframe,link[href],img[src],object,embed,form,video,audio')).forEach(function (n) {
       if (own && own.contains(n)) return; if (n.tagName === 'LINK' && /canonical|preload/.test(n.rel)) return;
       if (/^(chrome|moz|safari-web)-extension:/.test(String(n.src || n.href || ''))) { ext++; return; }          // tiện ích trình duyệt bình thường (không phải antivirus) → chỉ đếm
+      if (n.tagName === 'IFRAME' && !n.getAttribute('src')) return;                                                // iframe rỗng (about:blank) không nói lên điều gì
+      if ((n.src || n.href) && benignHost(n.src || n.href)) return;
       dom.push(n.tagName.toLowerCase() + ':' + String(n.src || n.href || n.action || '').slice(0, 70));
     });
     [].slice.call(document.querySelectorAll('*')).forEach(function (n) {                       // chỉ soi THUỘC TÍNH (không soi chữ trong script của chính trang)
@@ -458,7 +462,7 @@ title: "Navi+ Connection Check"
         var u; try { u = new URL(e.name); } catch (x) { return; }
         if (/^(chrome|moz|safari-web)-extension:$/.test(u.protocol)) { ext++; return; }
         if (SEC_VENDORS.test(u.hostname)) vendors[(u.hostname.match(SEC_VENDORS) || [''])[0].toLowerCase()] = 1;
-        if (KNOWN_HOSTS.indexOf(u.host) < 0 && KNOWN_HOSTS.indexOf(u.hostname) < 0) hosts[u.hostname] = 1;
+        if (!benignHost(e.name)) hosts[u.hostname] = 1;
       });
     } catch (e) {}
     return { dom:dom.slice(0, 6), vendors:Object.keys(vendors), hosts:Object.keys(hosts).slice(0, 8), ext:ext };
