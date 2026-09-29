@@ -182,8 +182,8 @@ title: "Navi+ Connection Check"
   var BIG_BUNNY = 'https://flov.b-cdn.net/static/assets/v2/golive/r2_common.css';
 
   /* Trang thăm dò TÀI LIỆU HTML nằm trên chính cdn-naviplus.com / dash.naviplus.app (naviplus/connection-probe.html, ~96 KB nén).
-     Bật (true) SAU KHI file đó đã lên production — chưa có thì iframe chỉ nhận 404 và sẽ báo sai là "lỗi". */
-  var PROBE_ON = false;
+     Đã lên production 29/09/2026 (golive-all #3) → BẬT. Nếu gỡ file đó khỏi production thì phải tắt lại (iframe sẽ nhận 404 và báo sai là "lỗi"). */
+  var PROBE_ON = true;
   var PROBE_PATH = '/naviplus/connection-probe.html', PROBE_LEN = 96000, PROBE_SUM = 17850;
 
   /* Các điểm đo (mỗi điểm 1 dòng trong bảng, theo nhóm g).
