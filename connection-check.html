@@ -71,6 +71,10 @@ title: "Navi+ Connection Check"
   .hint.good { background:var(--green-bg); }
   #deep ul { margin:6px 0 0; padding-left:18px; font-size:13px; }
   #deep li { margin:2px 0; }
+  .opt { border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-top:12px; }
+  .opt h3 { margin:0 0 4px; font-size:15px; }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width:560px) { .two { grid-template-columns:1fr; } }
   .hp { position:absolute; left:-9999px; }
   .status { margin-top:10px; min-height:22px; font-weight:600; }
   .status.ok-t { color:var(--green); } .status.bad-t { color:var(--red); }
@@ -119,29 +123,37 @@ title: "Navi+ Connection Check"
 
   <!-- ─── Bước 3 ─── -->
   <div class="card" id="c4">
-    <h2><span class="step">3</span>Send the results to Navi+ support</h2>
-    <label for="email">Your email <span class="muted" style="font-weight:400">(so we can reply)</span></label>
-    <input type="email" id="email" autocomplete="email" placeholder="you@yourstore.com">
-    <label for="uname">Your name <span class="muted" style="font-weight:400">(optional)</span></label>
-    <input type="text" id="uname" autocomplete="name" maxlength="80">
-    <label for="errCode">Error code, if you saw an error page <span class="muted" style="font-weight:400">(optional)</span></label>
-    <input type="text" id="errCode" maxlength="80" placeholder="e.g. ERR_INVALID_RESPONSE (small text at the bottom of the error page)">
-    <label for="notes">What happened? <span class="muted" style="font-weight:400">(optional)</span></label>
-    <textarea id="notes" maxlength="600" placeholder="Which page, what you saw, roughly when it happened…"></textarea>
-    <input type="text" id="hpot" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-    <details>
-      <summary>Preview exactly what will be sent</summary>
-      <pre id="preview">Run the test first.</pre>
-      <p class="note">This includes your public IP address (needed to look up your connection in our logs) and technical details of your browser and
-        network. It does <b>not</b> include passwords, store data, your exact location or anything from other tabs.</p>
-    </details>
-    <label style="font-weight:400"><input type="checkbox" id="consent"> I agree to send this information to Navi+ support.</label>
-    <div class="row">
-      <button class="primary" id="sendBtn" type="button" disabled>Send report</button>
-      <button id="pdfBtn" type="button" disabled>Download PDF report</button>
-      <a class="btn" id="mailBtn" href="#" style="display:none">Open email to Navi+ support</a>
+    <h2><span class="step">3</span>Send us the results</h2>
+    <p class="note">Choose one of the two ways:</p>
+
+    <div class="opt">
+      <h3>Option 1 — Download the PDF and send it to us in the chat</h3>
+      <p class="note">Saves a PDF report of everything above. Then send that file to us in the chat you already have with Navi+ support.</p>
+      <div class="row"><button class="primary" id="pdfBtn" type="button" disabled>Download PDF report</button></div>
+      <div class="status" id="pdfState" role="status" aria-live="polite"></div>
     </div>
-    <div class="status" id="sendState" role="status" aria-live="polite"></div>
+
+    <div class="opt">
+      <h3>Option 2 — Send it by email</h3>
+      <div class="two">
+        <div><label for="email" style="margin-top:6px">Your email</label>
+          <input type="email" id="email" autocomplete="email" placeholder="you@yourstore.com"></div>
+        <div><label for="uname" style="margin-top:6px">Your name</label>
+          <input type="text" id="uname" autocomplete="name" maxlength="80"></div>
+      </div>
+      <label for="to">Send to</label>
+      <input type="email" id="to" autocomplete="off" placeholder="khoipn@naviplus.io">
+      <p class="note" id="toNote" style="margin:4px 0 0"></p>
+      <label for="notes">Message</label>
+      <textarea id="notes" maxlength="1000" placeholder="What happened? If you saw an error page, please type the code shown at the bottom of it (for example ERR_INVALID_RESPONSE)."></textarea>
+      <input type="text" id="hpot" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <p class="note" style="margin:8px 0 0">Your test results are added to the email automatically (they include your public IP address and technical details of your browser and network, nothing else).</p>
+      <div class="row">
+        <button class="primary" id="sendBtn" type="button" disabled>Send email</button>
+        <a class="btn" id="mailBtn" href="#" style="display:none">Open in my email app</a>
+      </div>
+      <div class="status" id="sendState" role="status" aria-live="polite"></div>
+    </div>
   </div>
 
   <p class="note" style="margin-top:20px">Navi+ Connection Check · tools.naviplus.io · reports go to the Navi+ support team only.</p>
@@ -215,15 +227,19 @@ title: "Navi+ Connection Check"
   var $ = function (id) { return document.getElementById(id); };
   var params = new URLSearchParams(location.search);
   var REF = (params.get('ref') || '').replace(/[^\w.@\- ]/g, '').slice(0, 60);
-  /* Tham số link (Khôi gửi cho khách): ?ref=<nhãn>&fromemail=<email khách>&name=<tên>&toemail=<email support>.
-     fromemail/name → tự điền form (khách vẫn sửa được). toemail CHỈ nhận địa chỉ @naviplus.io — nơi gửi thật là chat Inbox+
-     (luôn về Khôi) nên toemail chỉ dùng cho nút "Email it instead"/nhắc trong câu chữ; chặn để không ai dựng link
-     biến trang này thành công cụ soạn mail tới địa chỉ lạ. */
+  /* Tham số link (Khôi gửi cho khách): ?ref=<nhãn>&fromemail=<email khách>&name=<tên>&toemail=<email nhận>.
+     Tự điền form: fromemail → "Your email", name (hoặc ref) → "Your name", toemail → "Send to" (mặc định khoipn@naviplus.io); khách vẫn sửa được.
+     Người nhận @naviplus.io được gửi tự động qua chat Inbox+ (luôn về Khôi). Người nhận KHÁC chỉ mở ứng dụng email của chính khách (mailto:) —
+     cố ý không gửi hộ tới địa chỉ lạ từ máy chủ để trang này không thể bị lợi dụng làm công cụ phát email. */
   var EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
   var P_FROM = (params.get('fromemail') || '').trim().slice(0, 120); if (!EMAIL_RE.test(P_FROM)) P_FROM = '';
   var P_NAME = (params.get('name') || '').replace(/[<>]/g, '').trim().slice(0, 80);
-  var P_TO = (params.get('toemail') || '').trim().toLowerCase();
-  var SUPPORT = /^[a-z0-9._+\-]+@naviplus\.io$/.test(P_TO) ? P_TO : 'khoipn@naviplus.io';
+  var P_TO = (params.get('toemail') || '').trim().toLowerCase().slice(0, 120); if (!EMAIL_RE.test(P_TO)) P_TO = '';
+  var SUPPORT_DEFAULT = 'khoipn@naviplus.io';
+  /* Tên mặc định: ?name=… nếu có, không thì lấy từ ?ref=… (vd ref=carolyn → "Carolyn"). */
+  var NAME_DEFAULT = P_NAME || REF.replace(/[-_.]+/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }).trim();
+  function toAddr() { var v = ($('to').value || '').trim(); return EMAIL_RE.test(v) ? v : SUPPORT_DEFAULT; }
+  function isNaviAddr(a) { return /@naviplus\.io$/i.test(a); }
   /* Xoá email khỏi thanh địa chỉ/lịch sử (ảnh chụp màn hình, lịch sử trình duyệt) sau khi đã đọc; giữ ?ref. */
   try { if (P_FROM || P_NAME || P_TO) { var keep = new URLSearchParams(); if (REF) keep.set('ref', REF); history.replaceState(null, '', location.pathname + (keep.toString() ? '?' + keep.toString() : '')); } } catch (e) {}
 
@@ -700,8 +716,7 @@ title: "Navi+ Connection Check"
     L.push('NAVI+ CONNECTION CHECK v' + VERSION + (REF ? '  ref=' + REF : ''));
     L.push('Report time (UTC): ' + utc());
     L.push('Visitor: ' + ($('uname').value.trim() || '-') + ' <' + ($('email').value.trim() || '-') + '>');
-    if ($('errCode').value.trim()) L.push('ERROR CODE SEEN: ' + $('errCode').value.trim());
-    if ($('notes').value.trim()) L.push('Notes: ' + $('notes').value.trim().replace(/\s+/g, ' '));
+    if ($('notes').value.trim()) L.push('Message: ' + $('notes').value.trim().replace(/\s+/g, ' '));
     if (state.run && state.run.hints.length) { L.push(''); L.push('[Auto-read — hints, not a diagnosis]'); state.run.hints.forEach(function (h) { L.push(' - ' + h); }); }
     if (state.run && state.run.deep) { L.push(''); L.push('[Key readings]'); state.run.deep.forEach(function (d) { L.push(' * ' + d); }); }
     L.push('');
@@ -760,16 +775,22 @@ title: "Navi+ Connection Check"
   }
   function refreshSend() {
     var has = !!(state.run || (state.mon && state.mon.checks));
-    $('preview').textContent = has ? buildReport() : 'Run the test first.';
-    var emailOk = EMAIL_RE.test($('email').value.trim());
+    var emailOk = EMAIL_RE.test($('email').value.trim()), to = toAddr(), custom = !isNaviAddr(to);
     $('pdfBtn').disabled = !has;
-    $('sendBtn').disabled = !(has && emailOk && $('consent').checked);
-    $('mailBtn').href = 'mailto:' + SUPPORT + '?subject=' + encodeURIComponent('Navi+ Connection Check' + (REF ? ' (' + REF + ')' : '')) + '&body=' + encodeURIComponent('Hello Navi+ support,\n\nPlease find my Connection Check report attached (PDF).\n\n' + ($('uname').value.trim() || ''));
+    $('sendBtn').disabled = !(emailOk && (has || $('notes').value.trim()));
+    $('sendBtn').textContent = custom ? 'Open my email app' : 'Send email';
+    $('toNote').textContent = custom ? 'Other addresses open your own email app with the message ready (attach the PDF from Option 1 if you can).' : '';
+    $('mailBtn').href = 'mailto:' + to + '?subject=' + encodeURIComponent('Navi+ Connection Check' + (REF ? ' (' + REF + ')' : '')) + '&body=' + encodeURIComponent(($('notes').value.trim() ? $('notes').value.trim() + '\n\n' : '') + 'My Connection Check report is attached as a PDF.\n\n' + ($('uname').value.trim() || ''));
   }
   function wrapHtml(part, i, n) { return (i === 0 ? '<b>Navi+ Connection Check</b>' : '<b>Connection Check — part ' + (i + 1) + '/' + n + '</b>') + '<pre style="white-space:pre-wrap;font:12px/1.45 monospace;margin:6px 0 0">' + esc(part) + '</pre>'; }
   async function send() {
     if ($('hpot').value) return;                               // bẫy bot
-    var btn = $('sendBtn'), st = $('sendState'); btn.disabled = true; st.className = 'status'; st.textContent = 'Sending…';
+    var btn = $('sendBtn'), st = $('sendState');
+    if (!isNaviAddr(toAddr())) {                                // người nhận khác → mở ứng dụng email của khách, không gửi hộ từ máy chủ
+      st.className = 'status'; st.textContent = 'Your email app should open with the message ready. If it does not, use "Open in my email app".'; $('mailBtn').style.display = '';
+      window.location.href = $('mailBtn').href; return;
+    }
+    btn.disabled = true; st.className = 'status'; st.textContent = 'Sending…';
     var parts = chunks(buildReport()), sentN = 0;
     try {
       var r = await fetch(API + '/chat', {
@@ -787,10 +808,10 @@ title: "Navi+ Connection Check"
         if (!r2.ok) throw new Error('part ' + (i + 1) + ' failed (HTTP ' + r2.status + ')');
         sentN++; await sleep(150);
       }
-      st.className = 'status ok-t'; st.textContent = 'Sent (' + sentN + ' message' + (sentN > 1 ? 's' : '') + '). Thank you! Navi+ support will look at it and reply to your email. You can also download a PDF copy for yourself.';
+      st.className = 'status ok-t'; st.textContent = 'Sent (' + sentN + ' message' + (sentN > 1 ? 's' : '') + '). Thank you! We will look at it and reply to your email.';
     } catch (e) {
       st.className = 'status bad-t';
-      st.textContent = (sentN ? 'Only ' + sentN + ' of ' + parts.length + ' parts were sent. ' : '') + 'Could not send (' + (e && e.message ? e.message : 'network error') + '). Please click "Download PDF report" and email the file to ' + SUPPORT + ' (use "Open email to Navi+ support").';
+      st.textContent = (sentN ? 'Only ' + sentN + ' of ' + parts.length + ' parts were sent. ' : '') + 'Could not send (' + (e && e.message ? e.message : 'network error') + '). Please use Option 1 (Download PDF and send it to us in the chat) or "Open in my email app".';
       $('mailBtn').style.display = '';
     }
     btn.disabled = false; refreshSend();
@@ -846,23 +867,22 @@ title: "Navi+ Connection Check"
     return out;
   }
   function pdf() {
-    var st = $('sendState');
+    var st = $('pdfState');
     try {
       var d = new Date(), pad2 = function (n) { return ('0' + n).slice(-2); };
       var name = 'navi-connection-check-' + d.getUTCFullYear() + pad2(d.getUTCMonth() + 1) + pad2(d.getUTCDate()) + '-' + pad2(d.getUTCHours()) + pad2(d.getUTCMinutes()) + (REF ? '-' + REF.replace(/[^\w\-]/g, '') : '') + '.pdf';
       var blob = new Blob([makePdf('Navi+ Connection Check' + (REF ? ' (' + REF + ')' : ''), buildReport())], { type:'application/pdf' });
       var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
       setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
-      st.className = 'status ok-t'; st.textContent = 'PDF saved (' + name + '). You can attach it to an email to ' + SUPPORT + '.';
+      st.className = 'status ok-t'; st.textContent = 'PDF saved (' + name + '). Now please send that file to us in the chat.';
     } catch (e) { st.className = 'status bad-t'; st.textContent = 'Could not create the PDF (' + (e && e.message ? e.message : 'error') + ').'; }
-    $('mailBtn').style.display = '';
   }
 
   /* Giữ kết quả nếu khách lỡ đóng/tải lại tab (localStorage có thể bị chặn → bọc try). */
   function persist() {
     lsSet({ t:Date.now(), run:state.run, ip:state.ip, env:state.env, l4:state.l4,
       mon:state.mon ? { startedAt:state.mon.startedAt, stoppedAt:state.mon.stoppedAt, checks:state.mon.checks, stats:state.mon.stats, events:state.mon.events, rounds:state.mon.rounds, on:false } : null,
-      email:$('email').value, uname:$('uname').value, notes:$('notes').value, err:$('errCode').value });
+      email:$('email').value, uname:$('uname').value, to:$('to').value, notes:$('notes').value });
   }
   function restore() {
     var s = lsGet(); if (!s || Date.now() - s.t > 6 * 3600 * 1000) return;
@@ -874,7 +894,7 @@ title: "Navi+ Connection Check"
       if (s.run.deep) $('deep').innerHTML = '<h3>Key readings</h3><ul>' + s.run.deep.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul>';
       $('runState').textContent = 'Restored your last test (' + utc(s.run.at) + ' UTC).';
     }
-    $('email').value = s.email || ''; $('uname').value = s.uname || ''; $('notes').value = s.notes || ''; $('errCode').value = s.err || '';
+    $('email').value = s.email || ''; $('uname').value = s.uname || ''; $('to').value = s.to || ''; $('notes').value = s.notes || '';
   }
 
   /* ───────────── nối sự kiện ───────────── */
@@ -882,12 +902,13 @@ title: "Navi+ Connection Check"
   $('monBtn').addEventListener('click', function () { (state.mon && state.mon.on) ? stopMon() : startMon(); });
   $('sendBtn').addEventListener('click', send);
   $('pdfBtn').addEventListener('click', pdf);
-  ['email', 'uname', 'notes', 'errCode', 'consent'].forEach(function (id) { $(id).addEventListener('input', function () { refreshSend(); persist(); }); $(id).addEventListener('change', refreshSend); });
+  ['email', 'uname', 'to', 'notes'].forEach(function (id) { $(id).addEventListener('input', function () { refreshSend(); persist(); }); $(id).addEventListener('change', refreshSend); });
   window.addEventListener('beforeunload', function (e) { if (state.mon && state.mon.on) { e.preventDefault(); e.returnValue = ''; } });
 
   restore();
   if (P_FROM) $('email').value = P_FROM;
-  if (P_NAME) $('uname').value = P_NAME;
+  if (NAME_DEFAULT && !$('uname').value) $('uname').value = NAME_DEFAULT;
+  if (P_TO) $('to').value = P_TO; else if (!$('to').value) $('to').value = SUPPORT_DEFAULT;
   refreshSend();
 })();
 </script>
