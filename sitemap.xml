@@ -20,4 +20,5 @@
   <url><loc>https://tools.naviplus.io/toolset/security/encrypt</loc><priority>0.7</priority></url>
   <url><loc>https://tools.naviplus.io/toolset/security/generate-password</loc><priority>0.7</priority></url>
   <url><loc>https://tools.naviplus.io/toolset/security/hash-generator</loc><priority>0.7</priority></url>
+  <url><loc>https://tools.naviplus.io/connection-check/</loc><priority>0.7</priority></url>
 </urlset>
