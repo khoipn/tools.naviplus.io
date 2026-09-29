@@ -93,6 +93,7 @@ title: "Navi+ Connection Check"
   button.danger { background:linear-gradient(#ff5a36,#c81e1e); border-color:#c81e1e; color:#fff; letter-spacing:.06em; text-transform:uppercase;
           box-shadow:0 0 0 1px rgba(255,90,54,.4),0 6px 18px rgba(200,30,30,.35); }
   button.danger:hover:not(:disabled) { filter:brightness(1.08); }
+  button.mini { padding:6px 11px; font-size:13px; margin-left:auto; }
   .opt { border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-top:12px; }
   .opt h3 { margin:0 0 4px; font-size:15px; }
   .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
@@ -142,51 +143,27 @@ title: "Navi+ Connection Check"
   </div>
 
   <!-- ─── Bước 2 ─── -->
-  <div class="card" id="c3">
-    <h2><span class="step">2</span>Watch for problems <span class="muted" style="font-weight:400">(best if the error comes and goes)</span></h2>
-    <p class="note">Leave this tab open (you can keep working in another tab). It quietly re-checks every 20 seconds and records exactly
-      when and where a connection fails, and whether the rest of your internet was still working at that moment. Stops by itself after 3 hours.
-      Your computer must stay awake.</p>
-    <div class="row">
-      <button id="monBtn" type="button">Start watching</button>
-      <span id="monState" class="note"></span>
-    </div>
-    <div class="tiles" id="tiles" style="display:none"></div>
-  </div>
-
-  <!-- ─── Bước 3 ─── -->
   <div class="card" id="c4">
-    <h2><span class="step">3</span>Send us the results</h2>
-    <p class="note">Choose one of the two ways:</p>
-
-    <div class="opt">
-      <h3>Option 1 — Download the PDF and send it to us in the chat</h3>
-      <p class="note">Saves a PDF report of everything above. Then send that file to us in the chat you already have with Navi+ support.</p>
-      <div class="row"><button class="primary" id="pdfBtn" type="button" disabled>Download PDF report</button></div>
-      <div class="status" id="pdfState" role="status" aria-live="polite"></div>
+    <h2><span class="step">2</span>Send us the results</h2>
+    <div class="two">
+      <div><label for="email" style="margin-top:6px">Your email</label>
+        <input type="email" id="email" autocomplete="email" placeholder="you@yourstore.com"></div>
+      <div><label for="uname" style="margin-top:6px">Your name</label>
+        <input type="text" id="uname" autocomplete="name" maxlength="80"></div>
     </div>
-
-    <div class="opt">
-      <h3>Option 2 — Send it by email</h3>
-      <div class="two">
-        <div><label for="email" style="margin-top:6px">Your email</label>
-          <input type="email" id="email" autocomplete="email" placeholder="you@yourstore.com"></div>
-        <div><label for="uname" style="margin-top:6px">Your name</label>
-          <input type="text" id="uname" autocomplete="name" maxlength="80"></div>
-      </div>
-      <label for="to">Send to</label>
-      <input type="email" id="to" autocomplete="off" placeholder="khoipn@naviplus.io">
-      <p class="note" id="toNote" style="margin:4px 0 0"></p>
-      <label for="notes">Message</label>
-      <textarea id="notes" maxlength="1000" placeholder="What happened? If you saw an error page, please type the code shown at the bottom of it (for example ERR_INVALID_RESPONSE)."></textarea>
-      <input type="text" id="hpot" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <p class="note" style="margin:8px 0 0">Your test results are added to the email automatically (they include your public IP address and technical details of your browser and network, nothing else).</p>
-      <div class="row">
-        <button class="primary" id="sendBtn" type="button" disabled>Send email</button>
-        <a class="btn" id="mailBtn" href="#" style="display:none">Open in my email app</a>
-      </div>
-      <div class="status" id="sendState" role="status" aria-live="polite"></div>
+    <label for="to">Send to</label>
+    <input type="email" id="to" autocomplete="off" placeholder="khoipn@naviplus.io">
+    <p class="note" id="toNote" style="margin:4px 0 0"></p>
+    <label for="notes">Message</label>
+    <textarea id="notes" maxlength="1000" placeholder="What happened? If you saw an error page, please type the code shown at the bottom of it (for example ERR_INVALID_RESPONSE)."></textarea>
+    <input type="text" id="hpot" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <p class="note" style="margin:8px 0 0">Your scan results are added to the email automatically (they include your public IP address and technical details of your browser and network, nothing else).</p>
+    <div class="row">
+      <button class="primary" id="sendBtn" type="button" disabled>Send email</button>
+      <a class="btn" id="mailBtn" href="#" style="display:none">Open in my email app</a>
+      <button class="mini" id="pdfBtn" type="button" disabled title="Save the results as a PDF file, for example to send it to us in the chat">⬇ PDF</button>
     </div>
+    <div class="status" id="sendState" role="status" aria-live="polite"></div>
   </div>
 
   <p class="note" style="margin-top:20px">Navi+ Connection Check · tools.naviplus.io · reports go to the Navi+ support team only.</p>
@@ -201,7 +178,6 @@ title: "Navi+ Connection Check"
   var API = 'https://api.inboxplus.app';
   var SPEED = 'https://speed.cloudflare.com';                  // dịch vụ đo tốc độ công khai của Cloudflare (CORS *, trả server-timing cfL4)
   var CHUNK = 4200, MAX_TOTAL = 22000;                         // API tạo chat ≤5000 ký tự/tin → tách nhiều tin; tổng ≤ ~6 tin
-  var MON_INTERVAL = 20000, MON_MAX_MS = 3 * 3600 * 1000, MON_MAX_EVENTS = 300;
   var BIG = 'https://cdn.naviplus.app/static/assets/v2/golive/r2_common.css';     // cùng 1 file (~490 KB) có mặt ở R2 và Bunny
   var BIG_BUNNY = 'https://flov.b-cdn.net/static/assets/v2/golive/r2_common.css';
 
@@ -249,13 +225,6 @@ title: "Navi+ Connection Check"
   ];
   function T(id) { return TESTS.filter(function (t) { return t.id === id; })[0]; }
   var PING = { id:'ping', label:'Cloudflare speed edge', host:'speed.cloudflare.com', kind:'ping', url:SPEED + '/__down?bytes=0' };
-  /* Chế độ theo dõi: 6 điểm Navi+ + 3 ĐỐI CHỨNG (Cloudflare bằng IP thô, Shopify, speed.cloudflare) để biết mỗi lần rớt là do
-     "cả internet của KH" hay "chỉ riêng Navi+". */
-  var MON = [T('app'), T('dash'), T('r2'), T('bunny'), T('tools'), T('chat'),
-             { id:'v4c',  label:'Cloudflare by IPv4', host:'1.1.1.1', kind:'trace', url:'https://1.1.1.1/cdn-cgi/trace', ctrl:true },
-             { id:'shop', label:'Shopify CDN', host:'cdn.shopify.com', kind:'head', url:'https://cdn.shopify.com/shopifycloud/app-bridge.js', ctrl:true },
-             { id:'spd',  label:'Cloudflare speed edge', host:'speed.cloudflare.com', kind:'ping', url:SPEED + '/__down?bytes=0', ctrl:true }];
-
   var $ = function (id) { return document.getElementById(id); };
   var params = new URLSearchParams(location.search);
   var REF = (params.get('ref') || '').replace(/[^\w.@\- ]/g, '').slice(0, 60);
@@ -286,7 +255,7 @@ title: "Navi+ Connection Check"
   /* Xoá email khỏi thanh địa chỉ/lịch sử (ảnh chụp màn hình, lịch sử trình duyệt) sau khi đã đọc; giữ ?ref. */
   try { if (P_FROM || P_NAME || P_TO) { var keep = new URLSearchParams(); if (REF) keep.set('ref', REF); history.replaceState(null, '', location.pathname + (keep.toString() ? '?' + keep.toString() : '')); } } catch (e) {}
 
-  var state = { env:null, run:null, mon:null, ip:null, l4:null };
+  var state = { env:null, run:null, ip:null, l4:null };
   try { performance.setResourceTimingBufferSize(2500); } catch (e) {}
 
   /* ───────────── tiện ích ───────────── */
@@ -552,7 +521,7 @@ title: "Navi+ Connection Check"
     var allOk = real.every(function (s) { return s.okN === s.n; }) && !sums.some(function (s) { return s.level === 'bad'; });
     var cf = sums.filter(function (s) { return s.cf && s.kind === 'trace' && s.g === 'Navi+ servers'; }), cfFail = cf.filter(function (s) { return s.okN === 0; });
     var bunnyOk = by.bunny && by.bunny.okN > 0, l4 = state.l4;
-    if (allOk && !sums.some(function (s) { return s.level === 'warn'; })) out.push({ good:true, t:'Everything worked right now. If the problem comes and goes, use "Watch for problems" (step 2) and leave it running until the error appears.' });
+    if (allOk && !sums.some(function (s) { return s.level === 'warn'; })) out.push({ good:true, t:'Everything worked right now. If the problem only happens sometimes, run this scan again right when the error appears and send us the results.' });
     if (cf.length && cfFail.length === cf.length && bunnyOk) out.push({ t:'Every Cloudflare-hosted Navi+ server failed while Bunny (not Cloudflare) worked → this network/device is blocking or breaking connections to Cloudflare.' });
     else if (cfFail.length && cfFail.length < cf.length) out.push({ t:'Only some Navi+ servers failed (' + cfFail.map(function (s) { return s.host; }).join(', ') + ') while others worked → the problem is specific to those addresses on this network.' });
     if (real.length && real.every(function (s) { return s.okN === 0; })) out.push({ t:'Nothing at all could be reached → no working internet connection at the moment.' });
@@ -676,91 +645,6 @@ title: "Navi+ Connection Check"
     refreshSend();
   }
 
-  /* ───────────── Bước 2: theo dõi nền ───────────── */
-  function newMon() {
-    var st = {}; MON.forEach(function (e) { st[e.id] = { n:0, fail:0, last:null, lastOk:true, max:0, sum:0, ms:[] }; });
-    return { on:false, startedAt:0, checks:0, stats:st, events:[], stoppedAt:0, timer:null, wake:null, l4prev:null, rounds:{ bad:0, all:0, host:0, part:0 } };
-  }
-  function addEvent(t, kind, msg) {
-    var m = state.mon; if (!m) return;
-    m.events.push({ t:t, k:kind, m:msg });
-    if (m.events.length > MON_MAX_EVENTS) m.events.splice(0, m.events.length - MON_MAX_EVENTS);
-  }
-  async function monTick() {
-    var m = state.mon; if (!m || !m.on) return;
-    if (Date.now() - m.startedAt > MON_MAX_MS) { stopMon('Stopped automatically after 3 hours.'); return; }
-    m.checks++;
-    try { performance.clearResourceTimings(); } catch (e) {}
-    var res = {};
-    for (var i = 0; i < MON.length; i++) {
-      if (!m.on) return;
-      var ep = MON[i], r = await probe(ep, 8000), s = m.stats[ep.id], now = Date.now(), retry = '';
-      if (!r.ok && r.kind !== 'http') {                                   // thử lại 1 lần sau 0,4 s: lỗi thoáng qua hay lỗi kéo dài?
-        await sleep(400); var r2 = await probe(ep, 8000); retry = r2.ok ? ' | retry after 0.4s: OK (transient)' : ' | retry after 0.4s: failed again (persistent)';
-      }
-      res[ep.id] = r.ok;
-      s.n++; s.last = r.ms; s.sum += r.ms; if (r.ms > s.max) s.max = r.ms; if (r.ok) { s.ms.push(r.ms); if (s.ms.length > 90) s.ms.shift(); }
-      if (!r.ok) {
-        s.fail++;
-        addEvent(now, 'FAIL', ep.host + ' ' + r.kind + (r.detail ? ' - ' + r.detail : '') + ' (' + r.ms + 'ms' + (r.proto ? ', ' + r.proto : '') + ')' + retry + ' | online=' + navigator.onLine);
-      } else if (r.ms > 3000) addEvent(now, 'SLOW', ep.host + ' answered in ' + r.ms + 'ms' + (r.proto ? ' (' + r.proto + ')' : ''));
-      if (s.lastOk !== r.ok) { if (r.ok && s.n > 1) addEvent(now, 'OK', ep.host + ' recovered (' + r.ms + 'ms)'); s.lastOk = r.ok; }
-      if (r.ok && r.proto && s.proto && s.proto !== r.proto) addEvent(now, 'PROTO', ep.host + ' switched ' + s.proto + ' -> ' + r.proto);
-      if (r.ok && r.proto) s.proto = r.proto;
-      if (r.ok && r.colo && s.colo && s.colo !== r.colo) addEvent(now, 'COLO', ep.host + ' edge changed ' + s.colo + ' -> ' + r.colo);
-      if (r.ok && r.colo) s.colo = r.colo;
-      if (r.ok && r.ip && s.ip && s.ip !== r.ip) addEvent(now, 'IP', ep.host + ': your public IP changed ' + s.ip + ' -> ' + r.ip);
-      if (r.ok && r.ip) s.ip = r.ip;
-      if (ep.id === 'spd' && r.ok && r.l4) {                              // đếm gói mất/truyền lại do CLOUDFLARE đo — tăng nghĩa là đường truyền đang rớt gói
-        var pv = m.l4prev;
-        if (pv && pv.cid === r.l4.cid && (r.l4.lost > pv.lost || r.l4.retrans > pv.retrans)) addEvent(now, 'L4', 'packet loss on path to Cloudflare: lost +' + (r.l4.lost - pv.lost) + ', retransmitted +' + (r.l4.retrans - pv.retrans) + ', RTT ' + ms1(r.l4.rtt));
-        if (r.l4.rtt > 500000) addEvent(now, 'L4', 'very high path delay: RTT ' + ms1(r.l4.rtt));
-        m.l4prev = { cid:r.l4.cid, lost:r.l4.lost, retrans:r.l4.retrans };
-      }
-    }
-    var failed = MON.filter(function (e) { return !res[e.id]; }), ctl = MON.filter(function (e) { return e.ctrl; }), ctlOk = ctl.filter(function (e) { return res[e.id]; }).length;
-    if (failed.length) {                                                   // PHÂN LOẠI vòng này: cả internet rớt hay chỉ riêng Navi+?
-      var cls = (failed.length === MON.length || ctlOk === 0) ? 'CONNECTION LOST — even the control checks (Cloudflare by IP, Shopify, Cloudflare speed) failed: your internet connection itself dropped' :
-        ctlOk === ctl.length ? 'NAVI+-SPECIFIC — general internet, Shopify and Cloudflare-by-IP all OK; only ' + failed.map(function (e) { return e.host; }).join(', ') + ' failed' :
-        'PARTIAL — ' + failed.map(function (e) { return e.host; }).join(', ') + ' failed; controls OK ' + ctlOk + '/' + ctl.length;
-      addEvent(Date.now(), 'ROUND', cls); m.rounds.bad++; if (failed.length === MON.length || ctlOk === 0) m.rounds.all++; else if (ctlOk === ctl.length) m.rounds.host++; else m.rounds.part++;
-    }
-    renderTiles(); refreshSend();
-    if (m.on) m.timer = setTimeout(monTick, MON_INTERVAL);
-  }
-  function monList() { return MON.concat(state.mon && state.mon.stats.frame ? [{ id:'frame', host:'cdn-naviplus.com (page in frame)' }] : []); }
-  function renderTiles() {
-    var m = state.mon; if (!m) return; var box = $('tiles'); box.style.display = '';
-    box.innerHTML = monList().map(function (ep) {
-      var s = m.stats[ep.id]; if (!s) return '';
-      var up = s.n ? Math.round((s.n - s.fail) / s.n * 1000) / 10 : 100, p95 = s.ms && s.ms.length ? pct(s.ms, 0.95) : null;
-      return '<div class="tile"><b><span class="dot ' + (s.lastOk ? 'ok' : 'bad') + '"></span>' + esc(ep.host) + (ep.ctrl ? ' <span class="muted">(control)</span>' : '') + '</b>' +
-        (s.n ? (s.n - s.fail) + '/' + s.n + ' OK (' + up + '%)<br>last ' + (s.last != null ? s.last + ' ms' : '–') + (p95 != null ? ', 95th ' + p95 + ' ms' : '') + ', slowest ' + s.max + ' ms' : 'waiting…') + '</div>';
-    }).join('');
-    var mins = Math.round(((m.on ? Date.now() : m.stoppedAt) - m.startedAt) / 60000);
-    $('monState').textContent = (m.on ? 'Watching… ' : 'Stopped. ') + mins + ' min · ' + m.checks + ' rounds · ' + m.rounds.bad + ' rounds with a failure (' + m.rounds.host + ' Navi+-specific, ' + m.rounds.all + ' whole-internet)';
-  }
-  async function startMon() {
-    state.mon = newMon(); var m = state.mon; m.on = true; m.startedAt = Date.now();
-    addEvent(m.startedAt, 'START', 'watching started');
-    $('monBtn').textContent = 'Stop watching';
-    try { if (navigator.wakeLock) m.wake = await navigator.wakeLock.request('screen'); } catch (e) {}
-    renderTiles(); monTick();
-  }
-  function stopMon(msg) {
-    var m = state.mon; if (!m) return;
-    m.on = false; m.stoppedAt = Date.now(); clearTimeout(m.timer);
-    try { if (m.wake) m.wake.release(); } catch (e) {}
-    addEvent(m.stoppedAt, 'STOP', msg || 'watching stopped');
-    $('monBtn').textContent = 'Start watching again'; renderTiles(); refreshSend();
-    if (msg) $('monState').textContent += ' — ' + msg;
-  }
-  /* Sự kiện của trình duyệt: mất mạng / đổi loại kết nối / tab bị ẩn — thường chính là lời giải. */
-  window.addEventListener('online',  function () { addEvent(Date.now(), 'NET', 'browser says: online'); });
-  window.addEventListener('offline', function () { addEvent(Date.now(), 'NET', 'browser says: OFFLINE'); });
-  document.addEventListener('visibilitychange', function () { if (state.mon && state.mon.on) addEvent(Date.now(), 'TAB', 'tab ' + document.visibilityState); });
-  try { var cn = navigator.connection; if (cn && cn.addEventListener) cn.addEventListener('change', function () { var c = navigator.connection; addEvent(Date.now(), 'NET', 'connection changed: type=' + (c.type || '?') + ' effective=' + (c.effectiveType || '?') + ' rtt=' + c.rtt + 'ms downlink=' + c.downlink); }); } catch (e) {}
-
   /* ───────────── Báo cáo ───────────── */
   function buildReport() {
     var env = state.env, L = [];
@@ -796,16 +680,6 @@ title: "Navi+ Connection Check"
       });
       L.push('Protocols seen: ' + state.run.sums.filter(function (s) { return s.proto; }).map(function (s) { return s.host + '=' + s.proto; }).join(', ') + ' (first visit is always HTTP/2; HTTP/3 only after the browser has learned it)');
     } else L.push('', '[Test run] not run');
-    var m = state.mon;
-    if (m && m.checks) {
-      var end = m.on ? Date.now() : (m.stoppedAt || Date.now());
-      L.push('');
-      L.push('[Watching ' + utc(m.startedAt) + ' -> ' + utc(end) + ' UTC, ' + Math.round((end - m.startedAt) / 60000) + ' min, ' + m.checks + ' rounds; ' + m.rounds.bad + ' rounds with a failure: ' + m.rounds.host + ' Navi+-specific, ' + m.rounds.part + ' partial, ' + m.rounds.all + ' whole-internet]');
-      monList().forEach(function (ep) { var s = m.stats[ep.id]; if (s) L.push(ep.host + (ep.ctrl ? ' (control)' : '') + ': ' + (s.n - s.fail) + '/' + s.n + ' OK, avg ' + (s.n ? Math.round(s.sum / s.n) : 0) + 'ms' + (s.ms && s.ms.length ? ', p95 ' + pct(s.ms, 0.95) + 'ms' : '') + ', slowest ' + s.max + 'ms' + (s.proto ? ', ' + s.proto : '')); });
-      var evs = m.events.filter(function (x) { return x.k !== 'START' && x.k !== 'STOP'; });
-      if (evs.length) { L.push('Events (UTC, newest last):'); evs.forEach(function (x) { L.push(hhmmss(x.t) + ' ' + x.k + ' ' + x.m); }); }
-      else L.push('No failures or slow answers were recorded while watching.');
-    }
     var txt = L.join('\n');
     /* Trần tổng: cắt bớt các sự kiện CŨ nhất trước, giữ đầu (kết luận + thông tin máy + kết quả test) và cuối (sự kiện mới). */
     if (txt.length > MAX_TOTAL) {
@@ -825,12 +699,12 @@ title: "Navi+ Connection Check"
     if (cur) out.push(cur); return out;
   }
   function refreshSend() {
-    var has = !!(state.run || (state.mon && state.mon.checks));
+    var has = !!state.run;
     var emailOk = EMAIL_RE.test($('email').value.trim()), to = toAddr(), custom = !isNaviAddr(to);
     $('pdfBtn').disabled = !has;
     $('sendBtn').disabled = !(emailOk && (has || $('notes').value.trim()));
     $('sendBtn').textContent = custom ? 'Open my email app' : 'Send email';
-    $('toNote').textContent = custom ? 'Other addresses open your own email app with the message ready (attach the PDF from Option 1 if you can).' : '';
+    $('toNote').textContent = custom ? 'Other addresses open your own email app with the message ready (you can attach the PDF).' : '';
     $('mailBtn').href = 'mailto:' + to + '?subject=' + encodeURIComponent('Navi+ Connection Check' + (REF ? ' (' + REF + ')' : '')) + '&body=' + encodeURIComponent(($('notes').value.trim() ? $('notes').value.trim() + '\n\n' : '') + 'My Connection Check report is attached as a PDF.\n\n' + ($('uname').value.trim() || ''));
   }
   function wrapHtml(part, i, n) { return (i === 0 ? '<b>Navi+ Connection Check</b>' : '<b>Connection Check — part ' + (i + 1) + '/' + n + '</b>') + '<pre style="white-space:pre-wrap;font:12px/1.45 monospace;margin:6px 0 0">' + esc(part) + '</pre>'; }
@@ -862,7 +736,7 @@ title: "Navi+ Connection Check"
       st.className = 'status ok-t'; st.textContent = 'Sent (' + sentN + ' message' + (sentN > 1 ? 's' : '') + '). Thank you! We will look at it and reply to your email.';
     } catch (e) {
       st.className = 'status bad-t';
-      st.textContent = (sentN ? 'Only ' + sentN + ' of ' + parts.length + ' parts were sent. ' : '') + 'Could not send (' + (e && e.message ? e.message : 'network error') + '). Please use Option 1 (Download PDF and send it to us in the chat) or "Open in my email app".';
+      st.textContent = (sentN ? 'Only ' + sentN + ' of ' + parts.length + ' parts were sent. ' : '') + 'Could not send (' + (e && e.message ? e.message : 'network error') + '). Please use "⬇ PDF" and send us the file in the chat, or "Open in my email app".';
       $('mailBtn').style.display = '';
     }
     btn.disabled = false; refreshSend();
@@ -918,24 +792,22 @@ title: "Navi+ Connection Check"
     return out;
   }
   function pdf() {
-    var st = $('pdfState');
+    var st = $('sendState');
     try {
       var d = new Date(), pad2 = function (n) { return ('0' + n).slice(-2); };
       var name = 'navi-connection-check-' + d.getUTCFullYear() + pad2(d.getUTCMonth() + 1) + pad2(d.getUTCDate()) + '-' + pad2(d.getUTCHours()) + pad2(d.getUTCMinutes()) + (REF ? '-' + REF.replace(/[^\w\-]/g, '') : '') + '.pdf';
       var blob = new Blob([makePdf('Navi+ Connection Check' + (REF ? ' (' + REF + ')' : ''), buildReport())], { type:'application/pdf' });
       var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
       setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
-      st.className = 'status ok-t'; st.textContent = 'PDF saved (' + name + '). Now please send that file to us in the chat.';
+      st.className = 'status ok-t'; st.textContent = 'PDF saved (' + name + '). You can send that file to us in the chat.';
     } catch (e) { st.className = 'status bad-t'; st.textContent = 'Could not create the PDF (' + (e && e.message ? e.message : 'error') + ').'; }
   }
 
   /* ───────────── nối sự kiện ───────────── */
   $('runBtn').addEventListener('click', runTest);
-  $('monBtn').addEventListener('click', function () { (state.mon && state.mon.on) ? stopMon() : startMon(); });
   $('sendBtn').addEventListener('click', send);
   $('pdfBtn').addEventListener('click', pdf);
   ['email', 'uname', 'to', 'notes'].forEach(function (id) { $(id).addEventListener('input', refreshSend); $(id).addEventListener('change', refreshSend); });
-  window.addEventListener('beforeunload', function (e) { if (state.mon && state.mon.on) { e.preventDefault(); e.returnValue = ''; } });
 
   /* Mỗi lần mở/tải lại trang là MỘT LƯỢT MỚI: không nhớ kết quả cũ (Khôi 29/09). Dọn dữ liệu do các bản trước lưu. */
   try { ['naviConnCheck.v2', 'naviConnCheck.v3'].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
