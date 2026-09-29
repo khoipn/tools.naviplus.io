@@ -217,6 +217,7 @@ title: "Navi+ Connection Check"
     { g:'Deep network quality', id:'speed',  label:'Speed & delay under load',               host:'speed.cloudflare.com', kind:'speed' },
     { g:'Deep network quality', id:'mitm',   label:'Anything in the middle? (proxy / TLS inspection)', host:'this network', kind:'mitm' },
     { g:'Deep network quality', id:'store',  label:'Browser storage & cookies',              host:'this browser', kind:'store' },
+    { g:'Deep network quality', id:'sec',    label:'Antivirus / firewall clues',             host:'this device', kind:'sec' },
 
     { g:'Page-load test (like the app)', id:'doc1', label:'Web page download (zstd/gzip)', host:'cdn-naviplus.com', kind:'nocors', url:'https://cdn-naviplus.com/', n:3, doc:true },
     { g:'Page-load test (like the app)', id:'doc2', label:'Web page download (zstd/gzip)', host:'dash.naviplus.app', kind:'nocors', url:'https://dash.naviplus.app/', n:3, doc:true },
@@ -422,6 +423,46 @@ title: "Navi+ Connection Check"
     };
   }
   function connStr(e) { var c = e.conn; return 'type=' + (c.type || '?') + ' effective=' + (c.eff || '?') + ' downlink=' + (c.down !== '' ? c.down + 'Mbps' : '?') + ' rtt=' + (c.rtt !== '' ? c.rtt + 'ms' : '?') + ' saveData=' + c.save; }
+  /* ── Dấu vết antivirus / tường lửa ──
+     Trình duyệt KHÔNG cho trang web biết máy cài antivirus hay firewall nào (sandbox). Chỉ suy ra được từ DẤU VẾT GIÁN TIẾP:
+     (1) antivirus "web shield" hay tự CHÈN script/iframe vào trang (Kaspersky, Avast, Bitdefender…) → quét DOM + Resource Timing tìm nội dung lạ / tên hãng;
+     (2) tải file script/CSS của Navi+ bằng thẻ <link preload> (đúng cách app nạp file) — bị chặn dù fetch thường OK = lọc theo loại file;
+     (3) tường lửa chặn cổng HTTPS khác 443 (8443/2053) — Cloudflare mở sẵn các cổng này;
+     (4) HTTP/3 (QUIC, UDP 443) không bao giờ được dùng — firewall/antivirus thường chặn UDP. */
+  var SEC_VENDORS = /\b(kaspersky|kis\.v2\.scr|avast|avg|bitdefender|bdvtcd|norton|symantec|mcafee|webroot|eset|sophos|malwarebytes|trendmicro|f-secure|fsecure|comodo|zonealarm|avira|drweb|quickheal|cylance|crowdstrike|zscaler|netskope|forcepoint|websense|bluecoat|opendns|fortinet|forticlient|globalprotect|checkpoint)\b/i;
+  var KNOWN_HOSTS = ['tools.naviplus.io', 'cdn-naviplus.com', 'dash.naviplus.app', 'cdn.naviplus.app', 'flov.b-cdn.net', 'api.inboxplus.app', 'ai.inboxplus.app', 'cdn.shopify.com', 'admin.shopify.com', 'cdn.jsdelivr.net', 'speed.cloudflare.com', '1.1.1.1', '[2606:4700:4700::1111]', 'localhost', '127.0.0.1', location.hostname];
+  function tagLoad(url, as, timeout) {
+    return new Promise(function (res) {
+      var t0 = performance.now(), l = document.createElement('link'), done = false;
+      function fin(ok, why) { if (done) return; done = true; clearTimeout(tm); try { l.remove(); } catch (e) {} res({ ok:ok, ms:Math.round(performance.now() - t0), why:why || '' }); }
+      var tm = setTimeout(function () { fin(false, 'timeout'); }, timeout);
+      l.rel = 'preload'; l.as = as; l.href = url + (url.indexOf('?') < 0 ? '?' : '&') + 'cb=' + Date.now();
+      l.onload = function () { fin(true); }; l.onerror = function () { fin(false, 'blocked/error'); };
+      document.head.appendChild(l);
+    });
+  }
+  function injectionScan() {
+    var dom = [], vendors = {}, hosts = {}, ext = 0, own = $('probeFrames');
+    [].slice.call(document.querySelectorAll('script[src],iframe,link[href],img[src],object,embed,form,video,audio')).forEach(function (n) {
+      if (own && own.contains(n)) return; if (n.tagName === 'LINK' && /canonical|preload/.test(n.rel)) return;
+      if (/^(chrome|moz|safari-web)-extension:/.test(String(n.src || n.href || ''))) { ext++; return; }          // tiện ích trình duyệt bình thường (không phải antivirus) → chỉ đếm
+      dom.push(n.tagName.toLowerCase() + ':' + String(n.src || n.href || n.action || '').slice(0, 70));
+    });
+    [].slice.call(document.querySelectorAll('*')).forEach(function (n) {                       // chỉ soi THUỘC TÍNH (không soi chữ trong script của chính trang)
+      [].slice.call(n.attributes).forEach(function (a) { var t = a.name + '=' + a.value; if (SEC_VENDORS.test(t)) vendors[(t.match(SEC_VENDORS) || [''])[0].toLowerCase()] = 1; });
+    });
+    var ha = document.documentElement.getAttributeNames().filter(function (x) { return x !== 'lang'; }).concat(document.body.getAttributeNames());
+    ha.forEach(function (x) { dom.push('attr:' + x); });
+    try {
+      performance.getEntriesByType('resource').forEach(function (e) {
+        var u; try { u = new URL(e.name); } catch (x) { return; }
+        if (/^(chrome|moz|safari-web)-extension:$/.test(u.protocol)) { ext++; return; }
+        if (SEC_VENDORS.test(u.hostname)) vendors[(u.hostname.match(SEC_VENDORS) || [''])[0].toLowerCase()] = 1;
+        if (KNOWN_HOSTS.indexOf(u.host) < 0 && KNOWN_HOSTS.indexOf(u.hostname) < 0) hosts[u.hostname] = 1;
+      });
+    } catch (e) {}
+    return { dom:dom.slice(0, 6), vendors:Object.keys(vendors), hosts:Object.keys(hosts).slice(0, 8), ext:ext };
+  }
   /* Kiểm cookie / lưu trữ NGAY trên trang này (bên thứ nhất); bản bên thứ ba (trong iframe) do trang thăm dò đo. */
   async function storageTest() {
     var r = { cookie:false, ls:false, ss:false, idb:false };
@@ -509,6 +550,7 @@ title: "Navi+ Connection Check"
     if (by.par && by.par.med != null && by.par.okN) L.push('8 simultaneous requests: median ' + by.par.med + ' ms, worst ' + by.par.max + ' ms');
     if (by.clock && by.clock.skewSec != null) L.push('Clock: ' + (by.clock.skewSec >= 0 ? '+' : '') + by.clock.skewSec + ' s versus Cloudflare');
     if (by.store && by.store.deep) L.push(by.store.deep);
+    if (by.sec && by.sec.deep) L.push(by.sec.deep);
     if (by.mitm) L.push('Middlebox check: ' + (by.mitm.sig && by.mitm.sig.length ? by.mitm.sig.map(function (k) { return SIG_TXT[k]; }).join('; ') : 'nothing unusual — traffic looks direct'));
     L.push('Browser: ' + (env.full || env.brands || '?') + ' · ' + env.platform + (env.osv ? ' ' + env.osv : '') + ' · ' + connStr(env));
     return L;
@@ -542,6 +584,16 @@ title: "Navi+ Connection Check"
     sums.forEach(function (s) { if (s.kind === 'dl' && Object.keys(s.errs).some(function (k) { return k.indexOf('badbody') === 0; })) out.push({ t:'The 490 KB download arrived incomplete or altered (' + s.host + ') → something between you and the server (proxy, VPN, antivirus, router) may be changing responses.' }); });
     sums.forEach(function (s) { if (s.kind === 'dl' && s.maxGap > 2000 && s.okN) out.push({ t:'The download from ' + s.host + ' froze for ' + Math.round(s.maxGap / 100) / 10 + ' s in the middle → unstable connection (weak signal, satellite/mobile handover, or packet loss).' }); });
     if (by.mitm && by.mitm.sig && by.mitm.sig.length) by.mitm.sig.forEach(function (k) { if (k !== 'warp') out.push({ t:'Something may be in the middle of your connection: ' + SIG_TXT[k] + '.' }); });
+    var EFFECT = ' Effect: such programs can inspect or re-encrypt HTTPS traffic, disable HTTP/3, slow down or cut connections and break pages loaded inside frames (like the Navi+ app inside Shopify admin) — a known cause of random "invalid response" and connection errors. If Navi+ fails only on this device: pause the program\'s web protection for a moment (or add cdn-naviplus.com, dash.naviplus.app and cdn.naviplus.app to its exceptions) and run the scan again.';
+    if (by.sec && by.sec.sec) {
+      var sc = by.sec.sec;
+      if (sc.vendors.length) out.push({ t:'Security software fingerprint found in this browser (' + sc.vendors.join(', ') + ').' + EFFECT });
+      else if (sc.dom.length || sc.hosts.length) out.push({ t:'A browser extension or security software is injecting extra content into pages you open' + (sc.hosts.length ? ' (from ' + sc.hosts.join(', ') + ')' : '') + '.' + EFFECT });
+      if (sc.tlBad.length) out.push({ t:'Loading Navi+ script files failed (' + sc.tlBad.join(', ') + ') while normal downloads work → a content filter, ad-blocker, security software or firewall blocks script files. The Navi+ app needs these files to start, so this would show as a blank or broken app.' });
+      if (sc.portsBlocked) out.push({ t:'Your firewall blocks HTTPS on non-standard ports (8443, 2053) while normal port 443 works → a strict outbound firewall (corporate network or strict personal firewall) is filtering traffic. Navi+ uses port 443, so this alone does not break it, but it shows a firewall is actively filtering.' });
+      if (sc.quicOff) out.push({ t:'HTTP/3 (QUIC, UDP port 443) was never used → it is blocked or disabled here (firewalls and antivirus programs commonly block UDP). This is usually harmless — the browser falls back to normal HTTPS — but connections can be a little slower to start and are more exposed to inspection by a proxy.' });
+    }
+    if (by.mitm && by.mitm.sig && by.mitm.sig.some(function (k) { return k === 'ua' || k === 'kex' || k === 'proto' || k === 'tls'; })) out.push({ t:'These signs are typical of an antivirus "web shield", corporate proxy or firewall that sits between your browser and the internet.' + EFFECT });
     if (by.store && by.store.bad) out.push({ t:'Your browser blocks cookies or site storage on this page → the Navi+ app (which runs in a frame inside Shopify) may not be able to keep you signed in. Allow cookies/site data for Shopify and naviplus.' });
     var docOk = ['doc1', 'doc2'].some(function (id) { return by[id] && by[id].okN === by[id].n; });
     ['if1', 'if2'].forEach(function (id) { var s = by[id], hostUp = by[id === 'if1' ? 'app' : 'dash']; if (s && !s.skipped && s.okN < s.n && hostUp && hostUp.okN > 0) out.push({ t:'A full web page failed to load inside a frame from ' + s.host + (docOk ? ' even though plain downloads work' : '') + ' → security software, a proxy or a browser extension may be interfering with page loads.' }); });
@@ -616,6 +668,29 @@ title: "Navi+ Connection Check"
         sum = summarise(ep, [], { n:1, okN:okSt ? 1 : 0, bad:!okSt, level:okSt ? 'ok' : 'warn', info:okSt ? 'allowed' : 'blocked', note:'cookies ' + (st.cookie ? 'ok' : 'BLOCKED') + ', localStorage ' + (st.ls ? 'ok' : 'BLOCKED') + ', sessionStorage ' + (st.ss ? 'ok' : 'BLOCKED') + ', IndexedDB ' + (st.idb ? 'ok' : 'BLOCKED') + (quota != null ? ', quota ' + quota + ' MB' + (quota < 130 ? ' (very low → private/incognito window?)' : '') : ''),
           deep:'Browser storage: cookies ' + (st.cookie ? 'ok' : 'BLOCKED') + ' · localStorage ' + (st.ls ? 'ok' : 'BLOCKED') + ' · IndexedDB ' + (st.idb ? 'ok' : 'BLOCKED') + (quota != null ? ' · quota ' + quota + ' MB' : '') });
         sum.errs = okSt ? {} : { 'storage blocked':1 };
+      } else if (ep.kind === 'sec') {
+        var inj = injectionScan(), tl = [], tlBad = [], tlList = [
+          { u:'https://cdn-naviplus.com/naviplus/app/assets/js/tracking.js', as:'script', h:'cdn-naviplus.com' },
+          { u:'https://dash.naviplus.app/naviplus/app/assets/js/tracking.js', as:'script', h:'dash.naviplus.app' },
+          { u:'https://cdn.naviplus.app/static/assets/v2/golive/r2_library.js', as:'script', h:'cdn.naviplus.app' },
+          { u:'https://flov.b-cdn.net/static/assets/v2/golive/r2_library.js', as:'script', h:'flov.b-cdn.net' }];
+        for (var tq = 0; tq < tlList.length; tq++) { var tr2 = await tagLoad(tlList[tq].u, tlList[tq].as, 8000); tl.push(tr2); if (!tr2.ok) tlBad.push(tlList[tq].h + ' (' + tr2.why + ')'); }
+        var pA = await probe({ kind:'trace', url:'https://cdn-naviplus.com:8443/cdn-cgi/trace' }, 6000), pB = await probe({ kind:'trace', url:'https://cdn-naviplus.com:2053/cdn-cgi/trace' }, 6000);
+        var appOk = sums.filter(function (x) { return x.id === 'app'; })[0], portsBlocked = appOk && appOk.okN > 0 && !pA.ok && !pB.ok;
+        var burst = sums.filter(function (x) { return x.id === 'burst'; })[0], quicOff = !!(burst && burst.okN && burst.protoSeq && burst.protoSeq.indexOf('3') < 0);
+        var bad = inj.vendors.length || inj.hosts.length || inj.dom.length || tlBad.length, warnAny = bad || portsBlocked;
+        var parts = [];
+        if (inj.vendors.length) parts.push('security-software names found in this page: ' + inj.vendors.join(', '));
+        if (inj.dom.length) parts.push('content injected into this page by a browser extension or security software: ' + inj.dom.slice(0, 3).join(' ; '));
+        if (inj.hosts.length) parts.push('page loaded content from unknown servers: ' + inj.hosts.join(', '));
+        if (inj.ext) parts.push(inj.ext + ' browser-extension script(s) active on this page (normal; not antivirus)');
+        if (tlBad.length) parts.push('Navi+ script files blocked: ' + tlBad.join(', '));
+        if (portsBlocked) parts.push('outbound HTTPS on ports 8443/2053 is blocked (firewall) while 443 works');
+        if (quicOff) parts.push('HTTP/3 (QUIC/UDP 443) never used');
+        sum = summarise(ep, [], { n:1, okN:warnAny ? 0 : 1, sec:{ vendors:inj.vendors, hosts:inj.hosts, dom:inj.dom, ext:inj.ext, tlBad:tlBad, portsBlocked:portsBlocked, quicOff:quicOff },
+          level:warnAny ? 'warn' : 'ok', info:warnAny ? 'clues found' : (quicOff || inj.ext ? 'minor notes' : 'no clues'), note:parts.length ? parts.join('; ') : 'no injected content, Navi+ scripts load normally, other HTTPS ports open',
+          deep:'Antivirus/firewall clues: ' + (parts.length ? parts.join('; ') : 'none — no injected content, Navi+ script files load normally, firewall lets HTTPS on other ports through') + ' (a web page cannot see the antivirus directly; these are indirect clues)' });
+        sum.errs = warnAny ? { 'clues':1 } : {};
       } else if (ep.kind === 'iframe') {
         if (!PROBE_ON) { sum = summarise(ep, [], { n:1, okN:0, skipped:true, info:'not yet available', note:'page-load probe is being rolled out' }); }
         else { for (var q = 0; q < (ep.n || 2); q++) { samples.push(await probeIframe(ep, 12000)); await sleep(200); } sum = summarise(ep, samples); }
