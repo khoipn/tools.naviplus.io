@@ -89,8 +89,7 @@ title: "Navi+ Connection Check"
   <!-- ─── Bước 1 ─── -->
   <div class="card" id="c1">
     <h2><span class="step">1</span>Run the test</h2>
-    <p class="note">About 150 tiny requests plus a few downloads (in total ≈ 6 MB of data). Please keep this tab open until it finishes.</p>
-    <label style="font-weight:400;margin:6px 0 0"><input type="checkbox" id="lite"> Light mode — skip the big downloads (≈ 0.1 MB in total, for mobile data)</label>
+    <p class="note">About 150 tiny requests plus a few downloads (in total ≈ 6 MB of data — please use Wi-Fi if you are on a limited mobile plan). Please keep this tab open until it finishes.</p>
     <div class="row">
       <button class="primary" id="runBtn" type="button">Run test now</button>
       <span id="runState" class="note"></span>
@@ -139,8 +138,8 @@ title: "Navi+ Connection Check"
     <label style="font-weight:400"><input type="checkbox" id="consent"> I agree to send this information to Navi+ support.</label>
     <div class="row">
       <button class="primary" id="sendBtn" type="button" disabled>Send report</button>
-      <button id="copyBtn" type="button" disabled>Copy report</button>
-      <a class="btn" id="mailBtn" href="#" style="display:none">Email it instead</a>
+      <button id="pdfBtn" type="button" disabled>Download PDF report</button>
+      <a class="btn" id="mailBtn" href="#" style="display:none">Open email to Navi+ support</a>
     </div>
     <div class="status" id="sendState" role="status" aria-live="polite"></div>
   </div>
@@ -179,12 +178,12 @@ title: "Navi+ Connection Check"
     { g:'Navi+ servers', id:'bunny', label:'Asset CDN (Bunny backup)',    host:'flov.b-cdn.net',     kind:'range', url:BIG_BUNNY, cf:false, n:6 },
     { g:'Navi+ servers', id:'tools', label:'This page (tools.naviplus.io)', host:'tools.naviplus.io', kind:'trace', url:'https://tools.naviplus.io/cdn-cgi/trace', cf:true, n:6 },
     { g:'Navi+ servers', id:'chat',  label:'Support chat server',         host:'api.inboxplus.app',  kind:'json',  url:API + '/', cf:true, n:6 },
-    { g:'Navi+ servers', id:'dl_r2',    label:'Download 490 KB via Cloudflare R2', host:'cdn.naviplus.app', kind:'dl', url:BIG, cf:true, n:1, heavy:true },
-    { g:'Navi+ servers', id:'dl_bunny', label:'Download 490 KB via Bunny',         host:'flov.b-cdn.net',   kind:'dl', url:BIG_BUNNY, cf:false, n:1, heavy:true },
+    { g:'Navi+ servers', id:'dl_r2',    label:'Download 490 KB via Cloudflare R2', host:'cdn.naviplus.app', kind:'dl', url:BIG, cf:true, n:1 },
+    { g:'Navi+ servers', id:'dl_bunny', label:'Download 490 KB via Bunny',         host:'flov.b-cdn.net',   kind:'dl', url:BIG_BUNNY, cf:false, n:1 },
 
-    { g:'What the Navi+ app needs to start', id:'ab',    label:'Shopify App Bridge script',  host:'cdn.shopify.com',   kind:'len',    url:'https://cdn.shopify.com/shopifycloud/app-bridge.js', min:50000, n:3, dep:true, heavy:true },
+    { g:'What the Navi+ app needs to start', id:'ab',    label:'Shopify App Bridge script',  host:'cdn.shopify.com',   kind:'len',    url:'https://cdn.shopify.com/shopifycloud/app-bridge.js', min:50000, n:3, dep:true },
     { g:'What the Navi+ app needs to start', id:'shadm', label:'Shopify admin',              host:'admin.shopify.com', kind:'nocors', url:'https://admin.shopify.com/', n:3, dep:true },
-    { g:'What the Navi+ app needs to start', id:'jq',    label:'jQuery (jsDelivr)',          host:'cdn.jsdelivr.net',  kind:'len',    url:'https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js', min:50000, n:3, dep:true, heavy:true },
+    { g:'What the Navi+ app needs to start', id:'jq',    label:'jQuery (jsDelivr)',          host:'cdn.jsdelivr.net',  kind:'len',    url:'https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js', min:50000, n:3, dep:true },
     { g:'What the Navi+ app needs to start', id:'nsw',   label:'Support chat widget',        host:'ai.inboxplus.app',  kind:'len',    url:'https://ai.inboxplus.app/widget/ns.js', min:500, n:3, dep:true },
 
     { g:'Your network basics', id:'v4',   label:'Cloudflare by IPv4 address (no DNS)', host:'1.1.1.1',           kind:'trace', url:'https://1.1.1.1/cdn-cgi/trace', cf:true, n:10, basic:true },
@@ -194,8 +193,8 @@ title: "Navi+ Connection Check"
     { g:'Your network basics', id:'clock',label:'Your device clock',                   host:'this device',       kind:'clock' },
 
     { g:'Deep network quality', id:'l4',     label:'Path quality as Cloudflare measures it', host:'speed.cloudflare.com', kind:'l4' },
-    { g:'Deep network quality', id:'ladder', label:'Packet-size ladder (MTU check)',         host:'speed.cloudflare.com', kind:'ladder', heavy:true },
-    { g:'Deep network quality', id:'speed',  label:'Speed & delay under load',               host:'speed.cloudflare.com', kind:'speed', heavy:true },
+    { g:'Deep network quality', id:'ladder', label:'Packet-size ladder (MTU check)',         host:'speed.cloudflare.com', kind:'ladder' },
+    { g:'Deep network quality', id:'speed',  label:'Speed & delay under load',               host:'speed.cloudflare.com', kind:'speed' },
     { g:'Deep network quality', id:'mitm',   label:'Anything in the middle? (proxy / TLS inspection)', host:'this network', kind:'mitm' },
     { g:'Deep network quality', id:'store',  label:'Browser storage & cookies',              host:'this browser', kind:'store' },
 
@@ -529,7 +528,7 @@ title: "Navi+ Connection Check"
   }
 
   async function runTest() {
-    var btn = $('runBtn'), lite = $('lite').checked; btn.disabled = true; $('hints').innerHTML = ''; $('deep').innerHTML = ''; $('resBody').innerHTML = ''; $('resTable').style.display = '';
+    var btn = $('runBtn'); btn.disabled = true; $('hints').innerHTML = ''; $('deep').innerHTML = ''; $('resBody').innerHTML = ''; $('resTable').style.display = '';
     $('runState').textContent = 'Checking your browser…';
     state.env = await collectEnv(); state.l4 = null;
     var t0 = Date.now(), sums = [];
@@ -537,8 +536,7 @@ title: "Navi+ Connection Check"
       var ep = TESTS[i], samples = [], sum;
       ensureSection(ep.g);
       $('runState').textContent = 'Testing ' + ep.host + ' — ' + ep.label.slice(0, 40) + ' (' + (i + 1) + '/' + TESTS.length + ')…';
-      if (ep.heavy && lite) { sum = summarise(ep, [], { n:1, okN:0, skipped:true, info:'skipped (light mode)' }); }
-      else if (ep.kind === 'burst') {
+      if (ep.kind === 'burst') {
         var app = T('app');
         for (var b = 0; b < 20; b++) { samples.push(await probe(app, 6000)); await sleep(100); }
         var okMs = samples.filter(function (s) { return s.ok; }).map(function (s) { return s.ms; });
@@ -602,7 +600,7 @@ title: "Navi+ Connection Check"
     var hints = verdict(sums, state.env), deep = deepLines(sums, state.env);
     var ipS = sums.filter(function (s) { return s.ip; })[0];
     if (ipS) state.ip = { ip:ipS.ip, loc:ipS.loc, tls:ipS.tls, warp:ipS.warp };
-    state.run = { at:t0, secs:Math.round((Date.now() - t0) / 1000), lite:lite, sums:sums, hints:hints.map(function (h) { return h.t; }), good:hints.some(function (h) { return h.good; }), deep:deep, l4:state.l4 };
+    state.run = { at:t0, secs:Math.round((Date.now() - t0) / 1000), sums:sums, hints:hints.map(function (h) { return h.t; }), good:hints.some(function (h) { return h.good; }), deep:deep, l4:state.l4 };
     $('hints').innerHTML = hints.map(function (h) { return '<div class="hint' + (h.good ? ' good' : '') + '">' + esc(h.t) + '</div>'; }).join('');
     $('deep').innerHTML = '<h3>Key readings</h3><ul>' + deep.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul>';
     $('envLine').textContent = 'Your connection: ' + (ipS ? ipS.ip + ' (' + (ipS.loc || '?') + ')' : 'IP unknown') + ' · ' + state.env.platform + ' · ' + connStr(state.env);
@@ -718,7 +716,7 @@ title: "Navi+ Connection Check"
     }
     if (state.run) {
       L.push('');
-      L.push('[Test run ' + utc(state.run.at) + ', ' + state.run.secs + 's' + (state.run.lite ? ', LIGHT MODE' : '') + ']');
+      L.push('[Test run ' + utc(state.run.at) + ', ' + state.run.secs + 's]');
       var lastG = '';
       state.run.sums.forEach(function (s) {
         if (s.g !== lastG) { lastG = s.g; L.push('-- ' + s.g); }
@@ -764,9 +762,9 @@ title: "Navi+ Connection Check"
     var has = !!(state.run || (state.mon && state.mon.checks));
     $('preview').textContent = has ? buildReport() : 'Run the test first.';
     var emailOk = EMAIL_RE.test($('email').value.trim());
-    $('copyBtn').disabled = !has;
+    $('pdfBtn').disabled = !has;
     $('sendBtn').disabled = !(has && emailOk && $('consent').checked);
-    $('mailBtn').href = 'mailto:' + SUPPORT + '?subject=' + encodeURIComponent('Navi+ Connection Check' + (REF ? ' (' + REF + ')' : '')) + '&body=' + encodeURIComponent(has ? buildReport().slice(0, 1800) : '');
+    $('mailBtn').href = 'mailto:' + SUPPORT + '?subject=' + encodeURIComponent('Navi+ Connection Check' + (REF ? ' (' + REF + ')' : '')) + '&body=' + encodeURIComponent('Hello Navi+ support,\n\nPlease find my Connection Check report attached (PDF).\n\n' + ($('uname').value.trim() || ''));
   }
   function wrapHtml(part, i, n) { return (i === 0 ? '<b>Navi+ Connection Check</b>' : '<b>Connection Check — part ' + (i + 1) + '/' + n + '</b>') + '<pre style="white-space:pre-wrap;font:12px/1.45 monospace;margin:6px 0 0">' + esc(part) + '</pre>'; }
   async function send() {
@@ -789,22 +787,74 @@ title: "Navi+ Connection Check"
         if (!r2.ok) throw new Error('part ' + (i + 1) + ' failed (HTTP ' + r2.status + ')');
         sentN++; await sleep(150);
       }
-      st.className = 'status ok-t'; st.textContent = 'Sent (' + sentN + ' message' + (sentN > 1 ? 's' : '') + '). Thank you! Navi+ support will look at it and reply to your email.';
+      st.className = 'status ok-t'; st.textContent = 'Sent (' + sentN + ' message' + (sentN > 1 ? 's' : '') + '). Thank you! Navi+ support will look at it and reply to your email. You can also download a PDF copy for yourself.';
     } catch (e) {
       st.className = 'status bad-t';
-      st.textContent = (sentN ? 'Only ' + sentN + ' of ' + parts.length + ' parts were sent. ' : '') + 'Could not send (' + (e && e.message ? e.message : 'network error') + '). Please use "Copy report" and paste it into an email to ' + SUPPORT + ', or use "Email it instead".';
+      st.textContent = (sentN ? 'Only ' + sentN + ' of ' + parts.length + ' parts were sent. ' : '') + 'Could not send (' + (e && e.message ? e.message : 'network error') + '). Please click "Download PDF report" and email the file to ' + SUPPORT + ' (use "Open email to Navi+ support").';
       $('mailBtn').style.display = '';
     }
     btn.disabled = false; refreshSend();
   }
-  async function copy() {
-    var text = buildReport(), st = $('sendState');
-    try { await navigator.clipboard.writeText(text); st.className = 'status ok-t'; st.textContent = 'Copied. Paste it into an email to ' + SUPPORT + '.'; }
-    catch (e) {
-      var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
-      try { document.execCommand('copy'); st.className = 'status ok-t'; st.textContent = 'Copied. Paste it into an email to ' + SUPPORT + '.'; } catch (e2) { st.className = 'status bad-t'; st.textContent = 'Copy failed. Open "Preview exactly what will be sent" and copy it by hand.'; }
-      document.body.removeChild(ta);
-    }
+  /* ───────────── Xuất PDF (tự viết, không thư viện) ─────────────
+     PDF chữ thuần, khổ A4, font chuẩn Courier (không cần nhúng font). Vì font chuẩn chỉ có ký tự Latin nên mọi ký tự ngoài ASCII được
+     chuyển thành dạng gần nhất (→ thành ->, dấu tiếng Việt bỏ dấu…) — toàn ASCII nên độ dài chuỗi = số byte, bảng xref luôn đúng. */
+  function pdfAscii(t) {
+    var map = { '→':'->', '←':'<-', '↓':'down', '↑':'up', '·':'-', '—':'-', '–':'-', '×':'x', '≈':'~', '…':'...', '“':'"', '”':'"', '‘':"'", '’':"'", '•':'*', '≤':'<=', '≥':'>=', '≠':'!=', 'µ':'u', 'đ':'d', 'Đ':'D', '★':'*', '✓':'ok', '✗':'x' };
+    var x = String(t); try { x = x.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) {}
+    return x.replace(/[^\x20-\x7E]/g, function (c) { return map[c] != null ? map[c] : '?'; });
+  }
+  function pdfEsc(t) { return t.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)'); }
+  function lineStyle(l) {
+    if (/^(FAIL)/.test(l)) return { c:'0.71 0.14 0.09', b:true };
+    if (/^(WARN|PART)/.test(l)) return { c:'0.60 0.40 0.00', b:true };
+    if (/^OK  /.test(l)) return { c:'0.18 0.49 0.36', b:false };
+    if (/^(\[|--|NAVI\+ CONNECTION|ERROR CODE)/.test(l)) return { c:'0.12 0.15 0.19', b:true };
+    return { c:'0.12 0.15 0.19', b:false };
+  }
+  function makePdf(title, text) {
+    var W = 595.28, H = 841.89, M = 42, FS = 8.4, LH = 10.8, CW = FS * 0.6, maxCh = Math.floor((W - 2 * M) / CW), top = H - M - 22, perPage = Math.floor((top - M - 6) / LH);
+    var lines = [];
+    text.split('\n').forEach(function (raw) {
+      var l = pdfAscii(raw), ind = (/^(\s*)/.exec(l)[1] || '').length, cont = new Array(Math.min(ind + 5, 18) + 1).join(' '), st = lineStyle(l);
+      var first = true;
+      while (l.length > maxCh) { var cut = l.lastIndexOf(' ', maxCh); if (cut < ind + 10) cut = maxCh; lines.push({ t:l.slice(0, cut), st:st }); l = cont + l.slice(cut).replace(/^ +/, ''); first = false; }
+      lines.push({ t:l, st:st });
+    });
+    var pages = []; for (var i = 0; i < lines.length; i += perPage) pages.push(lines.slice(i, i + perPage));
+    if (!pages.length) pages.push([{ t:'(empty)', st:lineStyle('') }]);
+    var objs = [], N = pages.length;
+    objs[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+    var kids = []; for (var p = 0; p < N; p++) kids.push((5 + p * 2) + ' 0 R');
+    objs[2] = '<< /Type /Pages /Kids [' + kids.join(' ') + '] /Count ' + N + ' >>';
+    objs[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>';
+    objs[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Courier-Bold /Encoding /WinAnsiEncoding >>';
+    var stamp = pdfAscii(title + '  -  generated ' + utc() + ' UTC');
+    pages.forEach(function (pg, idx) {
+      var c = 'BT\n/F2 12 Tf 0.18 0.49 0.36 rg ' + M + ' ' + (H - M) + ' Td (' + pdfEsc('Navi+ Connection Check') + ') Tj ET\n' +
+              'BT\n/F1 7.5 Tf 0.37 0.40 0.46 rg ' + M + ' ' + (H - M - 12) + ' Td (' + pdfEsc(stamp) + ') Tj ET\n' +
+              '0.89 0.90 0.93 RG 0.6 w ' + M + ' ' + (H - M - 17) + ' m ' + (W - M) + ' ' + (H - M - 17) + ' l S\n';
+      var y = top; pg.forEach(function (ln) { c += 'BT ' + (ln.st.b ? '/F2' : '/F1') + ' ' + FS + ' Tf ' + ln.st.c + ' rg ' + M + ' ' + y.toFixed(2) + ' Td (' + pdfEsc(ln.t) + ') Tj ET\n'; y -= LH; });
+      c += 'BT\n/F1 7.5 Tf 0.37 0.40 0.46 rg ' + (W - M - 60) + ' ' + (M - 18) + ' Td (' + pdfEsc('Page ' + (idx + 1) + ' / ' + N) + ') Tj ET\n';
+      objs[5 + idx * 2] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + W + ' ' + H + '] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ' + (6 + idx * 2) + ' 0 R >>';
+      objs[6 + idx * 2] = '<< /Length ' + c.length + ' >>\nstream\n' + c + 'endstream';
+    });
+    var out = '%PDF-1.4\n', offs = [];
+    for (var k = 1; k < objs.length; k++) { offs[k] = out.length; out += k + ' 0 obj\n' + objs[k] + '\nendobj\n'; }
+    var xr = out.length; out += 'xref\n0 ' + objs.length + '\n0000000000 65535 f \n';
+    for (var k2 = 1; k2 < objs.length; k2++) out += ('0000000000' + offs[k2]).slice(-10) + ' 00000 n \n';
+    out += 'trailer\n<< /Size ' + objs.length + ' /Root 1 0 R /Info << /Title (' + pdfEsc(pdfAscii(title)) + ') /Producer (Navi+ Connection Check) >> >>\nstartxref\n' + xr + '\n%%EOF\n';
+    return out;
+  }
+  function pdf() {
+    var st = $('sendState');
+    try {
+      var d = new Date(), pad2 = function (n) { return ('0' + n).slice(-2); };
+      var name = 'navi-connection-check-' + d.getUTCFullYear() + pad2(d.getUTCMonth() + 1) + pad2(d.getUTCDate()) + '-' + pad2(d.getUTCHours()) + pad2(d.getUTCMinutes()) + (REF ? '-' + REF.replace(/[^\w\-]/g, '') : '') + '.pdf';
+      var blob = new Blob([makePdf('Navi+ Connection Check' + (REF ? ' (' + REF + ')' : ''), buildReport())], { type:'application/pdf' });
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+      st.className = 'status ok-t'; st.textContent = 'PDF saved (' + name + '). You can attach it to an email to ' + SUPPORT + '.';
+    } catch (e) { st.className = 'status bad-t'; st.textContent = 'Could not create the PDF (' + (e && e.message ? e.message : 'error') + ').'; }
     $('mailBtn').style.display = '';
   }
 
@@ -831,10 +881,9 @@ title: "Navi+ Connection Check"
   $('runBtn').addEventListener('click', runTest);
   $('monBtn').addEventListener('click', function () { (state.mon && state.mon.on) ? stopMon() : startMon(); });
   $('sendBtn').addEventListener('click', send);
-  $('copyBtn').addEventListener('click', copy);
+  $('pdfBtn').addEventListener('click', pdf);
   ['email', 'uname', 'notes', 'errCode', 'consent'].forEach(function (id) { $(id).addEventListener('input', function () { refreshSend(); persist(); }); $(id).addEventListener('change', refreshSend); });
   window.addEventListener('beforeunload', function (e) { if (state.mon && state.mon.on) { e.preventDefault(); e.returnValue = ''; } });
-  try { var c0 = navigator.connection; if (c0 && (c0.saveData || /cellular/.test(c0.type || ''))) { $('lite').checked = true; } } catch (e) {}   // dùng dữ liệu di động → mặc định chế độ Light
 
   restore();
   if (P_FROM) $('email').value = P_FROM;
