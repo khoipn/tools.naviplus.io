@@ -71,6 +71,28 @@ title: "Navi+ Connection Check"
   .hint.good { background:var(--green-bg); }
   #deep ul { margin:6px 0 0; padding-left:18px; font-size:13px; }
   #deep li { margin:2px 0; }
+  /* Màn hình quét (luôn tối, kiểu terminal) — chỉ là giao diện, không nói gì sai sự thật về máy khách */
+  .hero { position:relative; overflow:hidden; background:#0a0e13; color:#c9d4e0; border:1px solid #27303b; border-radius:12px; padding:22px 18px 16px;
+          font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; margin-top:10px; }
+  .hero::before { content:''; position:absolute; left:0; right:0; top:0; height:7px;
+          background:repeating-linear-gradient(-45deg,#f5b301 0 12px,#0a0e13 12px 24px); }
+  .hero .hl { color:#ff6a3d; font-weight:700; letter-spacing:.08em; margin-bottom:6px; padding-right:96px; }
+  .hero .dim { color:#6c7a89; } .hero .ok { color:#3ddc97; background:none; } .hero .warn { color:#ffb020; background:none; } .hero .bad { color:#ff5c5c; background:none; }
+  .hero .cursor { animation:blink 1s steps(1) infinite; color:#3ddc97; }
+  @keyframes blink { 50% { opacity:0; } }
+  .hero .radar { position:absolute; right:14px; top:20px; width:76px; height:76px; border-radius:50%; border:1px solid #1d6b4c;
+          background:radial-gradient(circle,#0f2f23 0,#0a0e13 68%); box-shadow:0 0 18px rgba(61,220,151,.25); }
+  .hero .radar::before { content:''; position:absolute; inset:0; border-radius:50%; background:conic-gradient(from 0deg,rgba(61,220,151,.55),rgba(61,220,151,0) 30%); animation:sweep 3s linear infinite; }
+  .hero .radar::after { content:''; position:absolute; left:50%; top:50%; width:6px; height:6px; margin:-3px 0 0 -3px; border-radius:50%; background:#3ddc97; box-shadow:0 0 8px #3ddc97; }
+  .hero.scanning .radar { border-color:#ff6a3d; box-shadow:0 0 22px rgba(255,106,61,.45); }
+  .hero.scanning .radar::before { background:conic-gradient(from 0deg,rgba(255,106,61,.65),rgba(255,106,61,0) 30%); animation-duration:1s; }
+  @keyframes sweep { to { transform:rotate(360deg); } }
+  .hero #scanIntro div:nth-child(-n+3), .hero #scanLog div:nth-child(-n+4) { padding-right:92px; }   /* chừa chỗ cho radar */
+  #scanLog { max-height:230px; overflow:auto; margin-top:4px; }
+  #scanLog div { white-space:pre-wrap; word-break:break-word; }
+  button.danger { background:linear-gradient(#ff5a36,#c81e1e); border-color:#c81e1e; color:#fff; letter-spacing:.06em; text-transform:uppercase;
+          box-shadow:0 0 0 1px rgba(255,90,54,.4),0 6px 18px rgba(200,30,30,.35); }
+  button.danger:hover:not(:disabled) { filter:brightness(1.08); }
   .opt { border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-top:12px; }
   .opt h3 { margin:0 0 4px; font-size:15px; }
   .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
@@ -92,10 +114,21 @@ title: "Navi+ Connection Check"
 
   <!-- ─── Bước 1 ─── -->
   <div class="card" id="c1">
-    <h2><span class="step">1</span>Run the test</h2>
-    <p class="note">About 150 tiny requests plus a few downloads (in total ≈ 6 MB of data — please use Wi-Fi if you are on a limited mobile plan). Please keep this tab open until it finishes.</p>
+    <h2><span class="step">1</span>Run the deep scan</h2>
+    <div class="hero" id="hero">
+      <div class="radar" aria-hidden="true"></div>
+      <div class="hl">// NAVI+ DEEP CONNECTION SCAN</div>
+      <div id="scanIntro">
+        <div><span class="dim">&gt; targets ........</span> 6 Navi+ servers · 4 app dependencies · Cloudflare edge</div>
+        <div><span class="dim">&gt; probes ..........</span> ~150 requests + ~6 MB of test data <span class="dim">(use Wi-Fi on a limited mobile plan)</span></div>
+        <div><span class="dim">&gt; measures ........</span> latency · packet loss · IPv4/IPv6 · MTU · proxy/TLS · storage · page load</div>
+        <div><span class="dim">&gt; duration ........</span> 1–2 minutes — keep this tab open</div>
+        <div><span class="dim">&gt; status ..........</span> <span class="ok">READY</span><span class="cursor">_</span></div>
+      </div>
+      <div id="scanLog" style="display:none"></div>
+    </div>
     <div class="row">
-      <button class="primary" id="runBtn" type="button">Run test now</button>
+      <button class="danger" id="runBtn" type="button">▶ Start deep scan</button>
       <span id="runState" class="note"></span>
     </div>
     <div id="hints"></div>
@@ -168,7 +201,6 @@ title: "Navi+ Connection Check"
   var API = 'https://api.inboxplus.app';
   var SPEED = 'https://speed.cloudflare.com';                  // dịch vụ đo tốc độ công khai của Cloudflare (CORS *, trả server-timing cfL4)
   var CHUNK = 4200, MAX_TOTAL = 22000;                         // API tạo chat ≤5000 ký tự/tin → tách nhiều tin; tổng ≤ ~6 tin
-  var STORE_KEY = 'naviConnCheck.v3';
   var MON_INTERVAL = 20000, MON_MAX_MS = 3 * 3600 * 1000, MON_MAX_EVENTS = 300;
   var BIG = 'https://cdn.naviplus.app/static/assets/v2/golive/r2_common.css';     // cùng 1 file (~490 KB) có mặt ở R2 và Bunny
   var BIG_BUNNY = 'https://flov.b-cdn.net/static/assets/v2/golive/r2_common.css';
@@ -240,6 +272,17 @@ title: "Navi+ Connection Check"
   var NAME_DEFAULT = P_NAME || REF.replace(/[-_.]+/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }).trim();
   function toAddr() { var v = ($('to').value || '').trim(); return EMAIL_RE.test(v) ? v : SUPPORT_DEFAULT; }
   function isNaviAddr(a) { return /@naviplus\.io$/i.test(a); }
+  /* Refresh phải giữ email/tên/người nhận đã điền từ link, nhưng email lại bị xoá khỏi URL (bên dưới) → nhớ trong PHIÊN của tab (sessionStorage,
+     mất khi đóng tab). Chỉ lưu 3 giá trị prefill, KHÔNG lưu kết quả đo. */
+  var SS = 'naviConnCheck.prefill';
+  try {
+    var pf = JSON.parse(sessionStorage.getItem(SS) || '{}');
+    if (!P_FROM && pf.from && EMAIL_RE.test(pf.from)) P_FROM = pf.from;
+    if (!P_NAME && pf.name) P_NAME = pf.name;
+    if (!P_TO && pf.to && EMAIL_RE.test(pf.to)) P_TO = pf.to;
+    if (P_FROM || P_NAME || P_TO) sessionStorage.setItem(SS, JSON.stringify({ from:P_FROM, name:P_NAME, to:P_TO }));
+  } catch (e) {}
+  NAME_DEFAULT = P_NAME || REF.replace(/[-_.]+/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }).trim();   // tính lại sau khi đọc phiên
   /* Xoá email khỏi thanh địa chỉ/lịch sử (ảnh chụp màn hình, lịch sử trình duyệt) sau khi đã đọc; giữ ?ref. */
   try { if (P_FROM || P_NAME || P_TO) { var keep = new URLSearchParams(); if (REF) keep.set('ref', REF); history.replaceState(null, '', location.pathname + (keep.toString() ? '?' + keep.toString() : '')); } } catch (e) {}
 
@@ -261,8 +304,6 @@ title: "Navi+ Connection Check"
   function ms1(us) { return us == null ? '?' : (Math.round(us / 100) / 10) + ' ms'; }
   function fam(ip) { return !ip ? '' : ip.indexOf(':') >= 0 ? 'IPv6' : 'IPv4'; }
   function seqStr(a) { var out = [], last = null, n = 0; a.forEach(function (x) { if (!x) return; if (x === last) n++; else { if (last) out.push(last + (n > 1 ? '×' + n : '')); last = x; n = 1; } }); if (last) out.push(last + (n > 1 ? '×' + n : '')); return out.join('→'); }
-  function lsGet() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { return null; } }
-  function lsSet(v) { try { localStorage.setItem(STORE_KEY, JSON.stringify(v)); } catch (e) {} }
   function brProto(url) { try { var es = performance.getEntriesByName(url), en = es[es.length - 1]; return en && en.nextHopProtocol ? (en.nextHopProtocol === 'h3' ? 'http/3' : en.nextHopProtocol === 'h2' ? 'http/2' : en.nextHopProtocol) : ''; } catch (e) { return ''; } }
   function chromeMajor() { var m = /(?:Chrome|Chromium|Edg|OPR)\/(\d+)/.exec(navigator.userAgent); return m ? parseInt(m[1], 10) : 0; }
 
@@ -543,8 +584,15 @@ title: "Navi+ Connection Check"
     return out;
   }
 
+  function scanTag(sum) { return sum.skipped ? ['dim', 'SKIP'] : sum.level ? (sum.level === 'ok' ? ['ok', ' OK '] : sum.level === 'warn' ? ['warn', 'WARN'] : ['bad', 'FAIL']) : sum.info ? ['dim', 'INFO'] : sum.okN === sum.n ? ['ok', ' OK '] : sum.okN ? ['warn', 'PART'] : [sum.opt ? 'dim' : 'bad', sum.opt ? ' n/a' : 'FAIL']; }
+  function scanLine(sum) {
+    var t = scanTag(sum), log = $('scanLog'), d = document.createElement('div'), host = (sum.host + '                                ').slice(0, 26);
+    d.innerHTML = '<span class="' + t[0] + '">[' + t[1] + ']</span> ' + esc(host) + ' <span class="dim">' + esc(sum.info || (sum.okN + '/' + sum.n) + (sum.med != null ? '  ' + sum.med + ' ms' : '')) + '</span>';
+    log.appendChild(d); while (log.childNodes.length > 80) log.removeChild(log.firstChild); log.scrollTop = log.scrollHeight;
+  }
   async function runTest() {
-    var btn = $('runBtn'); btn.disabled = true; $('hints').innerHTML = ''; $('deep').innerHTML = ''; $('resBody').innerHTML = ''; $('resTable').style.display = '';
+    var btn = $('runBtn'); btn.disabled = true; $('hints').innerHTML = '';
+    $('hero').classList.add('scanning'); $('scanIntro').style.display = 'none'; $('scanLog').style.display = ''; $('scanLog').innerHTML = '<div><span class="dim">&gt; scan started ' + utc() + ' UTC</span></div>'; $('deep').innerHTML = ''; $('resBody').innerHTML = ''; $('resTable').style.display = '';
     $('runState').textContent = 'Checking your browser…';
     state.env = await collectEnv(); state.l4 = null;
     var t0 = Date.now(), sums = [];
@@ -611,7 +659,7 @@ title: "Navi+ Connection Check"
         sum = summarise(ep, samples);
         if (ep.kind === 'dl') { var s0 = samples[0]; sum.mbps = s0.mbps; sum.maxGap = s0.maxGap; sum.note = s0.ok ? s0.mbps + ' Mbit/s, first byte ' + s0.ttfb + ' ms, longest pause ' + s0.maxGap + ' ms' : ''; }
       }
-      sums.push(sum); renderRow(sum);
+      sums.push(sum); renderRow(sum); scanLine(sum);
     }
     var hints = verdict(sums, state.env), deep = deepLines(sums, state.env);
     var ipS = sums.filter(function (s) { return s.ip; })[0];
@@ -621,8 +669,11 @@ title: "Navi+ Connection Check"
     $('deep').innerHTML = '<h3>Key readings</h3><ul>' + deep.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul>';
     $('envLine').textContent = 'Your connection: ' + (ipS ? ipS.ip + ' (' + (ipS.loc || '?') + ')' : 'IP unknown') + ' · ' + state.env.platform + ' · ' + connStr(state.env);
     $('runState').textContent = 'Done in ' + state.run.secs + 's.';
-    btn.disabled = false; btn.textContent = 'Run test again';
-    persist(); refreshSend();
+    var cnt = { ok:0, warn:0, bad:0 }; sums.forEach(function (x) { var k = scanTag(x)[0]; if (cnt[k] != null) cnt[k]++; });
+    $('scanLog').insertAdjacentHTML('beforeend', '<div><span class="dim">&gt; scan complete in ' + state.run.secs + 's —</span> <span class="ok">' + cnt.ok + ' ok</span> · <span class="warn">' + cnt.warn + ' warnings</span> · <span class="bad">' + cnt.bad + ' failed</span><span class="cursor">_</span></div>'); $('scanLog').scrollTop = 1e6;
+    $('hero').classList.remove('scanning');
+    btn.disabled = false; btn.textContent = '▶ Run the scan again';
+    refreshSend();
   }
 
   /* ───────────── Bước 2: theo dõi nền ───────────── */
@@ -674,7 +725,7 @@ title: "Navi+ Connection Check"
         'PARTIAL — ' + failed.map(function (e) { return e.host; }).join(', ') + ' failed; controls OK ' + ctlOk + '/' + ctl.length;
       addEvent(Date.now(), 'ROUND', cls); m.rounds.bad++; if (failed.length === MON.length || ctlOk === 0) m.rounds.all++; else if (ctlOk === ctl.length) m.rounds.host++; else m.rounds.part++;
     }
-    renderTiles(); persist(); refreshSend();
+    renderTiles(); refreshSend();
     if (m.on) m.timer = setTimeout(monTick, MON_INTERVAL);
   }
   function monList() { return MON.concat(state.mon && state.mon.stats.frame ? [{ id:'frame', host:'cdn-naviplus.com (page in frame)' }] : []); }
@@ -701,7 +752,7 @@ title: "Navi+ Connection Check"
     m.on = false; m.stoppedAt = Date.now(); clearTimeout(m.timer);
     try { if (m.wake) m.wake.release(); } catch (e) {}
     addEvent(m.stoppedAt, 'STOP', msg || 'watching stopped');
-    $('monBtn').textContent = 'Start watching again'; renderTiles(); persist(); refreshSend();
+    $('monBtn').textContent = 'Start watching again'; renderTiles(); refreshSend();
     if (msg) $('monState').textContent += ' — ' + msg;
   }
   /* Sự kiện của trình duyệt: mất mạng / đổi loại kết nối / tab bị ẩn — thường chính là lời giải. */
@@ -878,37 +929,19 @@ title: "Navi+ Connection Check"
     } catch (e) { st.className = 'status bad-t'; st.textContent = 'Could not create the PDF (' + (e && e.message ? e.message : 'error') + ').'; }
   }
 
-  /* Giữ kết quả nếu khách lỡ đóng/tải lại tab (localStorage có thể bị chặn → bọc try). */
-  function persist() {
-    lsSet({ t:Date.now(), run:state.run, ip:state.ip, env:state.env, l4:state.l4,
-      mon:state.mon ? { startedAt:state.mon.startedAt, stoppedAt:state.mon.stoppedAt, checks:state.mon.checks, stats:state.mon.stats, events:state.mon.events, rounds:state.mon.rounds, on:false } : null,
-      email:$('email').value, uname:$('uname').value, to:$('to').value, notes:$('notes').value });
-  }
-  function restore() {
-    var s = lsGet(); if (!s || Date.now() - s.t > 6 * 3600 * 1000) return;
-    state.run = s.run; state.ip = s.ip; state.env = s.env; state.l4 = s.l4 || null;
-    if (s.mon && s.mon.checks) { state.mon = newMon(); state.mon.startedAt = s.mon.startedAt; state.mon.stoppedAt = s.mon.stoppedAt || s.t; state.mon.checks = s.mon.checks; state.mon.stats = s.mon.stats; state.mon.events = s.mon.events; state.mon.rounds = s.mon.rounds || state.mon.rounds; state.mon.on = false; $('monBtn').textContent = 'Start watching again'; renderTiles(); }
-    if (s.run) {
-      $('resTable').style.display = ''; var lg = ''; s.run.sums.forEach(function (x) { if (x.g !== lg) { lg = x.g; ensureSection(lg); } renderRow(x); });
-      $('hints').innerHTML = s.run.hints.map(function (h, i) { return '<div class="hint' + (s.run.good && i === 0 ? ' good' : '') + '">' + esc(h) + '</div>'; }).join('');
-      if (s.run.deep) $('deep').innerHTML = '<h3>Key readings</h3><ul>' + s.run.deep.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul>';
-      $('runState').textContent = 'Restored your last test (' + utc(s.run.at) + ' UTC).';
-    }
-    $('email').value = s.email || ''; $('uname').value = s.uname || ''; $('to').value = s.to || ''; $('notes').value = s.notes || '';
-  }
-
   /* ───────────── nối sự kiện ───────────── */
   $('runBtn').addEventListener('click', runTest);
   $('monBtn').addEventListener('click', function () { (state.mon && state.mon.on) ? stopMon() : startMon(); });
   $('sendBtn').addEventListener('click', send);
   $('pdfBtn').addEventListener('click', pdf);
-  ['email', 'uname', 'to', 'notes'].forEach(function (id) { $(id).addEventListener('input', function () { refreshSend(); persist(); }); $(id).addEventListener('change', refreshSend); });
+  ['email', 'uname', 'to', 'notes'].forEach(function (id) { $(id).addEventListener('input', refreshSend); $(id).addEventListener('change', refreshSend); });
   window.addEventListener('beforeunload', function (e) { if (state.mon && state.mon.on) { e.preventDefault(); e.returnValue = ''; } });
 
-  restore();
+  /* Mỗi lần mở/tải lại trang là MỘT LƯỢT MỚI: không nhớ kết quả cũ (Khôi 29/09). Dọn dữ liệu do các bản trước lưu. */
+  try { ['naviConnCheck.v2', 'naviConnCheck.v3'].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
   if (P_FROM) $('email').value = P_FROM;
-  if (NAME_DEFAULT && !$('uname').value) $('uname').value = NAME_DEFAULT;
-  if (P_TO) $('to').value = P_TO; else if (!$('to').value) $('to').value = SUPPORT_DEFAULT;
+  if (NAME_DEFAULT) $('uname').value = NAME_DEFAULT;
+  $('to').value = P_TO || SUPPORT_DEFAULT;
   refreshSend();
 })();
 </script>
