@@ -193,7 +193,7 @@ description: "A collection of utilities that help users make the most of Navi+ |
     }
 
     window.renderTools = function () {
-        var tr = window.t || function(k, def) { return def || k; };
+        var tr = function(k, def) { var v = window.t ? window.t(k) : k; return (v && v !== k) ? v : (def || k); };
         var container = document.getElementById("tools-list");
         if (!container) return;
         container.innerHTML = "";
