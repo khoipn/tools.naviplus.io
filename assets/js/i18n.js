@@ -113,7 +113,7 @@
       rmbg_wasm_error:"Your browser doesn't support WebAssembly. Please use Chrome 80+, Firefox 79+, Safari 15+, or Edge 80+.",
       rmbg_file_too_large:'File too large. Maximum size is 10MB.',
       rmbg_tip:' The AI model (~40MB) downloads once and caches in your browser. First use may take a moment depending on connection speed.',
-      tool_watermark_title:'Watermark', tool_watermark_desc:'Add text or logo watermarks to images — position, opacity, rotation',
+      tool_cap_title:'Cap — Screenshot & Annotate', tool_cap_desc:'Free Chrome extension: capture a tab, add notes and arrows, share with one link', tool_watermark_title:'Watermark', tool_watermark_desc:'Add text or logo watermarks to images — position, opacity, rotation',
       wm_h1:'Watermark', wm_desc:'Add text or logo watermarks to your images — free, no account, no data stored.',
       wm_upload:'Upload Image', wm_or:'or', wm_supports:'JPEG, PNG, WebP — max 20 MB', wm_change:'Change',
       wm_settings:'Watermark Settings', wm_tab_text:'Text', wm_tab_logo:'Logo',

@@ -15,7 +15,9 @@ permalink: /toolset/images/cap
 .cap-section { margin-top: 44px; }
 .cap-section h2 { font-size: 22px; font-weight: 800; letter-spacing: -.4px; margin-bottom: 8px; text-align: center; }
 .cap-section > p.cap-lead { text-align: center; color: var(--c-muted); max-width: 680px; margin: 0 auto 22px; font-size: 14.5px; }
-.cap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+.cap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 860px) { .cap-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .cap-grid { grid-template-columns: 1fr; } }
 .cap-card { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius-md); padding: 20px; }
 .cap-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
 .cap-card p { font-size: 13.5px; color: var(--c-muted); margin: 0; }
@@ -46,12 +48,12 @@ permalink: /toolset/images/cap
   <div class="cap-section">
     <h2>Everything You Need. Nothing You Don't.</h2>
     <div class="cap-grid mt-3">
-      <div class="cap-card"><h3>📸 Capture Instantly</h3><p>Capture your current browser tab with one click. No complicated setup or additional software required.</p></div>
-      <div class="cap-card"><h3>✏️ Annotate with Ease</h3><p>Add text notes, draw arrows, highlight areas, and mark important details to communicate your ideas clearly.</p></div>
-      <div class="cap-card"><h3>🔗 Share with One Link</h3><p>Turn your annotated screenshot into a clean, shareable HTML page. Copy the link and send it anywhere — email, Slack, chat, or project management tools.</p></div>
-      <div class="cap-card"><h3>⏳ Automatically Expires in 7 Days</h3><p>Shared pages automatically expire after 7 days. No need to manually clean up old screenshots.</p></div>
-      <div class="cap-card"><h3>🔓 No Account Required</h3><p>No registration, no login, and no personal account needed. Just install and start using.</p></div>
-      <div class="cap-card"><h3>❤️ 100% Free. Forever.</h3><p>All features are free. No subscriptions, no hidden fees, no premium plans.</p></div>
+      <div class="cap-card"><h3>📸 Capture Instantly</h3><p>Capture your current tab with one click.</p></div>
+      <div class="cap-card"><h3>✏️ Annotate with Ease</h3><p>Add notes, arrows, and highlights.</p></div>
+      <div class="cap-card"><h3>🔗 Share with One Link</h3><p>Publish a clean page and send the link anywhere.</p></div>
+      <div class="cap-card"><h3>⏳ Automatically Expires in 7 Days</h3><p>Shared pages clean themselves up.</p></div>
+      <div class="cap-card"><h3>🔓 No Account Required</h3><p>No signup, no login. Just install.</p></div>
+      <div class="cap-card"><h3>❤️ 100% Free. Forever.</h3><p>No subscriptions or hidden fees.</p></div>
     </div>
   </div>
 
